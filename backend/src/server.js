@@ -6,11 +6,25 @@ const { initSockets } = require('./sockets');
 
 const PORT = process.env.PORT || 4000;
 
+const allowedOrigins = (process.env.CLIENT_ORIGIN || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: process.env.CLIENT_ORIGIN || '*', credentials: true },
+  cors: {
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      try {
+        if (new URL(origin).hostname.endsWith('.vercel.app')) return callback(null, true);
+      } catch { /* ignore */ }
+      callback(new Error(`Origin non autorisée par CORS: ${origin}`));
+    },
+    credentials: true,
+  },
 });
-
 initSockets(io);
 
 server.listen(PORT, () => {
