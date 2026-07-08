@@ -15,9 +15,26 @@ const reviewsRoutes = require('./routes/reviews.routes');
 const verificationRoutes = require('./routes/verification.routes');
 const adminRoutes = require('./routes/admin.routes');
 
-const app = express();
+const app = express();// Vercel assigns a fresh URL to every deployment (previews included), so a
+// single exact CLIENT_ORIGIN would break on each redeploy. We allow the
+// configured origin(s) (comma-separated, e.g. your final custom domain)
+// PLUS any *.vercel.app subdomain.
+const allowedOrigins = (process.env.CLIENT_ORIGIN || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
 
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || '*', credentials: true }));
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin) return callback(null, true); // server-to-server / curl / health checks
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    try {
+      if (new URL(origin).hostname.endsWith('.vercel.app')) return callback(null, true);
+    } catch { /* ignore malformed origin */ }
+    callback(new Error(`Origin non autorisée par CORS: ${origin}`));
+  },
+  credentials: true,
+}));
 app.use(morgan('dev'));
 
 // Stripe webhook needs the raw body for signature verification, so it must
