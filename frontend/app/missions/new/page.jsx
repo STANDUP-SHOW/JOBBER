@@ -1,11 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 
 export default function NewMissionPage() {
+  return (
+    <Suspense fallback={<p className="text-slate-400">Chargement…</p>}>
+      <NewMissionForm />
+    </Suspense>
+  );
+}
+
+function NewMissionForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, token, loading: authLoading } = useAuth();
@@ -72,57 +80,4 @@ export default function NewMissionPage() {
           </select>
         </label>
 
-        {selectedCategory?.services?.length > 0 && (
-          <label className="block">
-            <span className="text-xs font-medium text-slate-500">Service précis (optionnel)</span>
-            <select
-              value={form.serviceId}
-              onChange={(e) => setForm({ ...form, serviceId: e.target.value })}
-              className="mt-1 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-moss"
-            >
-              <option value="">Non précisé</option>
-              {selectedCategory.services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          </label>
-        )}
-
-        <Field label="Titre" value={form.title} onChange={(v) => setForm({ ...form, title: v })} required placeholder="Ex : Montage de meubles de cuisine" />
-        <label className="block">
-          <span className="text-xs font-medium text-slate-500">Description</span>
-          <textarea
-            required rows={4} value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
-            placeholder="Détaillez la tâche, le matériel disponible, l'accès au logement…"
-          />
-        </label>
-        <Field label="Adresse" value={form.address} onChange={(v) => setForm({ ...form, address: v })} required placeholder="Rue, ville" />
-
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Date souhaitée" type="date" value={form.desiredDate} onChange={(v) => setForm({ ...form, desiredDate: v })} required />
-          <Field label="Durée estimée (heures)" type="number" min="0.5" step="0.5" value={form.estimatedHours} onChange={(v) => setForm({ ...form, estimatedHours: v })} required />
-        </div>
-
-        {error && <p className="rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
-
-        <button disabled={loading} className="w-full rounded-md bg-ink py-3 font-medium text-paper hover:bg-moss-dark disabled:opacity-60">
-          {loading ? 'Publication…' : 'Publier la mission'}
-        </button>
-      </form>
-    </div>
-  );
-}
-
-function Field({ label, value, onChange, type = 'text', required, placeholder, min, step }) {
-  return (
-    <label className="block">
-      <span className="text-xs font-medium text-slate-500">{label}</span>
-      <input
-        type={type} required={required} placeholder={placeholder} min={min} step={step}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
-      />
-    </label>
-  );
-}
+        {selectedCategory?.services?.length > 0
