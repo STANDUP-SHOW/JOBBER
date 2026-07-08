@@ -1,0 +1,259 @@
+// Prisma schema for the Jobber home-services marketplace
+// Run: npx prisma migrate dev --name init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CLIENT
+  PROVIDER
+  ADMIN
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum MissionStatus {
+  OPEN
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum BookingStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+enum PaymentStatus {
+  REQUIRES_PAYMENT
+  HELD_IN_ESCROW
+  RELEASED
+  REFUNDED
+  FAILED
+}
+
+enum DocumentType {
+  ID_CARD
+  PROOF_OF_ADDRESS
+  BANK_ACCOUNT
+}
+
+model User {
+  id                String     @id @default(cuid())
+  email             String     @unique
+  passwordHash      String
+  firstName         String
+  lastName          String
+  phone             String?
+  role              Role       @default(CLIENT)
+  avatarUrl         String?
+  address           String?
+  lat               Float?
+  lng               Float?
+  isEmailVerified   Boolean    @default(false)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  providerProfile   ProviderProfile?
+  missions          Mission[]        @relation("ClientMissions")
+  offers            Offer[]          @relation("ProviderOffers")
+  bookingsAsClient  Booking[]        @relation("ClientBookings")
+  bookingsAsProvider Booking[]       @relation("ProviderBookings")
+  sentMessages      Message[]        @relation("SentMessages")
+  reviewsWritten    Review[]         @relation("ReviewAuthor")
+  reviewsReceived   Review[]         @relation("ReviewTarget")
+  documents         VerificationDocument[]
+  conversationsAsClient   Conversation[] @relation("ConvClient")
+  conversationsAsProvider Conversation[] @relation("ConvProvider")
+}
+
+model ProviderProfile {
+  id                  String              @id @default(cuid())
+  userId              String              @unique
+  user                User                @relation(fields: [userId], references: [id])
+  bio                 String?
+  defaultHourlyRate   Float               @default(15)
+  radiusKm            Int                 @default(15)
+  verificationStatus  VerificationStatus  @default(UNVERIFIED)
+  ratingAverage       Float               @default(0)
+  ratingCount         Int                 @default(0)
+  completedMissions   Int                 @default(0)
+  walletBalance       Float               @default(0)
+  autoApply           Boolean             @default(false)
+  categories          ProviderCategory[]
+  createdAt           DateTime            @default(now())
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  icon        String?
+  services    Service[]
+  missions    Mission[]
+  providers   ProviderCategory[]
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  missions    Mission[]
+}
+
+model ProviderCategory {
+  id         String   @id @default(cuid())
+  providerId String
+  provider   ProviderProfile @relation(fields: [providerId], references: [id])
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  @@unique([providerId, categoryId])
+}
+
+model Mission {
+  id             String        @id @default(cuid())
+  clientId       String
+  client         User          @relation("ClientMissions", fields: [clientId], references: [id])
+  categoryId     String
+  category       Category      @relation(fields: [categoryId], references: [id])
+  serviceId      String?
+  service        Service?      @relation(fields: [serviceId], references: [id])
+  title          String
+  description    String
+  address        String
+  lat            Float?
+  lng            Float?
+  desiredDate    DateTime
+  estimatedHours Float         @default(1)
+  status         MissionStatus @default(OPEN)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  offers         Offer[]
+  booking        Booking?
+  conversations  Conversation[]
+}
+
+model Offer {
+  id          String      @id @default(cuid())
+  missionId   String
+  mission     Mission     @relation(fields: [missionId], references: [id])
+  providerId  String
+  provider    User        @relation("ProviderOffers", fields: [providerId], references: [id])
+  hourlyRate  Float
+  message     String?
+  status      OfferStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
+
+  @@unique([missionId, providerId])
+}
+
+model Booking {
+  id             String        @id @default(cuid())
+  missionId      String        @unique
+  mission        Mission       @relation(fields: [missionId], references: [id])
+  offerId        String        @unique
+  clientId       String
+  client         User          @relation("ClientBookings", fields: [clientId], references: [id])
+  providerId     String
+  provider       User          @relation("ProviderBookings", fields: [providerId], references: [id])
+  scheduledDate  DateTime
+  hours          Float
+  hourlyRate     Float
+  totalAmount    Float
+  platformFeePct Float         @default(0.20)
+  status         BookingStatus @default(SCHEDULED)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  payment        Payment?
+  review         Review?
+}
+
+model Payment {
+  id                    String        @id @default(cuid())
+  bookingId             String        @unique
+  booking               Booking       @relation(fields: [bookingId], references: [id])
+  stripePaymentIntentId String?
+  amount                Float
+  platformFee           Float
+  providerPayout        Float
+  status                PaymentStatus @default(REQUIRES_PAYMENT)
+  paidAt                DateTime?
+  releasedAt            DateTime?
+  createdAt             DateTime      @default(now())
+}
+
+model Conversation {
+  id          String     @id @default(cuid())
+  missionId   String
+  mission     Mission    @relation(fields: [missionId], references: [id])
+  clientId    String
+  client      User       @relation("ConvClient", fields: [clientId], references: [id])
+  providerId  String
+  provider    User       @relation("ConvProvider", fields: [providerId], references: [id])
+  messages    Message[]
+  createdAt   DateTime   @default(now())
+
+  @@unique([missionId, providerId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  senderId       String
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id])
+  content        String
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  bookingId  String   @unique
+  booking    Booking  @relation(fields: [bookingId], references: [id])
+  authorId   String
+  author     User     @relation("ReviewAuthor", fields: [authorId], references: [id])
+  targetId   String
+  target     User     @relation("ReviewTarget", fields: [targetId], references: [id])
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+}
+
+model VerificationDocument {
+  id         String              @id @default(cuid())
+  userId     String
+  user       User                @relation(fields: [userId], references: [id])
+  type       DocumentType
+  fileUrl    String
+  status     VerificationStatus  @default(PENDING)
+  reviewedAt DateTime?
+  createdAt  DateTime            @default(now())
+}
