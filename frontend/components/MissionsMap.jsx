@@ -103,7 +103,7 @@ export default function MissionsMap({ missions }) {
 
       <div
         ref={scrollRef}
-        className="no-scrollbar absolute inset-x-0 bottom-0 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-4 pt-2"
+        className="no-scrollbar absolute inset-x-0 bottom-0 z-[1100] flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-4 pt-2"
       >
         {located.map((mission, i) => (
           <Link
