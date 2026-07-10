@@ -33,7 +33,7 @@ export default async function HomePage() {
             toute sécurité une fois la mission terminée.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
-            <Link href="/missions/new" className="rounded-md bg-ink px-5 py-3 font-medium text-paper hover:bg-moss-dark">
+            <Link href="/missions/new" className="rounded-md bg-moss px-5 py-3 font-medium text-paper hover:bg-moss-dark">
               Publier un besoin
             </Link>
             <Link href="/auth/register" className="rounded-md border border-slate-200 px-5 py-3 font-medium text-ink hover:border-moss hover:text-moss-dark">

@@ -83,7 +83,7 @@ export default function MissionDetailPage() {
               className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
             />
           </label>
-          <button disabled={busy} className="rounded-md bg-ink px-5 py-2.5 font-medium text-paper hover:bg-moss-dark disabled:opacity-60">
+          <button disabled={busy} className="rounded-md bg-moss px-5 py-2.5 font-medium text-paper hover:bg-moss-dark disabled:opacity-60">
             Envoyer ma candidature
           </button>
         </form>

@@ -74,7 +74,7 @@ export default function AdminCategoriesPage() {
             className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
           />
         </label>
-        <button disabled={busy} className="rounded-md bg-ink px-4 py-2.5 text-sm font-medium text-paper hover:bg-moss-dark disabled:opacity-60">
+        <button disabled={busy} className="rounded-md bg-moss px-4 py-2.5 text-sm font-medium text-paper hover:bg-moss-dark disabled:opacity-60">
           Ajouter
         </button>
       </form>

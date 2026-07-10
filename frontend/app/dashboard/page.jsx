@@ -122,7 +122,7 @@ function EmptyState({ role }) {
       <div className="rounded-lg border border-dashed border-slate-200 bg-white p-6 text-center">
         <p className="text-slate-500">Vous n'avez pas encore de réservation.</p>
         <div className="mt-4 flex flex-wrap justify-center gap-3">
-          <Link href="/missions" className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-paper hover:bg-moss-dark">
+          <Link href="/missions" className="rounded-md bg-moss px-4 py-2 text-sm font-medium text-paper hover:bg-moss-dark">
             Parcourir les missions
           </Link>
           <Link href="/dashboard/profile" className="rounded-md border border-slate-200 px-4 py-2 text-sm font-medium text-ink hover:border-moss hover:text-moss">
@@ -137,7 +137,7 @@ function EmptyState({ role }) {
     <div className="rounded-lg border border-dashed border-slate-200 bg-white p-6 text-center">
       <p className="text-slate-500">Vous n'avez pas encore de réservation.</p>
       <div className="mt-4 flex justify-center">
-        <Link href="/missions/new" className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-paper hover:bg-moss-dark">
+        <Link href="/missions/new" className="rounded-md bg-moss px-4 py-2 text-sm font-medium text-paper hover:bg-moss-dark">
           Publier un besoin
         </Link>
       </div>
@@ -148,7 +148,7 @@ function EmptyState({ role }) {
 function ActionButton({ children, onClick, busy, variant = 'ink' }) {
   const styles = variant === 'ochre'
     ? 'bg-ochre text-ink hover:bg-ochre-dark'
-    : 'bg-ink text-paper hover:bg-moss-dark';
+    : 'bg-moss text-paper hover:bg-moss-dark';
   return (
     <button disabled={busy} onClick={onClick} className={`rounded-md px-4 py-2 text-sm font-medium disabled:opacity-60 ${styles}`}>
       {busy ? '…' : children}

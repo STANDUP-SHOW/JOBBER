@@ -1,6 +1,6 @@
 import './globals.css';
 import { AuthProvider } from '../lib/auth-context';
-import Navbar from '../components/Navbar';
+import BottomNav from '../components/BottomNav';
 
 export const metadata = {
   title: 'Jobber — Services à domicile',
@@ -12,11 +12,8 @@ export default function RootLayout({ children }) {
     <html lang="fr">
       <body className="font-body">
         <AuthProvider>
-          <Navbar />
-          <main className="mx-auto min-h-screen max-w-6xl px-6 py-10">{children}</main>
-          <footer className="border-t border-slate-200 py-8 text-center text-xs text-slate-400">
-            Jobber — projet pédagogique.
-          </footer>
+          <main className="mx-auto min-h-screen max-w-6xl px-6 pb-28 pt-6">{children}</main>
+          <BottomNav />
         </AuthProvider>
       </body>
     </html>

@@ -4,35 +4,35 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        ink: '#161F1B',        // near-black pine, primary text
-        paper: '#F5F3EE',      // warm off-white background
+        ink: '#111114',        // near-black, primary text
+        paper: '#F4F5F7',      // light gray app background
         moss: {
-          DEFAULT: '#2F6F52',
-          dark: '#1F4D38',
-          light: '#E4EFE8',
+          DEFAULT: '#0B66FF',  // primary accent blue
+          dark: '#084ECC',
+          light: '#E7F0FF',
         },
         ochre: {
-          DEFAULT: '#E1A63C',
-          dark: '#B7822A',
-          light: '#FBEFD9',
+          DEFAULT: '#FFB020',  // secondary accent (warnings, highlights)
+          dark: '#C87F00',
+          light: '#FFF3DC',
         },
-        clay: '#C1512F',       // reserved for destructive / urgent actions only
+        clay: '#E63950',       // reserved for destructive / urgent actions only
         slate: {
-          50: '#F6F7F7',
-          200: '#DDE1DF',
-          400: '#8B948F',
-          600: '#4B5650',
+          50: '#FAFAFB',
+          200: '#E5E5EA',
+          400: '#8E8E93',
+          600: '#48484C',
         },
       },
       fontFamily: {
-        display: ['"Fraunces"', 'Georgia', 'serif'],
+        display: ['"Inter"', 'system-ui', 'sans-serif'],
         body: ['"Inter"', 'system-ui', 'sans-serif'],
         mono: ['"IBM Plex Mono"', 'monospace'],
       },
       borderRadius: {
-        sm: '4px',
-        md: '8px',
-        lg: '14px',
+        sm: '6px',
+        md: '10px',
+        lg: '18px',
       },
     },
   },

@@ -63,14 +63,14 @@ export default function MissionsPage() {
           <button
             type="button"
             onClick={() => setView('list')}
-            className={`rounded px-3 py-1.5 ${view === 'list' ? 'bg-ink text-paper' : 'text-slate-500 hover:text-ink'}`}
+            className={`rounded px-3 py-1.5 ${view === 'list' ? 'bg-moss text-paper' : 'text-slate-500 hover:text-ink'}`}
           >
             Vue liste
           </button>
           <button
             type="button"
             onClick={() => setView('map')}
-            className={`rounded px-3 py-1.5 ${view === 'map' ? 'bg-ink text-paper' : 'text-slate-500 hover:text-ink'}`}
+            className={`rounded px-3 py-1.5 ${view === 'map' ? 'bg-moss text-paper' : 'text-slate-500 hover:text-ink'}`}
           >
             Vue carte
           </button>
