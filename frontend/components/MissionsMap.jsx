@@ -1,51 +1,56 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Circle, useMap } from 'react-leaflet';
-import L from 'leaflet';
+import { GoogleMap, Marker, Circle, useJsApiLoader } from '@react-google-maps/api';
 import Link from 'next/link';
-import 'leaflet/dist/leaflet.css';
 
-const markerIcon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
-
-const activeMarkerIcon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [36, 59],
-  iconAnchor: [18, 59],
-  popupAnchor: [1, -50],
-  shadowSize: [59, 59],
-});
-
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 const MISSION_ZOOM = 13;
-const BELGIUM_CENTER = [50.5039, 4.4699];
+const BELGIUM_CENTER = { lat: 50.5039, lng: 4.4699 };
 
-// Recenters the map instantly (no pan animation) whenever the active mission changes,
-// to mirror the "teleport" feel of stepping through missions with the arrows.
-function MapRecenter({ target }) {
-  const map = useMap();
-  useEffect(() => {
-    if (target) map.setView(target, MISSION_ZOOM, { animate: false });
-  }, [target, map]);
-  return null;
-}
+const MAP_OPTIONS = {
+  disableDefaultUI: true,
+  zoomControl: true,
+  clickableIcons: false,
+};
 
 export default function MissionsMap({ missions, providerZone }) {
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: 'jobber-google-maps',
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY || '',
+  });
+
   const located = useMemo(() => missions.filter((m) => m.lat != null && m.lng != null), [missions]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [map, setMap] = useState(null);
 
   useEffect(() => {
     setActiveIndex(0);
   }, [located.length]);
+
+  const active = located[activeIndex];
+
+  useEffect(() => {
+    if (map && active) {
+      map.panTo({ lat: active.lat, lng: active.lng });
+    }
+  }, [map, active?.id]);
+
+  if (!GOOGLE_MAPS_API_KEY) {
+    return (
+      <div className="mt-6 rounded-lg border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-slate-400">
+        Carte non configurée — il manque la clé Google Maps (NEXT_PUBLIC_GOOGLE_MAPS_API_KEY).
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="mt-6 rounded-lg border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-clay">
+        Impossible de charger Google Maps.
+      </div>
+    );
+  }
 
   if (missions.length > 0 && located.length === 0) {
     return (
@@ -55,11 +60,14 @@ export default function MissionsMap({ missions, providerZone }) {
     );
   }
 
-  const active = located[activeIndex];
+  if (!isLoaded) {
+    return <p className="mt-6 text-slate-400">Chargement de la carte…</p>;
+  }
+
   const center = active
-    ? [active.lat, active.lng]
+    ? { lat: active.lat, lng: active.lng }
     : providerZone
-      ? [providerZone.lat, providerZone.lng]
+      ? { lat: providerZone.lat, lng: providerZone.lng }
       : BELGIUM_CENTER;
 
   function go(delta) {
@@ -75,28 +83,35 @@ export default function MissionsMap({ missions, providerZone }) {
       )}
 
       <div className="relative overflow-hidden rounded-lg border border-slate-200" style={{ height: 'min(600px, 70vh)' }}>
-        <MapContainer center={center} zoom={MISSION_ZOOM} style={{ height: '100%', width: '100%' }}>
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          {active && <MapRecenter target={[active.lat, active.lng]} />}
+        <GoogleMap
+          onLoad={setMap}
+          center={center}
+          zoom={MISSION_ZOOM}
+          mapContainerStyle={{ height: '100%', width: '100%' }}
+          options={MAP_OPTIONS}
+        >
           {providerZone && (
             <Circle
-              center={[providerZone.lat, providerZone.lng]}
+              center={{ lat: providerZone.lat, lng: providerZone.lng }}
               radius={providerZone.radiusKm * 1000}
-              pathOptions={{ color: '#2F6F52', fillColor: '#2F6F52', fillOpacity: 0.08, weight: 2 }}
+              options={{
+                strokeColor: '#0B66FF',
+                strokeWeight: 2,
+                fillColor: '#0B66FF',
+                fillOpacity: 0.08,
+              }}
             />
           )}
           {located.map((mission, i) => (
             <Marker
               key={mission.id}
-              position={[mission.lat, mission.lng]}
-              icon={i === activeIndex ? activeMarkerIcon : markerIcon}
-              eventHandlers={{ click: () => setActiveIndex(i) }}
+              position={{ lat: mission.lat, lng: mission.lng }}
+              onClick={() => setActiveIndex(i)}
+              opacity={i === activeIndex ? 1 : 0.75}
+              zIndex={i === activeIndex ? 10 : 1}
             />
           ))}
-        </MapContainer>
+        </GoogleMap>
 
         {active && (
           <div className="absolute inset-x-3 bottom-3 z-[1100] flex items-center gap-2">
