@@ -82,7 +82,7 @@ export default function ConversationPage() {
           placeholder="Écrire un message…"
           className="flex-1 rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
         />
-        <button className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-paper hover:bg-moss-dark">Envoyer</button>
+        <button className="rounded-md bg-moss px-4 py-2 text-sm font-medium text-paper hover:bg-moss-dark">Envoyer</button>
       </form>
     </div>
   );

@@ -39,7 +39,7 @@ export default function RegisterPage() {
             key={val}
             type="button"
             onClick={() => setRole(val)}
-            className={`flex-1 rounded px-3 py-2 font-medium transition ${role === val ? 'bg-ink text-paper' : 'text-slate-500'}`}
+            className={`flex-1 rounded px-3 py-2 font-medium transition ${role === val ? 'bg-moss text-paper' : 'text-slate-500'}`}
           >
             {label}
           </button>
@@ -57,7 +57,7 @@ export default function RegisterPage() {
 
         {error && <p className="rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
 
-        <button disabled={loading} className="w-full rounded-md bg-ink py-3 font-medium text-paper hover:bg-moss-dark disabled:opacity-60">
+        <button disabled={loading} className="w-full rounded-md bg-moss py-3 font-medium text-paper hover:bg-moss-dark disabled:opacity-60">
           {loading ? 'Création…' : 'Créer mon compte'}
         </button>
       </form>
