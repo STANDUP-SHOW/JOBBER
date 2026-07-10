@@ -1,13 +1,20 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { api } from '../../lib/api';
 import MissionCard from '../../components/MissionCard';
+
+const MissionsMap = dynamic(() => import('../../components/MissionsMap'), {
+  ssr: false,
+  loading: () => <p className="mt-6 text-slate-400">Chargement de la carte…</p>,
+});
 
 export default function MissionsPage() {
   const [categories, setCategories] = useState([]);
   const [missions, setMissions] = useState([]);
   const [categoryId, setCategoryId] = useState('');
+  const [view, setView] = useState('list');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -30,8 +37,8 @@ export default function MissionsPage() {
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Missions disponibles</h1>
       <p className="mt-1 text-sm text-slate-500">Parcourez les besoins publiés par les clients et proposez votre tarif horaire.</p>
 
-      <div className="mt-6">
-        <label className="block max-w-xs">
+      <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
+        <label className="block max-w-xs grow">
           <span className="text-xs font-medium text-slate-500">Filtrer par catégorie</span>
           <select
             value={categoryId}
@@ -42,17 +49,40 @@ export default function MissionsPage() {
             {categories.map((c) => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
           </select>
         </label>
+
+        <div className="flex rounded-md border border-slate-200 bg-white p-1 text-sm font-medium">
+          <button
+            type="button"
+            onClick={() => setView('list')}
+            className={`rounded px-3 py-1.5 ${view === 'list' ? 'bg-ink text-paper' : 'text-slate-500 hover:text-ink'}`}
+          >
+            Vue liste
+          </button>
+          <button
+            type="button"
+            onClick={() => setView('map')}
+            className={`rounded px-3 py-1.5 ${view === 'map' ? 'bg-ink text-paper' : 'text-slate-500 hover:text-ink'}`}
+          >
+            Vue carte
+          </button>
+        </div>
       </div>
 
       {error && <p className="mt-4 rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
 
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {loading && <p className="text-slate-400">Chargement…</p>}
-        {!loading && missions.length === 0 && (
-          <p className="text-slate-400">Aucune mission ouverte pour le moment.</p>
-        )}
-        {missions.map((mission) => <MissionCard key={mission.id} mission={mission} />)}
-      </div>
+      {loading && <p className="mt-6 text-slate-400">Chargement…</p>}
+
+      {!loading && missions.length === 0 && (
+        <p className="mt-6 text-slate-400">Aucune mission ouverte pour le moment.</p>
+      )}
+
+      {!loading && missions.length > 0 && view === 'list' && (
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {missions.map((mission) => <MissionCard key={mission.id} mission={mission} />)}
+        </div>
+      )}
+
+      {!loading && missions.length > 0 && view === 'map' && <MissionsMap missions={missions} />}
     </div>
   );
 }
