@@ -26,12 +26,14 @@ const activeMarkerIcon = L.icon({
   shadowSize: [59, 59],
 });
 
+const MISSION_ZOOM = 13;
+
 // Recenters the map instantly (no pan animation) whenever the active mission changes,
 // to mirror the "teleport" feel of swiping through the mission carousel.
 function MapRecenter({ target }) {
   const map = useMap();
   useEffect(() => {
-    if (target) map.setView(target, map.getZoom(), { animate: false });
+    if (target) map.setView(target, MISSION_ZOOM, { animate: false });
   }, [target, map]);
   return null;
 }
@@ -50,13 +52,14 @@ export default function MissionsMap({ missions }) {
     const container = scrollRef.current;
     if (!container || !located.length) return;
 
+    // A single observer callback can report several cards at once (notably on
+    // first mount, before layout has settled) — only the most-visible one should win.
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
-            setActiveIndex(Number(entry.target.dataset.index));
-          }
-        });
+        const visible = entries.filter((entry) => entry.isIntersecting && entry.intersectionRatio > 0.6);
+        if (!visible.length) return;
+        const best = visible.reduce((a, b) => (b.intersectionRatio > a.intersectionRatio ? b : a));
+        setActiveIndex(Number(best.target.dataset.index));
       },
       { root: container, threshold: [0.6] }
     );
