@@ -29,7 +29,9 @@ app.use(cors({
     if (!origin) return callback(null, true); // server-to-server / curl / health checks
     if (allowedOrigins.includes(origin)) return callback(null, true);
     try {
-      if (new URL(origin).hostname.endsWith('.vercel.app')) return callback(null, true);
+      const hostname = new URL(origin).hostname;
+      if (hostname.endsWith('.vercel.app')) return callback(null, true);
+      if (hostname === 'localhost' || hostname === '127.0.0.1') return callback(null, true);
     } catch { /* ignore malformed origin */ }
     callback(new Error(`Origin non autorisée par CORS: ${origin}`));
   },
