@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { useEffect, useMemo, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Circle, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import Link from 'next/link';
 import 'leaflet/dist/leaflet.css';
@@ -27,9 +27,10 @@ const activeMarkerIcon = L.icon({
 });
 
 const MISSION_ZOOM = 13;
+const BELGIUM_CENTER = [50.5039, 4.4699];
 
 // Recenters the map instantly (no pan animation) whenever the active mission changes,
-// to mirror the "teleport" feel of swiping through the mission carousel.
+// to mirror the "teleport" feel of stepping through missions with the arrows.
 function MapRecenter({ target }) {
   const map = useMap();
   useEffect(() => {
@@ -38,40 +39,13 @@ function MapRecenter({ target }) {
   return null;
 }
 
-export default function MissionsMap({ missions }) {
+export default function MissionsMap({ missions, providerZone }) {
   const located = useMemo(() => missions.filter((m) => m.lat != null && m.lng != null), [missions]);
   const [activeIndex, setActiveIndex] = useState(0);
-  const scrollRef = useRef(null);
-  const cardRefs = useRef([]);
 
   useEffect(() => {
     setActiveIndex(0);
   }, [located.length]);
-
-  useEffect(() => {
-    const container = scrollRef.current;
-    if (!container || !located.length) return;
-
-    // A single observer callback can report several cards at once (notably on
-    // first mount, before layout has settled) — only the most-visible one should win.
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.filter((entry) => entry.isIntersecting && entry.intersectionRatio > 0.6);
-        if (!visible.length) return;
-        const best = visible.reduce((a, b) => (b.intersectionRatio > a.intersectionRatio ? b : a));
-        setActiveIndex(Number(best.target.dataset.index));
-      },
-      { root: container, threshold: [0.6] }
-    );
-
-    cardRefs.current.forEach((el) => el && observer.observe(el));
-    return () => observer.disconnect();
-  }, [located]);
-
-  function selectFromMarker(i) {
-    setActiveIndex(i);
-    cardRefs.current[i]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-  }
 
   if (missions.length > 0 && located.length === 0) {
     return (
@@ -82,45 +56,83 @@ export default function MissionsMap({ missions }) {
   }
 
   const active = located[activeIndex];
+  const center = active
+    ? [active.lat, active.lng]
+    : providerZone
+      ? [providerZone.lat, providerZone.lng]
+      : BELGIUM_CENTER;
+
+  function go(delta) {
+    setActiveIndex((i) => (i + delta + located.length) % located.length);
+  }
 
   return (
-    <div className="relative mt-6 overflow-hidden rounded-lg border border-slate-200" style={{ height: '560px' }}>
-      <MapContainer center={[active.lat, active.lng]} zoom={13} style={{ height: '100%', width: '100%' }}>
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <MapRecenter target={[active.lat, active.lng]} />
-        {located.map((mission, i) => (
-          <Marker
-            key={mission.id}
-            position={[mission.lat, mission.lng]}
-            icon={i === activeIndex ? activeMarkerIcon : markerIcon}
-            eventHandlers={{ click: () => selectFromMarker(i) }}
-          />
-        ))}
-      </MapContainer>
+    <div className="mt-6">
+      {providerZone && (
+        <p className="mb-2 text-xs text-slate-400">
+          {located.length} mission{located.length > 1 ? 's' : ''} dans votre zone d'intervention ({providerZone.radiusKm} km)
+        </p>
+      )}
 
-      <div
-        ref={scrollRef}
-        className="no-scrollbar absolute inset-x-0 bottom-0 z-[1100] flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-4 pt-2"
-      >
-        {located.map((mission, i) => (
-          <Link
-            key={mission.id}
-            href={`/missions/${mission.id}`}
-            data-index={i}
-            ref={(el) => { cardRefs.current[i] = el; }}
-            className={`w-[85%] shrink-0 snap-center rounded-lg border bg-white p-4 shadow-md transition sm:w-[320px] ${
-              i === activeIndex ? 'border-moss' : 'border-slate-200'
-            }`}
-          >
-            <span className="label-eyebrow text-moss">{mission.category?.name}</span>
-            <div className="mt-1 font-display text-lg font-medium text-ink">{mission.title}</div>
-            <p className="mt-1 line-clamp-2 text-sm text-slate-600">{mission.description}</p>
-            <div className="mt-2 text-xs text-slate-400">{mission.address}</div>
-          </Link>
-        ))}
+      <div className="relative overflow-hidden rounded-lg border border-slate-200" style={{ height: 'min(600px, 70vh)' }}>
+        <MapContainer center={center} zoom={MISSION_ZOOM} style={{ height: '100%', width: '100%' }}>
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          {active && <MapRecenter target={[active.lat, active.lng]} />}
+          {providerZone && (
+            <Circle
+              center={[providerZone.lat, providerZone.lng]}
+              radius={providerZone.radiusKm * 1000}
+              pathOptions={{ color: '#2F6F52', fillColor: '#2F6F52', fillOpacity: 0.08, weight: 2 }}
+            />
+          )}
+          {located.map((mission, i) => (
+            <Marker
+              key={mission.id}
+              position={[mission.lat, mission.lng]}
+              icon={i === activeIndex ? activeMarkerIcon : markerIcon}
+              eventHandlers={{ click: () => setActiveIndex(i) }}
+            />
+          ))}
+        </MapContainer>
+
+        {active && (
+          <div className="absolute inset-x-3 bottom-3 z-[1100] flex items-center gap-2">
+            {located.length > 1 && (
+              <button
+                type="button"
+                onClick={() => go(-1)}
+                aria-label="Mission précédente"
+                className="shrink-0 rounded-full bg-white p-3 text-ink shadow-lg hover:bg-slate-50"
+              >
+                ←
+              </button>
+            )}
+
+            <Link
+              href={`/missions/${active.id}`}
+              className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white p-4 shadow-lg"
+            >
+              <span className="label-eyebrow text-moss">{active.category?.name}</span>
+              <div className="mt-1 truncate font-display text-lg font-medium text-ink">{active.title}</div>
+              <p className="mt-1 line-clamp-2 text-sm text-slate-600">{active.description}</p>
+              <div className="mt-2 truncate text-xs text-slate-400">{active.address}</div>
+            </Link>
+
+            {located.length > 1 && (
+              <button
+                type="button"
+                onClick={() => go(1)}
+                aria-label="Mission suivante"
+                className="shrink-0 rounded-full bg-white p-3 text-ink shadow-lg hover:bg-slate-50"
+              >
+                →
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

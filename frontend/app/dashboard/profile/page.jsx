@@ -6,11 +6,12 @@ import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 
 export default function ProviderProfilePage() {
-  const { user, token, loading: authLoading } = useAuth();
+  const { user, token, login, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState({
+    address: '',
     bio: '',
     defaultHourlyRate: 15,
     radiusKm: 15,
@@ -35,6 +36,7 @@ export default function ProviderProfilePage() {
     const profile = user.providerProfile;
     if (profile) {
       setForm({
+        address: user.address || '',
         bio: profile.bio || '',
         defaultHourlyRate: profile.defaultHourlyRate ?? 15,
         radiusKm: profile.radiusKm ?? 15,
@@ -61,6 +63,7 @@ export default function ProviderProfilePage() {
     try {
       await api.updateProviderProfile(
         {
+          address: form.address,
           bio: form.bio,
           defaultHourlyRate: Number(form.defaultHourlyRate),
           radiusKm: Number(form.radiusKm),
@@ -69,6 +72,8 @@ export default function ProviderProfilePage() {
         },
         token
       );
+      const { user: refreshed } = await api.me(token);
+      login(token, refreshed);
       setSaved(true);
     } catch (err) {
       setError(err.message);
@@ -86,6 +91,20 @@ export default function ProviderProfilePage() {
       <p className="mt-1 text-sm text-slate-500">Ces informations sont visibles par les clients et déterminent les missions qui vous sont proposées.</p>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
+        <label className="block">
+          <span className="text-xs font-medium text-slate-500">Adresse</span>
+          <input
+            type="text"
+            value={form.address}
+            onChange={(e) => setForm({ ...form, address: e.target.value })}
+            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
+            placeholder="Rue, ville, code postal"
+          />
+          <span className="mt-1 block text-xs text-slate-400">
+            Utilisée pour centrer votre zone d'intervention sur la carte des missions.
+          </span>
+        </label>
+
         <label className="block">
           <span className="text-xs font-medium text-slate-500">Bio</span>
           <textarea

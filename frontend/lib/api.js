@@ -25,9 +25,9 @@ export const api = {
   categories: () => request('/categories'),
 
   createMission: (payload, token) => request('/missions', { method: 'POST', body: payload, token }),
-  listMissions: (params = {}) => {
+  listMissions: (params = {}, token) => {
     const qs = new URLSearchParams(params).toString();
-    return request(`/missions${qs ? `?${qs}` : ''}`);
+    return request(`/missions${qs ? `?${qs}` : ''}`, { token });
   },
   getMission: (id) => request(`/missions/${id}`),
   cancelMission: (id, token) => request(`/missions/${id}/cancel`, { method: 'PATCH', token }),

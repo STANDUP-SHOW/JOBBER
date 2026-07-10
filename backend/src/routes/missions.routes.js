@@ -1,8 +1,8 @@
 const express = require('express');
 const { z } = require('zod');
 const prisma = require('../config/prisma');
-const { requireAuth, requireRole } = require('../middleware/auth');
-const { geocodeAddress, jitterCoordinate } = require('../services/geocodingService');
+const { requireAuth, requireRole, optionalAuth } = require('../middleware/auth');
+const { geocodeAddress, jitterCoordinate, haversineDistanceKm } = require('../services/geocodingService');
 
 const router = express.Router();
 
@@ -47,11 +47,13 @@ router.post('/', requireAuth, requireRole('CLIENT'), async (req, res, next) => {
   }
 });
 
-// List / search missions (e.g. providers browsing the "joblist")
-router.get('/', async (req, res, next) => {
+// List / search missions (e.g. providers browsing the "joblist"). When called
+// by a logged-in provider, results are narrowed to their registered
+// categories and their intervention radius (Yoojo-style joblist).
+router.get('/', optionalAuth, async (req, res, next) => {
   try {
     const { categoryId, status, clientId } = req.query;
-    const missions = await prisma.mission.findMany({
+    let missions = await prisma.mission.findMany({
       where: {
         categoryId: categoryId || undefined,
         status: status || undefined,
@@ -60,6 +62,29 @@ router.get('/', async (req, res, next) => {
       include: { category: true, service: true, client: { select: { id: true, firstName: true, avatarUrl: true } }, _count: { select: { offers: true } } },
       orderBy: { createdAt: 'desc' },
     });
+
+    if (req.user?.role === 'PROVIDER') {
+      const profile = await prisma.providerProfile.findUnique({
+        where: { userId: req.user.id },
+        include: { categories: true, user: { select: { lat: true, lng: true } } },
+      });
+
+      if (profile) {
+        if (profile.categories.length > 0) {
+          const allowedCategoryIds = new Set(profile.categories.map((c) => c.categoryId));
+          missions = missions.filter((m) => allowedCategoryIds.has(m.categoryId));
+        }
+        if (profile.user.lat != null && profile.user.lng != null) {
+          missions = missions.filter(
+            (m) =>
+              m.lat == null ||
+              m.lng == null ||
+              haversineDistanceKm(profile.user.lat, profile.user.lng, m.lat, m.lng) <= profile.radiusKm
+          );
+        }
+      }
+    }
+
     res.json({ missions: missions.map(withPublicPosition) });
   } catch (err) {
     next(err);
