@@ -30,12 +30,14 @@ export default function MissionsPage() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     setLoading(true);
     setError('');
     api.listMissions({ status: 'OPEN', ...(categoryId ? { categoryId } : {}) }, token)
-      .then(({ missions }) => setMissions(missions))
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
+      .then(({ missions }) => { if (!cancelled) setMissions(missions); })
+      .catch((err) => { if (!cancelled) setError(err.message); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [categoryId, token]);
 
   return (
