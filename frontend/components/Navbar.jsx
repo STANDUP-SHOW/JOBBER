@@ -15,7 +15,15 @@ export default function Navbar() {
         </Link>
 
         <nav className="flex items-center gap-6 text-sm font-medium text-ink">
-          <Link href="/missions/new" className="hidden sm:inline hover:text-moss">Publier un besoin</Link>
+          {(!user || user.role === 'CLIENT') && (
+            <Link href="/missions/new" className="hidden sm:inline hover:text-moss">Publier un besoin</Link>
+          )}
+          {user?.role === 'PROVIDER' && (
+            <>
+              <Link href="/missions" className="hidden sm:inline hover:text-moss">Missions disponibles</Link>
+              <Link href="/dashboard/profile" className="hidden sm:inline hover:text-moss">Mon profil</Link>
+            </>
+          )}
           {user ? (
             <>
               <Link href="/messages" className="hover:text-moss">Messages</Link>

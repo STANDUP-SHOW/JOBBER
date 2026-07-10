@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
 import StarRating from '../../components/StarRating';
@@ -49,7 +50,7 @@ export default function DashboardPage() {
       {error && <p className="mt-4 rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
 
       <div className="mt-8 space-y-4">
-        {bookings.length === 0 && <p className="text-slate-400">Aucune réservation pour le moment.</p>}
+        {bookings.length === 0 && <EmptyState role={user.role} />}
 
         {bookings.map((b) => {
           const isClient = b.clientId === user.id;
@@ -110,6 +111,35 @@ export default function DashboardPage() {
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({ role }) {
+  if (role === 'PROVIDER') {
+    return (
+      <div className="rounded-lg border border-dashed border-slate-200 bg-white p-6 text-center">
+        <p className="text-slate-500">Vous n'avez pas encore de réservation.</p>
+        <div className="mt-4 flex flex-wrap justify-center gap-3">
+          <Link href="/missions" className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-paper hover:bg-moss-dark">
+            Parcourir les missions
+          </Link>
+          <Link href="/dashboard/profile" className="rounded-md border border-slate-200 px-4 py-2 text-sm font-medium text-ink hover:border-moss hover:text-moss">
+            Compléter mon profil
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-lg border border-dashed border-slate-200 bg-white p-6 text-center">
+      <p className="text-slate-500">Vous n'avez pas encore de réservation.</p>
+      <div className="mt-4 flex justify-center">
+        <Link href="/missions/new" className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-paper hover:bg-moss-dark">
+          Publier un besoin
+        </Link>
       </div>
     </div>
   );
