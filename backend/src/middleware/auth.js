@@ -23,4 +23,20 @@ function requireRole(...roles) {
   };
 }
 
-module.exports = { requireAuth, requireRole };
+// Decodes the token if present, but never rejects — for public routes that
+// personalize their response when the caller happens to be logged in.
+function optionalAuth(req, res, next) {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  if (token) {
+    try {
+      const payload = verifyToken(token);
+      req.user = { id: payload.sub, role: payload.role, email: payload.email };
+    } catch (err) {
+      // invalid/expired token on a public route — treat as anonymous
+    }
+  }
+  next();
+}
+
+module.exports = { requireAuth, requireRole, optionalAuth };

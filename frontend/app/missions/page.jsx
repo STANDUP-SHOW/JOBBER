@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { api } from '../../lib/api';
+import { useAuth } from '../../lib/auth-context';
 import MissionCard from '../../components/MissionCard';
 
 const MissionsMap = dynamic(() => import('../../components/MissionsMap'), {
@@ -11,12 +12,18 @@ const MissionsMap = dynamic(() => import('../../components/MissionsMap'), {
 });
 
 export default function MissionsPage() {
+  const { user, token } = useAuth();
   const [categories, setCategories] = useState([]);
   const [missions, setMissions] = useState([]);
   const [categoryId, setCategoryId] = useState('');
   const [view, setView] = useState('list');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const providerZone =
+    user?.role === 'PROVIDER' && user.lat != null && user.lng != null
+      ? { lat: user.lat, lng: user.lng, radiusKm: user.providerProfile?.radiusKm ?? 15 }
+      : null;
 
   useEffect(() => {
     api.categories().then(({ categories }) => setCategories(categories)).catch(() => {});
@@ -25,11 +32,11 @@ export default function MissionsPage() {
   useEffect(() => {
     setLoading(true);
     setError('');
-    api.listMissions({ status: 'OPEN', ...(categoryId ? { categoryId } : {}) })
+    api.listMissions({ status: 'OPEN', ...(categoryId ? { categoryId } : {}) }, token)
       .then(({ missions }) => setMissions(missions))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [categoryId]);
+  }, [categoryId, token]);
 
   return (
     <div>
@@ -72,17 +79,17 @@ export default function MissionsPage() {
 
       {loading && <p className="mt-6 text-slate-400">Chargement…</p>}
 
-      {!loading && missions.length === 0 && (
+      {!loading && view === 'list' && missions.length === 0 && (
         <p className="mt-6 text-slate-400">Aucune mission ouverte pour le moment.</p>
       )}
 
-      {!loading && missions.length > 0 && view === 'list' && (
+      {!loading && view === 'list' && missions.length > 0 && (
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {missions.map((mission) => <MissionCard key={mission.id} mission={mission} />)}
         </div>
       )}
 
-      {!loading && missions.length > 0 && view === 'map' && <MissionsMap missions={missions} />}
+      {!loading && view === 'map' && <MissionsMap missions={missions} providerZone={providerZone} />}
     </div>
   );
 }
