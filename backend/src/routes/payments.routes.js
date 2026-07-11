@@ -1,7 +1,7 @@
 const express = require('express');
 const prisma = require('../config/prisma');
-const { requireAuth } = require('../middleware/auth');
-const { createEscrowIntent, captureIntent, refundIntent, stripe } = require('../services/stripeService');
+const { requireAuth, requireRole } = require('../middleware/auth');
+const { createEscrowIntent, captureIntent, refundIntent, stripe, createConnectAccount, createAccountLink } = require('../services/stripeService');
 
 const router = express.Router();
 
@@ -74,6 +74,30 @@ router.post('/:bookingId/refund', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// Provider clicks "Configurer mes paiements" — creates (or reuses) a Stripe
+// Connect Express account and returns a link to Stripe's hosted onboarding.
+router.post('/connect/onboard', requireAuth, requireRole('PROVIDER'), async (req, res, next) => {
+  try {
+    const profile = await prisma.providerProfile.findUnique({ where: { userId: req.user.id } });
+    if (!profile) return res.status(404).json({ error: 'Profil prestataire introuvable' });
+
+    let accountId = profile.stripeAccountId;
+    if (!accountId) {
+      const account = await createConnectAccount(req.user.email);
+      accountId = account.id;
+      await prisma.providerProfile.update({ where: { userId: req.user.id }, data: { stripeAccountId: accountId } });
+    }
+
+    const origin = process.env.CLIENT_ORIGIN?.split(',')[0];
+    const link = await createAccountLink(
+      accountId,
+      `${origin}/dashboard/profile?stripe=refresh`,
+      `${origin}/dashboard/profile?stripe=return`
+    );
+    res.json({ url: link.url });
+  } catch (err) { next(err); }
+});
+
 module.exports = router;
 
 // Stripe webhook handler — exported separately because it needs the RAW
@@ -96,6 +120,14 @@ module.exports.webhookHandler = async (req, res) => {
       await prisma.payment.updateMany({
         where: { stripePaymentIntentId: intent.id },
         data: { status: 'FAILED' },
+      });
+      break;
+    }
+    case 'account.updated': {
+      const account = event.data.object;
+      await prisma.providerProfile.updateMany({
+        where: { stripeAccountId: account.id },
+        data: { payoutsEnabled: !!account.payouts_enabled },
       });
       break;
     }

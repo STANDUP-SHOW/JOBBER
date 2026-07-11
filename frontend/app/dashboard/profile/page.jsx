@@ -1,13 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 
 export default function ProviderProfilePage() {
+  return (
+    <Suspense fallback={<p className="text-slate-400">Chargement…</p>}>
+      <ProfileForm />
+    </Suspense>
+  );
+}
+
+function ProfileForm() {
   const { user, token, login, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState({
@@ -21,6 +30,8 @@ export default function ProviderProfilePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
+  const [connectBusy, setConnectBusy] = useState(false);
+  const [connectError, setConnectError] = useState('');
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/auth/login');
@@ -45,6 +56,16 @@ export default function ProviderProfilePage() {
       });
     }
   }, [token, user]);
+
+  // Coming back from Stripe's hosted onboarding — refresh the profile so
+  // payoutsEnabled reflects whatever Stripe just confirmed.
+  useEffect(() => {
+    if (!token) return;
+    const stripeStatus = searchParams.get('stripe');
+    if (stripeStatus === 'return' || stripeStatus === 'refresh') {
+      api.me(token).then(({ user: refreshed }) => login(token, refreshed)).catch(() => {});
+    }
+  }, [token]);
 
   function toggleCategory(id) {
     setForm((f) => ({
@@ -82,13 +103,58 @@ export default function ProviderProfilePage() {
     }
   }
 
+  async function onConnectPayments() {
+    setConnectBusy(true);
+    setConnectError('');
+    try {
+      const { url } = await api.connectOnboard(token);
+      window.location.href = url;
+    } catch (err) {
+      setConnectError(err.message);
+      setConnectBusy(false);
+    }
+  }
+
   if (!user || user.role !== 'PROVIDER') return null;
+
+  const payoutsEnabled = user.providerProfile?.payoutsEnabled;
+  const walletBalance = user.providerProfile?.walletBalance ?? 0;
 
   return (
     <div className="mx-auto max-w-xl">
       <span className="label-eyebrow text-moss">Mon profil</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Profil prestataire</h1>
       <p className="mt-1 text-sm text-slate-500">Ces informations sont visibles par les clients et déterminent les missions qui vous sont proposées.</p>
+
+      <div className="mt-6 rounded-lg border border-slate-200 bg-white p-5">
+        <h2 className="font-display text-lg font-medium text-ink">Portefeuille</h2>
+        <div className="mt-3 flex items-center justify-between">
+          <div>
+            <div className="text-xs text-slate-400">Solde disponible</div>
+            <div className="mt-0.5 font-display text-3xl font-semibold text-ink">{walletBalance.toFixed(2)} €</div>
+          </div>
+          {payoutsEnabled ? (
+            <span className="rounded-full bg-moss-light px-3 py-1.5 text-xs font-medium text-moss-dark">
+              ✓ Paiements activés
+            </span>
+          ) : (
+            <button
+              type="button"
+              disabled={connectBusy}
+              onClick={onConnectPayments}
+              className="rounded-md bg-moss px-4 py-2.5 text-sm font-medium text-paper hover:bg-moss-dark disabled:opacity-60"
+            >
+              {connectBusy ? 'Redirection…' : 'Configurer mes paiements'}
+            </button>
+          )}
+        </div>
+        {!payoutsEnabled && (
+          <p className="mt-2 text-xs text-slate-400">
+            Renseignez votre identité et vos coordonnées bancaires via Stripe (sécurisé, hébergé par Stripe) pour recevoir vos virements.
+          </p>
+        )}
+        {connectError && <p className="mt-2 rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{connectError}</p>}
+      </div>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <label className="block">

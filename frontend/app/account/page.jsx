@@ -76,6 +76,14 @@ export default function AccountPage() {
       <Section title="Espace travailleur">
         <Row href="/missions" icon="🔎" label="Missions disponibles" sublabel="Parcourir les besoins près de chez vous" />
         <Row href="/dashboard/profile" icon="🛠️" label="Mon profil prestataire" sublabel="Zone d'intervention, tarif, catégories" />
+        {user.role === 'PROVIDER' && (
+          <Row
+            href="/dashboard/profile"
+            icon="💶"
+            label={`Portefeuille — ${(user.providerProfile?.walletBalance ?? 0).toFixed(2)} €`}
+            sublabel={user.providerProfile?.payoutsEnabled ? 'Paiements activés' : 'Paiements non configurés'}
+          />
+        )}
       </Section>
 
       {user.role !== 'PROVIDER' && (
