@@ -1,11 +1,15 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const { z } = require('zod');
+const { OAuth2Client } = require('google-auth-library');
 const prisma = require('../config/prisma');
 const { signToken } = require('../utils/jwt');
 const { requireAuth } = require('../middleware/auth');
+const { sendPasswordResetEmail } = require('../services/emailService');
 
 const router = express.Router();
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -50,7 +54,7 @@ router.post('/login', async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) { const e = new Error('Identifiants invalides'); e.status = 401; e.expose = true; throw e; }
+    if (!user || !user.passwordHash) { const e = new Error('Identifiants invalides'); e.status = 401; e.expose = true; throw e; }
 
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) { const e = new Error('Identifiants invalides'); e.status = 401; e.expose = true; throw e; }
@@ -70,6 +74,92 @@ router.get('/me', requireAuth, async (req, res, next) => {
     });
     res.json({ user: sanitize(user) });
   } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/forgot-password', async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    // Always respond the same way whether or not the email exists, so the
+    // endpoint can't be used to check which addresses have an account.
+    if (user) {
+      const token = crypto.randomBytes(32).toString('hex');
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { resetToken: token, resetTokenExpiresAt: new Date(Date.now() + 60 * 60 * 1000) },
+      });
+      const resetUrl = `${process.env.CLIENT_ORIGIN?.split(',')[0]}/auth/reset-password?token=${token}`;
+      await sendPasswordResetEmail(email, resetUrl);
+    }
+
+    res.json({ message: 'Si un compte existe avec cet email, un lien de réinitialisation vient d\'être envoyé.' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/reset-password', async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password || password.length < 8) {
+      const e = new Error('Le mot de passe doit contenir au moins 8 caractères');
+      e.status = 400; e.expose = true; throw e;
+    }
+
+    const user = await prisma.user.findUnique({ where: { resetToken: token } });
+    if (!user || !user.resetTokenExpiresAt || user.resetTokenExpiresAt < new Date()) {
+      const e = new Error('Lien de réinitialisation invalide ou expiré');
+      e.status = 400; e.expose = true; throw e;
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash, resetToken: null, resetTokenExpiresAt: null },
+    });
+
+    res.json({ message: 'Mot de passe mis à jour.' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/google', async (req, res, next) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) { const e = new Error('Jeton Google manquant'); e.status = 400; e.expose = true; throw e; }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+
+    let user = await prisma.user.findUnique({ where: { email: payload.email } });
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email: payload.email,
+          firstName: payload.given_name || 'Utilisateur',
+          lastName: payload.family_name || '',
+          avatarUrl: payload.picture,
+          isEmailVerified: !!payload.email_verified,
+          googleId: payload.sub,
+        },
+      });
+    } else if (!user.googleId) {
+      user = await prisma.user.update({ where: { id: user.id }, data: { googleId: payload.sub } });
+    }
+
+    const token = signToken(user);
+    res.json({ token, user: sanitize(user) });
+  } catch (err) {
+    if (err.message?.includes('Token used too late') || err.message?.includes('Wrong recipient')) {
+      err.status = 401; err.expose = true; err.message = 'Jeton Google invalide';
+    }
     next(err);
   }
 });
