@@ -29,9 +29,13 @@ export default function MissionCard({ mission }) {
       className="block overflow-hidden rounded-lg border border-slate-200 bg-white transition hover:border-moss hover:shadow-md"
     >
       <div className="flex items-start gap-3 p-4">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-moss-light text-2xl">
-          {mission.category?.icon}
-        </span>
+        {mission.photos?.[0] ? (
+          <img src={mission.photos[0]} alt="" className="h-12 w-12 shrink-0 rounded-md object-cover" />
+        ) : (
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-moss-light text-2xl">
+            {mission.category?.icon}
+          </span>
+        )}
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <h3 className="truncate font-display text-base font-semibold text-ink">{mission.title}</h3>

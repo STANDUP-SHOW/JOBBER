@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../lib/auth-context';
+import { api } from '../../lib/api';
+import AvatarUpload from '../../components/AvatarUpload';
 
 function ChevronIcon(props) {
   return (
@@ -47,7 +49,7 @@ function Section({ title, children }) {
 }
 
 export default function AccountPage() {
-  const { user, logout, loading } = useAuth();
+  const { user, token, login, logout, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -56,10 +58,20 @@ export default function AccountPage() {
 
   if (!user) return null;
 
+  async function onAvatarUploaded(url) {
+    const { user: updated } = await api.updateMe({ avatarUrl: url }, token);
+    login(token, updated);
+  }
+
   return (
     <div className="mx-auto max-w-xl">
       <span className="label-eyebrow text-moss">Mon compte</span>
-      <h1 className="mt-2 font-display text-3xl font-semibold text-ink">
+
+      <div className="mt-4">
+        <AvatarUpload avatarUrl={user.avatarUrl} firstName={user.firstName} onUploaded={onAvatarUploaded} />
+      </div>
+
+      <h1 className="mt-4 font-display text-3xl font-semibold text-ink">
         Bonjour {user.firstName}
       </h1>
       <p className="mt-1 text-sm text-slate-500">
