@@ -9,7 +9,7 @@ async function sendPasswordResetEmail(to, resetUrl) {
     return;
   }
 
-  await resend.emails.send({
+  const { data, error } = await resend.emails.send({
     from: FROM,
     to,
     subject: 'Réinitialisez votre mot de passe Jobber',
@@ -19,6 +19,12 @@ async function sendPasswordResetEmail(to, resetUrl) {
       <p>Ce lien expire dans 1 heure. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
     `,
   });
+
+  if (error) {
+    console.error('Resend failed to send password reset email:', JSON.stringify(error));
+  } else {
+    console.log('Password reset email sent via Resend, id:', data?.id);
+  }
 }
 
 module.exports = { sendPasswordResetEmail };
