@@ -36,7 +36,7 @@ async function createConnectAccount(email) {
   if (!stripe) throw wrap('Stripe n\'est pas configuré (STRIPE_SECRET_KEY manquant)');
   return stripe.accounts.create({
     type: 'express',
-    country: process.env.STRIPE_CONNECT_COUNTRY || 'BE',
+    country: process.env.STRIPE_CONNECT_COUNTRY || 'FR',
     email,
     capabilities: {
       card_payments: { requested: true },
