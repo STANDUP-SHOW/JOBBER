@@ -1,17 +1,32 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 import GoogleSignInButton from '../../../components/GoogleSignInButton';
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<p className="text-slate-400">Chargement…</p>}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuth();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get('error') === 'google') {
+      setError('La connexion avec Google a échoué. Réessayez ou utilisez votre email.');
+    }
+  }, []);
 
   async function onSubmit(e) {
     e.preventDefault();

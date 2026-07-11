@@ -44,6 +44,7 @@ app.use(morgan('dev'));
 app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), paymentsRoutes.webhookHandler);
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // Google's redirect-mode sign-in POSTs form data
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 

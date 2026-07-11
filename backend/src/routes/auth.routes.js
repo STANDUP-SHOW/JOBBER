@@ -127,33 +127,38 @@ router.post('/reset-password', async (req, res, next) => {
   }
 });
 
+async function findOrCreateGoogleUser(credential) {
+  const ticket = await googleClient.verifyIdToken({
+    idToken: credential,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
+  const payload = ticket.getPayload();
+
+  let user = await prisma.user.findUnique({ where: { email: payload.email } });
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        email: payload.email,
+        firstName: payload.given_name || 'Utilisateur',
+        lastName: payload.family_name || '',
+        avatarUrl: payload.picture,
+        isEmailVerified: !!payload.email_verified,
+        googleId: payload.sub,
+      },
+    });
+  } else if (!user.googleId) {
+    user = await prisma.user.update({ where: { id: user.id }, data: { googleId: payload.sub } });
+  }
+  return user;
+}
+
+// JSON flow (credential obtained client-side via GSI popup/One Tap)
 router.post('/google', async (req, res, next) => {
   try {
     const { credential } = req.body;
     if (!credential) { const e = new Error('Jeton Google manquant'); e.status = 400; e.expose = true; throw e; }
 
-    const ticket = await googleClient.verifyIdToken({
-      idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-    const payload = ticket.getPayload();
-
-    let user = await prisma.user.findUnique({ where: { email: payload.email } });
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          email: payload.email,
-          firstName: payload.given_name || 'Utilisateur',
-          lastName: payload.family_name || '',
-          avatarUrl: payload.picture,
-          isEmailVerified: !!payload.email_verified,
-          googleId: payload.sub,
-        },
-      });
-    } else if (!user.googleId) {
-      user = await prisma.user.update({ where: { id: user.id }, data: { googleId: payload.sub } });
-    }
-
+    const user = await findOrCreateGoogleUser(credential);
     const token = signToken(user);
     res.json({ token, user: sanitize(user) });
   } catch (err) {
@@ -161,6 +166,23 @@ router.post('/google', async (req, res, next) => {
       err.status = 401; err.expose = true; err.message = 'Jeton Google invalide';
     }
     next(err);
+  }
+});
+
+// Redirect flow (Google POSTs the credential here directly — avoids popup
+// blocking, which happens for users with third-party cookies restricted).
+router.post('/google/callback', async (req, res) => {
+  const clientOrigin = process.env.CLIENT_ORIGIN?.split(',')[0] || '/';
+  try {
+    const { credential } = req.body;
+    if (!credential) return res.redirect(`${clientOrigin}/auth/login?error=google`);
+
+    const user = await findOrCreateGoogleUser(credential);
+    const token = signToken(user);
+    res.redirect(`${clientOrigin}/auth/google-callback?token=${encodeURIComponent(token)}`);
+  } catch (err) {
+    console.error('Google redirect callback failed:', err);
+    res.redirect(`${clientOrigin}/auth/login?error=google`);
   }
 });
 

@@ -1,37 +1,22 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { api } from '../lib/api';
-import { useAuth } from '../lib/auth-context';
+import { useEffect, useRef } from 'react';
+import { API_URL } from '../lib/api';
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 export default function GoogleSignInButton() {
   const buttonRef = useRef(null);
-  const { login } = useAuth();
-  const router = useRouter();
-  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!GOOGLE_CLIENT_ID) return;
-
-    async function handleCredential(response) {
-      setError('');
-      try {
-        const { token, user } = await api.googleAuth(response.credential);
-        login(token, user);
-        router.push('/dashboard');
-      } catch (err) {
-        setError(err.message);
-      }
-    }
 
     function render() {
       if (!window.google || !buttonRef.current) return;
       window.google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
-        callback: handleCredential,
+        ux_mode: 'redirect',
+        login_uri: `${API_URL}/api/auth/google/callback`,
       });
       window.google.accounts.id.renderButton(buttonRef.current, {
         theme: 'outline',
@@ -57,10 +42,5 @@ export default function GoogleSignInButton() {
 
   if (!GOOGLE_CLIENT_ID) return null;
 
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <div ref={buttonRef} />
-      {error && <p className="text-sm text-clay">{error}</p>}
-    </div>
-  );
+  return <div ref={buttonRef} />;
 }
