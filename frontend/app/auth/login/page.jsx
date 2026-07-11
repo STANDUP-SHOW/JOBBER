@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
+import GoogleSignInButton from '../../../components/GoogleSignInButton';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -50,12 +51,26 @@ export default function LoginPage() {
           />
         </label>
 
+        <div className="text-right">
+          <a href="/auth/forgot-password" className="text-xs font-medium text-moss hover:underline">Mot de passe oublié ?</a>
+        </div>
+
         {error && <p className="rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
 
         <button disabled={loading} className="w-full rounded-md bg-moss py-3 font-medium text-paper hover:bg-moss-dark disabled:opacity-60">
           {loading ? 'Connexion…' : 'Se connecter'}
         </button>
       </form>
+
+      <div className="mt-6 flex items-center gap-3 text-xs text-slate-400">
+        <div className="h-px flex-1 bg-slate-200" />
+        ou
+        <div className="h-px flex-1 bg-slate-200" />
+      </div>
+
+      <div className="mt-4 flex justify-center">
+        <GoogleSignInButton />
+      </div>
 
       <p className="mt-6 text-center text-sm text-slate-500">
         Pas encore de compte ? <a href="/auth/register" className="font-medium text-moss hover:underline">S'inscrire</a>

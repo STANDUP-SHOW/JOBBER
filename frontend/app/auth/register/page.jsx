@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
+import GoogleSignInButton from '../../../components/GoogleSignInButton';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -61,6 +62,16 @@ export default function RegisterPage() {
           {loading ? 'Création…' : 'Créer mon compte'}
         </button>
       </form>
+
+      <div className="mt-6 flex items-center gap-3 text-xs text-slate-400">
+        <div className="h-px flex-1 bg-slate-200" />
+        ou
+        <div className="h-px flex-1 bg-slate-200" />
+      </div>
+
+      <div className="mt-4 flex justify-center">
+        <GoogleSignInButton />
+      </div>
 
       <p className="mt-6 text-center text-sm text-slate-500">
         Déjà inscrit ? <a href="/auth/login" className="font-medium text-moss hover:underline">Se connecter</a>
