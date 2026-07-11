@@ -105,6 +105,8 @@ model ProviderProfile {
   completedMissions   Int                 @default(0)
   walletBalance       Float               @default(0)
   autoApply           Boolean             @default(false)
+  stripeAccountId     String?             @unique
+  payoutsEnabled      Boolean             @default(false)
   categories          ProviderCategory[]
   createdAt           DateTime            @default(now())
 }

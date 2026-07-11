@@ -29,6 +29,32 @@ async function refundIntent(paymentIntentId) {
   return stripe.refunds.create({ payment_intent: paymentIntentId });
 }
 
+// Stripe Connect Express: providers complete identity/bank details on
+// Stripe's own hosted onboarding — Jobber never sees or stores that data,
+// only the resulting account id and whether payouts are enabled.
+async function createConnectAccount(email) {
+  if (!stripe) throw wrap('Stripe n\'est pas configuré (STRIPE_SECRET_KEY manquant)');
+  return stripe.accounts.create({
+    type: 'express',
+    country: process.env.STRIPE_CONNECT_COUNTRY || 'BE',
+    email,
+    capabilities: {
+      card_payments: { requested: true },
+      transfers: { requested: true },
+    },
+  });
+}
+
+async function createAccountLink(accountId, refreshUrl, returnUrl) {
+  if (!stripe) throw wrap('Stripe n\'est pas configuré (STRIPE_SECRET_KEY manquant)');
+  return stripe.accountLinks.create({
+    account: accountId,
+    refresh_url: refreshUrl,
+    return_url: returnUrl,
+    type: 'account_onboarding',
+  });
+}
+
 function wrap(message) {
   const err = new Error(message);
   err.status = 503;
@@ -36,4 +62,4 @@ function wrap(message) {
   return err;
 }
 
-module.exports = { stripe, createEscrowIntent, captureIntent, refundIntent };
+module.exports = { stripe, createEscrowIntent, captureIntent, refundIntent, createConnectAccount, createAccountLink };

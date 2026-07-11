@@ -44,6 +44,7 @@ export const api = {
 
   createPaymentIntent: (bookingId, token) => request(`/payments/${bookingId}/create-intent`, { method: 'POST', token }),
   releasePayment: (bookingId, token) => request(`/payments/${bookingId}/release`, { method: 'POST', token }),
+  connectOnboard: (token) => request('/payments/connect/onboard', { method: 'POST', token }),
 
   providers: (params = {}) => {
     const qs = new URLSearchParams(params).toString();
