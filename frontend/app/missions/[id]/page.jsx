@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
+import ApplyOfferSheet from '../../../components/ApplyOfferSheet';
 
 export default function MissionDetailPage() {
   const { id } = useParams();
@@ -12,7 +13,8 @@ export default function MissionDetailPage() {
 
   const [mission, setMission] = useState(null);
   const [error, setError] = useState('');
-  const [offerForm, setOfferForm] = useState({ hourlyRate: '', message: '' });
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [offerError, setOfferError] = useState('');
   const [busy, setBusy] = useState(false);
 
   async function refresh() {
@@ -25,15 +27,19 @@ export default function MissionDetailPage() {
   const isOwner = user && mission && mission.clientId === user.id;
   const alreadyApplied = user && mission?.offers?.some((o) => o.providerId === user.id);
 
-  async function applyToMission(e) {
-    e.preventDefault();
+  function openApply() {
     if (!user) return router.push('/auth/login');
-    setBusy(true); setError('');
+    setOfferError('');
+    setSheetOpen(true);
+  }
+
+  async function applyToMission(hourlyRate, message) {
+    setBusy(true); setOfferError('');
     try {
-      await api.createOffer({ missionId: id, hourlyRate: Number(offerForm.hourlyRate), message: offerForm.message }, token);
+      await api.createOffer({ missionId: id, hourlyRate, message }, token);
       await refresh();
-      setOfferForm({ hourlyRate: '', message: '' });
-    } catch (err) { setError(err.message); } finally { setBusy(false); }
+      setSheetOpen(false);
+    } catch (err) { setOfferError(err.message); } finally { setBusy(false); }
   }
 
   async function acceptOffer(offerId) {
@@ -63,30 +69,23 @@ export default function MissionDetailPage() {
       {error && <p className="mt-4 rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
 
       {!isOwner && mission.status === 'OPEN' && !alreadyApplied && (
-        <form onSubmit={applyToMission} className="mt-8 space-y-3 rounded-lg border border-slate-200 bg-white p-5">
-          <h2 className="font-display text-lg font-medium text-ink">Proposer mes services</h2>
-          <label className="block">
-            <span className="text-xs font-medium text-slate-500">Votre tarif horaire (€)</span>
-            <input
-              type="number" min="5" step="0.5" required
-              value={offerForm.hourlyRate}
-              onChange={(e) => setOfferForm({ ...offerForm, hourlyRate: e.target.value })}
-              className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
-            />
-          </label>
-          <label className="block">
-            <span className="text-xs font-medium text-slate-500">Message (optionnel)</span>
-            <textarea
-              rows={3}
-              value={offerForm.message}
-              onChange={(e) => setOfferForm({ ...offerForm, message: e.target.value })}
-              className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
-            />
-          </label>
-          <button disabled={busy} className="rounded-md bg-moss px-5 py-2.5 font-medium text-paper hover:bg-moss-dark disabled:opacity-60">
-            Envoyer ma candidature
-          </button>
-        </form>
+        <button
+          onClick={openApply}
+          className="mt-8 w-full rounded-full bg-moss py-4 text-base font-semibold text-white hover:bg-moss-dark sm:w-auto sm:px-8"
+        >
+          Postuler
+        </button>
+      )}
+
+      {sheetOpen && (
+        <ApplyOfferSheet
+          mission={mission}
+          defaultRate={user?.providerProfile?.defaultHourlyRate ?? 15}
+          busy={busy}
+          error={offerError}
+          onClose={() => setSheetOpen(false)}
+          onSubmit={applyToMission}
+        />
       )}
 
       {alreadyApplied && mission.status === 'OPEN' && (
