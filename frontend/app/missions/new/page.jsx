@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
+import MissionPhotosUpload from '../../../components/MissionPhotosUpload';
 
 export default function NewMissionPage() {
   return (
@@ -27,6 +28,7 @@ function NewMissionForm() {
     address: '',
     desiredDate: '',
     estimatedHours: 2,
+    photos: [],
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -105,6 +107,13 @@ function NewMissionForm() {
           />
         </label>
         <Field label="Adresse" value={form.address} onChange={(v) => setForm({ ...form, address: v })} required placeholder="Rue, ville" />
+
+        <div>
+          <span className="text-xs font-medium text-slate-500">Photos (optionnel, jusqu'à 5)</span>
+          <div className="mt-1">
+            <MissionPhotosUpload photos={form.photos} onChange={(photos) => setForm({ ...form, photos })} />
+          </div>
+        </div>
 
         <div className="grid grid-cols-2 gap-3">
           <Field label="Date souhaitée" type="date" value={form.desiredDate} onChange={(v) => setForm({ ...form, desiredDate: v })} required />

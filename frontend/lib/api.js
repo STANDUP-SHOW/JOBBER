@@ -46,6 +46,7 @@ export const api = {
   releasePayment: (bookingId, token) => request(`/payments/${bookingId}/release`, { method: 'POST', token }),
   connectOnboard: (token) => request('/payments/connect/onboard', { method: 'POST', token }),
 
+  updateMe: (payload, token) => request('/users/me', { method: 'PATCH', body: payload, token }),
   providers: (params = {}) => {
     const qs = new URLSearchParams(params).toString();
     return request(`/users/providers${qs ? `?${qs}` : ''}`);

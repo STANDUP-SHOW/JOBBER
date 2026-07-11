@@ -38,6 +38,18 @@ router.get('/providers/:id', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+router.patch('/me', requireAuth, async (req, res, next) => {
+  try {
+    const { avatarUrl } = req.body;
+    const user = await prisma.user.update({
+      where: { id: req.user.id },
+      data: { avatarUrl },
+    });
+    const { passwordHash, ...safeUser } = user;
+    res.json({ user: safeUser });
+  } catch (err) { next(err); }
+});
+
 router.patch('/me/provider-profile', requireAuth, requireRole('PROVIDER'), async (req, res, next) => {
   try {
     const { bio, defaultHourlyRate, radiusKm, autoApply, categoryIds, address } = req.body;

@@ -153,6 +153,7 @@ model Mission {
   address        String
   lat            Float?
   lng            Float?
+  photos         String[]      @default([])
   desiredDate    DateTime
   estimatedHours Float         @default(1)
   status         MissionStatus @default(OPEN)

@@ -22,6 +22,7 @@ const createMissionSchema = z.object({
   address: z.string().min(3),
   lat: z.number().optional(),
   lng: z.number().optional(),
+  photos: z.array(z.string().url()).max(5).optional(),
   desiredDate: z.string(), // ISO date
   estimatedHours: z.number().positive().default(1),
 });

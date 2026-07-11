@@ -59,6 +59,14 @@ export default function MissionDetailPage() {
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">{mission.title}</h1>
       <p className="mt-3 text-slate-600">{mission.description}</p>
 
+      {mission.photos?.length > 0 && (
+        <div className="mt-4 flex gap-2 overflow-x-auto">
+          {mission.photos.map((url) => (
+            <img key={url} src={url} alt="" className="h-32 w-32 shrink-0 rounded-lg object-cover" />
+          ))}
+        </div>
+      )}
+
       <dl className="mt-5 grid grid-cols-2 gap-4 rounded-lg border border-slate-200 bg-white p-4 text-sm sm:grid-cols-4">
         <Item label="Adresse" value={mission.address} />
         <Item label="Date souhaitée" value={new Date(mission.desiredDate).toLocaleDateString('fr-FR')} />
