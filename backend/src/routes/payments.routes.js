@@ -5,21 +5,36 @@ const { createEscrowIntent, captureIntent, refundIntent, stripe, createConnectAc
 
 const router = express.Router();
 
-// Step 1: client authorizes the card for the booking amount (held, not captured)
+// Step 1: client authorizes the card for the booking amount (held, not
+// captured). Status only moves to HELD_IN_ESCROW once Stripe confirms the
+// card was actually authorized (see the amount_capturable_updated webhook
+// below) — not here, since the client could still abandon the card form.
 router.post('/:bookingId/create-intent', requireAuth, async (req, res, next) => {
   try {
     const booking = await prisma.booking.findUnique({ where: { id: req.params.bookingId }, include: { payment: true } });
     if (!booking) return res.status(404).json({ error: 'Réservation introuvable' });
     if (booking.clientId !== req.user.id) return res.status(403).json({ error: 'Non autorisé' });
+    if (booking.payment?.status === 'HELD_IN_ESCROW' || booking.payment?.status === 'RELEASED') {
+      return res.status(400).json({ error: 'Cette réservation est déjà payée' });
+    }
 
-    const intent = await createEscrowIntent({ amountEUR: booking.totalAmount, bookingId: booking.id });
+    // Reuse an existing not-yet-confirmed intent instead of creating a new
+    // one every time the payment form is (re)opened.
+    let clientSecret;
+    if (booking.payment?.stripePaymentIntentId) {
+      const existing = await stripe.paymentIntents.retrieve(booking.payment.stripePaymentIntentId);
+      if (existing.status === 'requires_payment_method' || existing.status === 'requires_confirmation') {
+        clientSecret = existing.client_secret;
+      }
+    }
 
-    const payment = await prisma.payment.update({
-      where: { bookingId: booking.id },
-      data: { stripePaymentIntentId: intent.id, status: 'HELD_IN_ESCROW' },
-    });
+    if (!clientSecret) {
+      const intent = await createEscrowIntent({ amountEUR: booking.totalAmount, bookingId: booking.id });
+      await prisma.payment.update({ where: { bookingId: booking.id }, data: { stripePaymentIntentId: intent.id } });
+      clientSecret = intent.client_secret;
+    }
 
-    res.json({ clientSecret: intent.client_secret, payment });
+    res.json({ clientSecret });
   } catch (err) { next(err); }
 });
 
@@ -120,6 +135,16 @@ module.exports.webhookHandler = async (req, res) => {
       await prisma.payment.updateMany({
         where: { stripePaymentIntentId: intent.id },
         data: { status: 'FAILED' },
+      });
+      break;
+    }
+    // Fired when a manual-capture PaymentIntent is successfully authorized —
+    // this is the real "card confirmed, money held" moment.
+    case 'payment_intent.amount_capturable_updated': {
+      const intent = event.data.object;
+      await prisma.payment.updateMany({
+        where: { stripePaymentIntentId: intent.id, status: 'REQUIRES_PAYMENT' },
+        data: { status: 'HELD_IN_ESCROW', paidAt: new Date() },
       });
       break;
     }
