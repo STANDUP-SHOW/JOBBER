@@ -16,7 +16,6 @@ const registerSchema = z.object({
   password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
   firstName: z.string().min(1),
   lastName: z.string().min(1),
-  role: z.enum(['CLIENT', 'PROVIDER']).default('CLIENT'),
   phone: z.string().optional(),
 });
 
@@ -29,6 +28,9 @@ router.post('/register', async (req, res, next) => {
       err.status = 409; err.expose = true; throw err;
     }
 
+    // Every account can both post missions (manager) and apply to them
+    // (jobber) — a providerProfile is always created so nobody needs to
+    // "upgrade" before they can candidater.
     const passwordHash = await bcrypt.hash(data.password, 10);
     const user = await prisma.user.create({
       data: {
@@ -36,9 +38,8 @@ router.post('/register', async (req, res, next) => {
         passwordHash,
         firstName: data.firstName,
         lastName: data.lastName,
-        role: data.role,
         phone: data.phone,
-        providerProfile: data.role === 'PROVIDER' ? { create: {} } : undefined,
+        providerProfile: { create: {} },
       },
     });
 
@@ -144,6 +145,7 @@ async function findOrCreateGoogleUser(credential) {
         avatarUrl: payload.picture,
         isEmailVerified: !!payload.email_verified,
         googleId: payload.sub,
+        providerProfile: { create: {} },
       },
     });
   } else if (!user.googleId) {

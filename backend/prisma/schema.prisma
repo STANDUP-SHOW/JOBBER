@@ -10,9 +10,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Every account can both post missions and apply to them — MANAGER/JOBBER
+// are no longer exclusive gates, just the default label shown at signup.
 enum Role {
-  CLIENT
-  PROVIDER
+  MANAGER
+  JOBBER
   ADMIN
 }
 
@@ -67,7 +69,7 @@ model User {
   firstName         String
   lastName          String
   phone             String?
-  role              Role       @default(CLIENT)
+  role              Role       @default(MANAGER)
   avatarUrl         String?
   address           String?
   lat               Float?

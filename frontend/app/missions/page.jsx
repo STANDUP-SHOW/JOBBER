@@ -21,7 +21,7 @@ export default function MissionsPage() {
   const [error, setError] = useState('');
 
   const providerZone =
-    user?.role === 'PROVIDER' && user.lat != null && user.lng != null
+    user && user.lat != null && user.lng != null
       ? { lat: user.lat, lng: user.lng, radiusKm: user.providerProfile?.radiusKm ?? 15 }
       : null;
 

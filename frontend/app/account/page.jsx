@@ -75,34 +75,24 @@ export default function AccountPage() {
         Bonjour {user.firstName}
       </h1>
       <p className="mt-1 text-sm text-slate-500">
-        {user.role === 'PROVIDER'
-          ? 'Votre compte prestataire — vous effectuez des missions.'
-          : 'Votre compte employeur — vous publiez des besoins.'}
+        Publiez des besoins et proposez vos services, le tout depuis un seul compte.
       </p>
 
-      <Section title="Espace employeur">
+      <Section title="Espace manager">
         <Row href="/missions/new" icon="📝" label="Publier un besoin" sublabel="Décrire une mission à réaliser" />
         <Row href="/dashboard" icon="📋" label="Mes réservations" sublabel="Suivre vos missions en cours" />
       </Section>
 
-      <Section title="Espace travailleur">
+      <Section title="Espace jobber">
         <Row href="/missions" icon="🔎" label="Missions disponibles" sublabel="Parcourir les besoins près de chez vous" />
-        <Row href="/dashboard/profile" icon="🛠️" label="Mon profil prestataire" sublabel="Zone d'intervention, tarif, catégories" />
-        {user.role === 'PROVIDER' && (
-          <Row
-            href="/dashboard/profile"
-            icon="💶"
-            label={`Portefeuille — ${(user.providerProfile?.walletBalance ?? 0).toFixed(2)} €`}
-            sublabel={user.providerProfile?.payoutsEnabled ? 'Paiements activés' : 'Paiements non configurés'}
-          />
-        )}
+        <Row href="/dashboard/profile" icon="🛠️" label="Mon profil jobber" sublabel="Zone d'intervention, tarif, catégories" />
+        <Row
+          href="/dashboard/profile"
+          icon="💶"
+          label={`Portefeuille — ${(user.providerProfile?.walletBalance ?? 0).toFixed(2)} €`}
+          sublabel={user.providerProfile?.payoutsEnabled ? 'Paiements activés' : 'Paiements non configurés'}
+        />
       </Section>
-
-      {user.role !== 'PROVIDER' && (
-        <p className="mt-3 rounded-md bg-moss-light px-4 py-3 text-sm text-moss-dark">
-          Votre compte est actuellement enregistré comme employeur. Pour candidater aux missions, contactez-nous pour activer le volet prestataire.
-        </p>
-      )}
 
       <Section title="Informations utiles">
         <Row href="/messages" icon="💬" label="Messagerie" />

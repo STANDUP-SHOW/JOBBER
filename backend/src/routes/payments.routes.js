@@ -1,6 +1,6 @@
 const express = require('express');
 const prisma = require('../config/prisma');
-const { requireAuth, requireRole } = require('../middleware/auth');
+const { requireAuth } = require('../middleware/auth');
 const { createEscrowIntent, captureIntent, refundIntent, stripe, createConnectAccount, createAccountLink } = require('../services/stripeService');
 
 const router = express.Router();
@@ -76,7 +76,7 @@ router.post('/:bookingId/refund', requireAuth, async (req, res, next) => {
 
 // Provider clicks "Configurer mes paiements" — creates (or reuses) a Stripe
 // Connect Express account and returns a link to Stripe's hosted onboarding.
-router.post('/connect/onboard', requireAuth, requireRole('PROVIDER'), async (req, res, next) => {
+router.post('/connect/onboard', requireAuth, async (req, res, next) => {
   try {
     const profile = await prisma.providerProfile.findUnique({ where: { userId: req.user.id } });
     if (!profile) return res.status(404).json({ error: 'Profil prestataire introuvable' });

@@ -1,18 +1,19 @@
 const express = require('express');
 const prisma = require('../config/prisma');
-const { requireAuth, requireRole } = require('../middleware/auth');
+const { requireAuth } = require('../middleware/auth');
 const { geocodeAddress } = require('../services/geocodingService');
 
 const router = express.Router();
 
-// Browse providers, optionally filtered by category (for the "Trouvez un prestataire" grid)
+// Browse providers, optionally filtered by category (for the "Trouvez un prestataire" grid).
+// Every account has a providerProfile, so "is a provider" here means they've
+// actually picked at least one category — not a role check.
 router.get('/providers', async (req, res, next) => {
   try {
     const { categoryId } = req.query;
     const providers = await prisma.user.findMany({
       where: {
-        role: 'PROVIDER',
-        providerProfile: categoryId ? { categories: { some: { categoryId } } } : undefined,
+        providerProfile: { categories: { some: categoryId ? { categoryId } : {} } },
       },
       select: {
         id: true, firstName: true, lastName: true, avatarUrl: true, address: true,
@@ -50,7 +51,7 @@ router.patch('/me', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.patch('/me/provider-profile', requireAuth, requireRole('PROVIDER'), async (req, res, next) => {
+router.patch('/me/provider-profile', requireAuth, async (req, res, next) => {
   try {
     const { bio, defaultHourlyRate, radiusKm, autoApply, categoryIds, address } = req.body;
 

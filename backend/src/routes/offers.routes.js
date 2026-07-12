@@ -1,7 +1,7 @@
 const express = require('express');
 const { z } = require('zod');
 const prisma = require('../config/prisma');
-const { requireAuth, requireRole } = require('../middleware/auth');
+const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -11,13 +11,17 @@ const createOfferSchema = z.object({
   message: z.string().optional(),
 });
 
-// Provider applies to a mission ("postuler")
-router.post('/', requireAuth, requireRole('PROVIDER'), async (req, res, next) => {
+// Apply to a mission ("postuler") — any account can candidater, including
+// the mission's own client (blocked below) if it happens to overlap.
+router.post('/', requireAuth, async (req, res, next) => {
   try {
     const data = createOfferSchema.parse(req.body);
     const mission = await prisma.mission.findUnique({ where: { id: data.missionId } });
     if (!mission || mission.status !== 'OPEN') {
       return res.status(400).json({ error: 'Cette mission n\'accepte plus de candidatures' });
+    }
+    if (mission.clientId === req.user.id) {
+      return res.status(400).json({ error: 'Vous ne pouvez pas postuler à votre propre mission' });
     }
 
     const offer = await prisma.offer.create({
@@ -44,8 +48,8 @@ router.post('/', requireAuth, requireRole('PROVIDER'), async (req, res, next) =>
   }
 });
 
-// Client accepts an offer -> creates Booking, marks mission ASSIGNED, rejects other offers
-router.post('/:id/accept', requireAuth, requireRole('CLIENT'), async (req, res, next) => {
+// Mission owner accepts an offer -> creates Booking, marks mission ASSIGNED, rejects other offers
+router.post('/:id/accept', requireAuth, async (req, res, next) => {
   try {
     const offer = await prisma.offer.findUnique({ where: { id: req.params.id }, include: { mission: true } });
     if (!offer) return res.status(404).json({ error: 'Offre introuvable' });

@@ -8,13 +8,14 @@ router.use(requireAuth, requireRole('ADMIN'));
 router.get('/stats', async (req, res, next) => {
   try {
     const [
-      totalUsers, totalClients, totalProviders,
+      totalUsers, totalActiveJobbers, totalMissionPosters,
       missionsByStatus, bookingsByStatus,
       revenueAgg, pendingVerifications,
     ] = await Promise.all([
       prisma.user.count(),
-      prisma.user.count({ where: { role: 'CLIENT' } }),
-      prisma.user.count({ where: { role: 'PROVIDER' } }),
+      // Every account can candidater, but "active jobber" = has picked at least one category
+      prisma.user.count({ where: { providerProfile: { categories: { some: {} } } } }),
+      prisma.mission.findMany({ distinct: ['clientId'], select: { clientId: true } }).then((r) => r.length),
       prisma.mission.groupBy({ by: ['status'], _count: true }),
       prisma.booking.groupBy({ by: ['status'], _count: true }),
       prisma.payment.aggregate({ where: { status: 'RELEASED' }, _sum: { platformFee: true, amount: true } }),
@@ -23,8 +24,8 @@ router.get('/stats', async (req, res, next) => {
 
     res.json({
       totalUsers,
-      totalClients,
-      totalProviders,
+      totalActiveJobbers,
+      totalMissionPosters,
       missionsByStatus: Object.fromEntries(missionsByStatus.map((m) => [m.status, m._count])),
       bookingsByStatus: Object.fromEntries(bookingsByStatus.map((b) => [b.status, b._count])),
       platformRevenue: revenueAgg._sum.platformFee || 0,
