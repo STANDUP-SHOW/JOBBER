@@ -35,7 +35,6 @@ function ProfileForm() {
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/auth/login');
-    if (!authLoading && user && user.role !== 'PROVIDER') router.push('/dashboard');
   }, [authLoading, user]);
 
   useEffect(() => {
@@ -43,7 +42,7 @@ function ProfileForm() {
   }, []);
 
   useEffect(() => {
-    if (!token || !user || user.role !== 'PROVIDER') return;
+    if (!token || !user) return;
     const profile = user.providerProfile;
     if (profile) {
       setForm({
@@ -115,7 +114,7 @@ function ProfileForm() {
     }
   }
 
-  if (!user || user.role !== 'PROVIDER') return null;
+  if (!user) return null;
 
   const payoutsEnabled = user.providerProfile?.payoutsEnabled;
   const walletBalance = user.providerProfile?.walletBalance ?? 0;

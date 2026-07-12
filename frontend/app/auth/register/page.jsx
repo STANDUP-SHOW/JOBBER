@@ -9,7 +9,6 @@ import GoogleSignInButton from '../../../components/GoogleSignInButton';
 export default function RegisterPage() {
   const router = useRouter();
   const { login } = useAuth();
-  const [role, setRole] = useState('CLIENT');
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', phone: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,7 +18,7 @@ export default function RegisterPage() {
     setError('');
     setLoading(true);
     try {
-      const { token, user } = await api.register({ ...form, role });
+      const { token, user } = await api.register(form);
       login(token, user);
       router.push('/dashboard');
     } catch (err) {
@@ -33,19 +32,7 @@ export default function RegisterPage() {
     <div className="mx-auto max-w-md">
       <span className="label-eyebrow text-moss">Créer un compte</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Rejoindre Jobber</h1>
-
-      <div className="mt-6 flex rounded-md border border-slate-200 p-1 text-sm">
-        {[['CLIENT', 'Je cherche un service'], ['PROVIDER', 'Je propose mes services']].map(([val, label]) => (
-          <button
-            key={val}
-            type="button"
-            onClick={() => setRole(val)}
-            className={`flex-1 rounded px-3 py-2 font-medium transition ${role === val ? 'bg-moss text-paper' : 'text-slate-500'}`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <p className="mt-1 text-sm text-slate-500">Un seul compte pour publier vos besoins et proposer vos services.</p>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <div className="grid grid-cols-2 gap-3">

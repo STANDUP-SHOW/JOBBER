@@ -17,7 +17,7 @@ export default function AdminOverviewPage() {
   if (!stats) return <p className="text-slate-400">Chargement…</p>;
 
   const cards = [
-    { label: 'Utilisateurs', value: stats.totalUsers, sub: `${stats.totalClients} clients · ${stats.totalProviders} prestataires` },
+    { label: 'Utilisateurs', value: stats.totalUsers, sub: `${stats.totalMissionPosters} ont publié · ${stats.totalActiveJobbers} ont un profil jobber actif` },
     { label: 'Revenu plateforme', value: `${stats.platformRevenue.toFixed(2)} €`, sub: `${stats.grossVolume.toFixed(2)} € de volume traité` },
     { label: 'Vérifications en attente', value: stats.pendingVerifications, sub: 'Documents à examiner', highlight: stats.pendingVerifications > 0 },
   ];

@@ -9,7 +9,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed.js",
+    "backfill:provider-profiles": "node scripts/backfillProviderProfiles.js"
   },
   "dependencies": {
     "@prisma/client": "^5.18.0",

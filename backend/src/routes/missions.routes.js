@@ -1,7 +1,7 @@
 const express = require('express');
 const { z } = require('zod');
 const prisma = require('../config/prisma');
-const { requireAuth, requireRole, optionalAuth } = require('../middleware/auth');
+const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { geocodeAddress, jitterCoordinate, haversineDistanceKm } = require('../services/geocodingService');
 
 const router = express.Router();
@@ -27,8 +27,8 @@ const createMissionSchema = z.object({
   estimatedHours: z.number().positive().default(1),
 });
 
-// Create a mission (client posts a job request)
-router.post('/', requireAuth, requireRole('CLIENT'), async (req, res, next) => {
+// Create a mission — any authenticated account can post a job request
+router.post('/', requireAuth, async (req, res, next) => {
   try {
     const data = createMissionSchema.parse(req.body);
     const geocoded = await geocodeAddress(data.address);
@@ -48,9 +48,11 @@ router.post('/', requireAuth, requireRole('CLIENT'), async (req, res, next) => {
   }
 });
 
-// List / search missions (e.g. providers browsing the "joblist"). When called
-// by a logged-in provider, results are narrowed to their registered
-// categories and their intervention radius (Yoojo-style joblist).
+// List / search missions (e.g. browsing the "joblist"). When called by a
+// logged-in account with a configured jobber profile, results are narrowed
+// to their registered categories and their intervention radius
+// (Yoojo-style joblist) — every account has both a manager and jobber side,
+// so this personalization applies regardless of any "role" label.
 router.get('/', optionalAuth, async (req, res, next) => {
   try {
     const { categoryId, status, clientId } = req.query;
@@ -64,7 +66,7 @@ router.get('/', optionalAuth, async (req, res, next) => {
       orderBy: { createdAt: 'desc' },
     });
 
-    if (req.user?.role === 'PROVIDER') {
+    if (req.user) {
       const profile = await prisma.providerProfile.findUnique({
         where: { userId: req.user.id },
         include: { categories: true, user: { select: { lat: true, lng: true } } },

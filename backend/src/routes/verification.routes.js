@@ -10,9 +10,9 @@ const uploadSchema = z.object({
   fileUrl: z.string().url(), // in production this comes back from your S3/Cloudinary upload step
 });
 
-// Provider submits a verification document (identity, address, bank account —
-// mirrors "Vérification d'identité, d'adresse et de compte bancaire")
-router.post('/', requireAuth, requireRole('PROVIDER'), async (req, res, next) => {
+// Submit a verification document (identity, address, bank account — mirrors
+// "Vérification d'identité, d'adresse et de compte bancaire")
+router.post('/', requireAuth, async (req, res, next) => {
   try {
     const data = uploadSchema.parse(req.body);
     const doc = await prisma.verificationDocument.create({
@@ -29,7 +29,7 @@ router.post('/', requireAuth, requireRole('PROVIDER'), async (req, res, next) =>
   }
 });
 
-router.get('/mine', requireAuth, requireRole('PROVIDER'), async (req, res, next) => {
+router.get('/mine', requireAuth, async (req, res, next) => {
   try {
     const documents = await prisma.verificationDocument.findMany({ where: { userId: req.user.id } });
     res.json({ documents });
