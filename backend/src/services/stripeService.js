@@ -29,30 +29,72 @@ async function refundIntent(paymentIntentId) {
   return stripe.refunds.create({ payment_intent: paymentIntentId });
 }
 
-// Stripe Connect Express: providers complete identity/bank details on
-// Stripe's own hosted onboarding — Jobber never sees or stores that data,
-// only the resulting account id and whether payouts are enabled.
-async function createConnectAccount(email) {
+// Stripe Connect "Custom" accounts: unlike Express, nothing is collected on
+// a Stripe-hosted page — identity and bank details are gathered in our own
+// UI and pushed to Stripe via the API, so the jobber never leaves the app.
+// The tradeoff is that Jobber (the platform) is the one presenting the ToS
+// acceptance and identity info to Stripe, not Stripe's own onboarding flow.
+async function upsertCustomAccount({
+  accountId, email, firstName, lastName, phone,
+  dobDay, dobMonth, dobYear,
+  addressLine1, addressCity, addressPostalCode,
+  ip,
+}) {
   if (!stripe) throw wrap('Stripe n\'est pas configuré (STRIPE_SECRET_KEY manquant)');
-  return stripe.accounts.create({
-    type: 'express',
-    country: process.env.STRIPE_CONNECT_COUNTRY || 'FR',
-    email,
-    capabilities: {
-      card_payments: { requested: true },
-      transfers: { requested: true },
+
+  const payload = {
+    business_type: 'individual',
+    capabilities: { transfers: { requested: true } },
+    business_profile: {
+      product_description: 'Services à domicile réalisés via la plateforme Jobber',
+      mcc: '7299',
+    },
+    individual: {
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      phone,
+      dob: { day: dobDay, month: dobMonth, year: dobYear },
+      address: { line1: addressLine1, city: addressCity, postal_code: addressPostalCode, country: 'FR' },
+    },
+    tos_acceptance: { date: Math.floor(Date.now() / 1000), ip },
+  };
+
+  if (accountId) {
+    return stripe.accounts.update(accountId, payload);
+  }
+  return stripe.accounts.create({ type: 'custom', country: 'FR', email, ...payload });
+}
+
+async function setBankAccount(accountId, { iban, accountHolderName }) {
+  if (!stripe) throw wrap('Stripe n\'est pas configuré (STRIPE_SECRET_KEY manquant)');
+  return stripe.accounts.createExternalAccount(accountId, {
+    external_account: {
+      object: 'bank_account',
+      country: 'FR',
+      currency: 'eur',
+      account_holder_name: accountHolderName,
+      account_number: iban,
     },
   });
 }
 
-async function createAccountLink(accountId, refreshUrl, returnUrl) {
+async function retrieveAccount(accountId) {
   if (!stripe) throw wrap('Stripe n\'est pas configuré (STRIPE_SECRET_KEY manquant)');
-  return stripe.accountLinks.create({
-    account: accountId,
-    refresh_url: refreshUrl,
-    return_url: returnUrl,
-    type: 'account_onboarding',
-  });
+  return stripe.accounts.retrieve(accountId);
+}
+
+// Moves money from the platform's Stripe balance to the jobber's connected
+// account, then immediately pays it out to their bank account.
+async function payoutToProvider(accountId, amountEUR) {
+  if (!stripe) throw wrap('Stripe n\'est pas configuré (STRIPE_SECRET_KEY manquant)');
+  const amount = Math.round(amountEUR * 100);
+  const transfer = await stripe.transfers.create({ amount, currency: 'eur', destination: accountId });
+  const payout = await stripe.payouts.create(
+    { amount, currency: 'eur' },
+    { stripeAccount: accountId }
+  );
+  return { transfer, payout };
 }
 
 function wrap(message) {
@@ -62,4 +104,13 @@ function wrap(message) {
   return err;
 }
 
-module.exports = { stripe, createEscrowIntent, captureIntent, refundIntent, createConnectAccount, createAccountLink };
+module.exports = {
+  stripe,
+  createEscrowIntent,
+  captureIntent,
+  refundIntent,
+  upsertCustomAccount,
+  setBankAccount,
+  retrieveAccount,
+  payoutToProvider,
+};

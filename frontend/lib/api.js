@@ -45,7 +45,9 @@ export const api = {
 
   createPaymentIntent: (bookingId, token) => request(`/payments/${bookingId}/create-intent`, { method: 'POST', token }),
   releasePayment: (bookingId, token) => request(`/payments/${bookingId}/release`, { method: 'POST', token }),
-  connectOnboard: (token) => request('/payments/connect/onboard', { method: 'POST', token }),
+  connectSetup: (payload, token) => request('/payments/connect/setup', { method: 'POST', body: payload, token }),
+  connectPayout: (token) => request('/payments/connect/payout', { method: 'POST', token }),
+  walletHistory: (token) => request('/payments/wallet-history', { token }),
 
   updateMe: (payload, token) => request('/users/me', { method: 'PATCH', body: payload, token }),
   providers: (params = {}) => {
