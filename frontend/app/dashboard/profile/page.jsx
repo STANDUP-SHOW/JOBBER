@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
+import StarRating from '../../../components/StarRating';
 
 export default function ProviderProfilePage() {
   return (
@@ -124,6 +125,15 @@ function ProfileForm() {
       <span className="label-eyebrow text-moss">Mon profil</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Profil jobber</h1>
       <p className="mt-1 text-sm text-slate-500">Ces informations sont visibles par les clients et déterminent les missions qui vous sont proposées.</p>
+
+      <div className="mt-3 flex items-center gap-2 text-sm text-slate-500">
+        <StarRating value={user.providerProfile?.ratingAverage ?? 0} size={16} />
+        {user.providerProfile?.ratingCount > 0 ? (
+          <span>{user.providerProfile.ratingAverage.toFixed(1)} ({user.providerProfile.ratingCount} avis) · {user.providerProfile.completedMissions} missions réalisées</span>
+        ) : (
+          <span>Pas encore d'avis</span>
+        )}
+      </div>
 
       <div className="mt-6 rounded-lg border border-slate-200 bg-white p-5">
         <h2 className="font-display text-lg font-medium text-ink">Portefeuille</h2>
