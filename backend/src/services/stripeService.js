@@ -42,28 +42,40 @@ async function upsertCustomAccount({
 }) {
   if (!stripe) throw wrap('Stripe n\'est pas configuré (STRIPE_SECRET_KEY manquant)');
 
-  const payload = {
-    business_type: 'individual',
-    capabilities: { transfers: { requested: true } },
-    business_profile: {
-      product_description: 'Services à domicile réalisés via la plateforme Jobber',
-      mcc: '7299',
+  // Stripe requires FR-based platforms to submit individual/business_type
+  // details as a single-use account token rather than as raw fields on the
+  // account itself (older accounts.create/update shape is rejected).
+  const token = await stripe.tokens.create({
+    account: {
+      business_type: 'individual',
+      individual: {
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        phone,
+        dob: { day: dobDay, month: dobMonth, year: dobYear },
+        address: { line1: addressLine1, city: addressCity, postal_code: addressPostalCode, country: 'FR' },
+      },
+      tos_shown_and_accepted: true,
     },
-    individual: {
-      first_name: firstName,
-      last_name: lastName,
-      email,
-      phone,
-      dob: { day: dobDay, month: dobMonth, year: dobYear },
-      address: { line1: addressLine1, city: addressCity, postal_code: addressPostalCode, country: 'FR' },
-    },
-    tos_acceptance: { date: Math.floor(Date.now() / 1000), ip },
-  };
+  });
 
-  if (accountId) {
-    return stripe.accounts.update(accountId, payload);
-  }
-  return stripe.accounts.create({ type: 'custom', country: 'FR', email, ...payload });
+  const account = accountId
+    ? await stripe.accounts.update(accountId, { account_token: token.id })
+    : await stripe.accounts.create({
+        type: 'custom',
+        country: 'FR',
+        email,
+        account_token: token.id,
+        capabilities: { transfers: { requested: true } },
+        business_profile: {
+          product_description: 'Services à domicile réalisés via la plateforme Jobber',
+          mcc: '7299',
+        },
+      });
+
+  // Record the actual person + IP that accepted the ToS, for compliance.
+  return stripe.accounts.update(account.id, { tos_acceptance: { date: Math.floor(Date.now() / 1000), ip } });
 }
 
 async function setBankAccount(accountId, { iban, accountHolderName }) {
