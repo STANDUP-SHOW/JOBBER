@@ -62,6 +62,12 @@ enum DocumentType {
   BANK_ACCOUNT
 }
 
+enum PayoutStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
 model User {
   id                String     @id @default(cuid())
   email             String     @unique
@@ -109,8 +115,28 @@ model ProviderProfile {
   autoApply           Boolean             @default(false)
   stripeAccountId     String?             @unique
   payoutsEnabled      Boolean             @default(false)
+  bankLast4           String?
+  bankHolderName      String?
   categories          ProviderCategory[]
+  payouts             Payout[]
   createdAt           DateTime            @default(now())
+}
+
+// A jobber's request to move their wallet balance to their bank account.
+// Money moves via Stripe Connect (Custom account) behind the scenes, but the
+// jobber never sees a Stripe-branded page — everything is collected and
+// triggered from our own UI.
+model Payout {
+  id               String       @id @default(cuid())
+  providerId       String
+  provider         ProviderProfile @relation(fields: [providerId], references: [id])
+  amount           Float
+  status           PayoutStatus @default(PENDING)
+  stripeTransferId String?
+  stripePayoutId   String?      @unique
+  failureReason    String?
+  createdAt        DateTime     @default(now())
+  completedAt      DateTime?
 }
 
 model Category {

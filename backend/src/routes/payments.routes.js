@@ -1,9 +1,51 @@
 const express = require('express');
 const prisma = require('../config/prisma');
 const { requireAuth } = require('../middleware/auth');
-const { createEscrowIntent, captureIntent, refundIntent, stripe, createConnectAccount, createAccountLink } = require('../services/stripeService');
+const {
+  createEscrowIntent, captureIntent, refundIntent, stripe,
+  upsertCustomAccount, setBankAccount, payoutToProvider,
+} = require('../services/stripeService');
 
 const router = express.Router();
+
+// Wallet screen: missions paid out to the jobber + their withdrawal history,
+// merged into one reverse-chronological list.
+router.get('/wallet-history', requireAuth, async (req, res, next) => {
+  try {
+    const profile = await prisma.providerProfile.findUnique({ where: { userId: req.user.id } });
+    if (!profile) return res.status(404).json({ error: 'Profil prestataire introuvable' });
+
+    const [payments, payouts] = await Promise.all([
+      prisma.payment.findMany({
+        where: { status: 'RELEASED', booking: { providerId: req.user.id } },
+        include: { booking: { include: { mission: true, client: true } } },
+        orderBy: { releasedAt: 'desc' },
+      }),
+      prisma.payout.findMany({ where: { providerId: profile.id }, orderBy: { createdAt: 'desc' } }),
+    ]);
+
+    const entries = [
+      ...payments.map((p) => ({
+        type: 'mission',
+        label: p.booking.mission.title,
+        subLabel: p.booking.client.firstName,
+        amount: p.providerPayout,
+        date: p.releasedAt,
+        status: 'COMPLETED',
+      })),
+      ...payouts.map((p) => ({
+        type: 'payout',
+        label: 'Virement vers votre compte',
+        subLabel: p.stripePayoutId ? `•••• ${profile.bankLast4 || ''}` : null,
+        amount: -p.amount,
+        date: p.createdAt,
+        status: p.status,
+      })),
+    ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    res.json({ entries });
+  } catch (err) { next(err); }
+});
 
 // Step 1: client authorizes the card for the booking amount (held, not
 // captured). Status only moves to HELD_IN_ESCROW once Stripe confirms the
@@ -89,28 +131,97 @@ router.post('/:bookingId/refund', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// Provider clicks "Configurer mes paiements" — creates (or reuses) a Stripe
-// Connect Express account and returns a link to Stripe's hosted onboarding.
-router.post('/connect/onboard', requireAuth, async (req, res, next) => {
+// Jobber fills in identity + bank details directly in our own UI (no
+// redirect to a Stripe-hosted page). We push everything to a Stripe Connect
+// "Custom" account behind the scenes so payouts can be triggered instantly.
+router.post('/connect/setup', requireAuth, async (req, res, next) => {
   try {
     const profile = await prisma.providerProfile.findUnique({ where: { userId: req.user.id } });
     if (!profile) return res.status(404).json({ error: 'Profil prestataire introuvable' });
 
-    let accountId = profile.stripeAccountId;
-    if (!accountId) {
-      const account = await createConnectAccount(req.user.email);
-      accountId = account.id;
-      await prisma.providerProfile.update({ where: { userId: req.user.id }, data: { stripeAccountId: accountId } });
+    const {
+      firstName, lastName, phone,
+      dobDay, dobMonth, dobYear,
+      addressLine1, addressCity, addressPostalCode,
+      iban, accountHolderName,
+    } = req.body;
+
+    if (!firstName || !lastName || !phone || !dobDay || !dobMonth || !dobYear ||
+        !addressLine1 || !addressCity || !addressPostalCode || !iban || !accountHolderName) {
+      return res.status(400).json({ error: 'Merci de renseigner tous les champs' });
     }
 
-    const origin = process.env.CLIENT_ORIGIN?.split(',')[0];
-    const link = await createAccountLink(
-      accountId,
-      `${origin}/dashboard/profile?stripe=refresh`,
-      `${origin}/dashboard/profile?stripe=return`
-    );
-    res.json({ url: link.url });
-  } catch (err) { next(err); }
+    const account = await upsertCustomAccount({
+      accountId: profile.stripeAccountId || undefined,
+      email: req.user.email,
+      firstName, lastName, phone,
+      dobDay: Number(dobDay), dobMonth: Number(dobMonth), dobYear: Number(dobYear),
+      addressLine1, addressCity, addressPostalCode,
+      ip: req.ip,
+    });
+
+    const bankAccount = await setBankAccount(account.id, { iban, accountHolderName });
+
+    const updated = await prisma.providerProfile.update({
+      where: { userId: req.user.id },
+      data: {
+        stripeAccountId: account.id,
+        payoutsEnabled: !!account.payouts_enabled,
+        bankLast4: bankAccount.last4,
+        bankHolderName: accountHolderName,
+      },
+    });
+
+    res.json({
+      payoutsEnabled: updated.payoutsEnabled,
+      bankLast4: updated.bankLast4,
+      requirementsCurrentlyDue: account.requirements?.currently_due || [],
+    });
+  } catch (err) {
+    if (err.type === 'StripeInvalidRequestError') {
+      err.status = 400;
+      err.expose = true;
+    }
+    next(err);
+  }
+});
+
+// Jobber clicks "Virement" — moves their whole wallet balance to their bank
+// account right away (Stripe transfer + payout, both triggered instantly).
+router.post('/connect/payout', requireAuth, async (req, res, next) => {
+  try {
+    const profile = await prisma.providerProfile.findUnique({ where: { userId: req.user.id } });
+    if (!profile) return res.status(404).json({ error: 'Profil prestataire introuvable' });
+    if (!profile.stripeAccountId || !profile.bankLast4) {
+      return res.status(400).json({ error: 'Ajoutez d\'abord votre compte bancaire' });
+    }
+    if (profile.walletBalance <= 0) {
+      return res.status(400).json({ error: 'Solde insuffisant' });
+    }
+
+    const amount = profile.walletBalance;
+    const { transfer, payout } = await payoutToProvider(profile.stripeAccountId, amount);
+
+    const [, payoutRecord] = await prisma.$transaction([
+      prisma.providerProfile.update({ where: { userId: req.user.id }, data: { walletBalance: 0 } }),
+      prisma.payout.create({
+        data: {
+          providerId: profile.id,
+          amount,
+          stripeTransferId: transfer.id,
+          stripePayoutId: payout.id,
+        },
+      }),
+    ]);
+
+    res.json({ payout: payoutRecord });
+  } catch (err) {
+    if (err.type === 'StripeInvalidRequestError') {
+      err.status = 400;
+      err.expose = true;
+    }
+    next(err);
+  }
 });
 
 module.exports = router;
@@ -154,6 +265,33 @@ module.exports.webhookHandler = async (req, res) => {
         where: { stripeAccountId: account.id },
         data: { payoutsEnabled: !!account.payouts_enabled },
       });
+      break;
+    }
+    // Connect events for the jobber's bank transfer — confirms whether the
+    // money actually landed, or needs to be credited back to their wallet.
+    case 'payout.paid': {
+      const payout = event.data.object;
+      await prisma.payout.updateMany({
+        where: { stripePayoutId: payout.id, status: 'PENDING' },
+        data: { status: 'COMPLETED', completedAt: new Date() },
+      });
+      break;
+    }
+    case 'payout.failed': {
+      const payout = event.data.object;
+      const record = await prisma.payout.findFirst({ where: { stripePayoutId: payout.id, status: 'PENDING' } });
+      if (record) {
+        await prisma.$transaction([
+          prisma.payout.update({
+            where: { id: record.id },
+            data: { status: 'FAILED', failureReason: payout.failure_message || null },
+          }),
+          prisma.providerProfile.update({
+            where: { id: record.providerId },
+            data: { walletBalance: { increment: record.amount } },
+          }),
+        ]);
+      }
       break;
     }
     default:
