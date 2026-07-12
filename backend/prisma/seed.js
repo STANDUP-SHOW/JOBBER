@@ -12,6 +12,8 @@ const CATEGORIES = [
   { name: 'Aide à la personne', slug: 'aide-personne', icon: '🤝', services: ['Accompagnement courses', 'Accompagnement rendez-vous médicaux', 'Préparation de repas'] },
   { name: "Garde d'animaux", slug: 'garde-animaux', icon: '🐾', services: ['Promenade de chien', 'Pet-sitting'] },
   { name: 'Informatique', slug: 'informatique', icon: '💻', services: ["Installation d'imprimante", "Nettoyage d'ordinateur", 'Installation de box'] },
+  { name: 'Transport', slug: 'transport', icon: '🚗', services: ['Transport de personnes', 'Transport de colis', 'Livraison express'] },
+  { name: 'Convoi', slug: 'convoi', icon: '🚚', services: ['Convoyage de véhicule', 'Accompagnement longue distance'] },
 ];
 
 async function main() {
