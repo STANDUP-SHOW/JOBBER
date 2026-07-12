@@ -37,6 +37,7 @@ export const api = {
 
   createOffer: (payload, token) => request('/offers', { method: 'POST', body: payload, token }),
   acceptOffer: (offerId, token) => request(`/offers/${offerId}/accept`, { method: 'POST', token }),
+  myOffers: (token) => request('/offers/mine', { token }),
 
   myBookings: (token) => request('/bookings/mine', { token }),
   startBooking: (id, token) => request(`/bookings/${id}/start`, { method: 'PATCH', token }),

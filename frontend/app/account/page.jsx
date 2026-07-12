@@ -86,6 +86,7 @@ export default function AccountPage() {
 
       <Section title="Espace jobber">
         <Row href="/missions" icon="🔎" label="Missions disponibles" sublabel="Parcourir les besoins près de chez vous" />
+        <Row href="/dashboard/offers" icon="📨" label="Mes offres" sublabel="Missions auxquelles vous avez postulé" />
         <Row href="/dashboard/profile" icon="🛠️" label="Mon profil jobber" sublabel="Zone d'intervention, tarif, catégories" />
         <Row
           href="/dashboard/profile"

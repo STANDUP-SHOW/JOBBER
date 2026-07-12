@@ -48,6 +48,25 @@ router.post('/', requireAuth, async (req, res, next) => {
   }
 });
 
+// List my own candidatures ("Mes offres" — missions I've applied to, with my rate)
+router.get('/mine', requireAuth, async (req, res, next) => {
+  try {
+    const offers = await prisma.offer.findMany({
+      where: { providerId: req.user.id },
+      include: {
+        mission: {
+          select: {
+            id: true, title: true, address: true, status: true, desiredDate: true, estimatedHours: true,
+            category: { select: { name: true, icon: true } },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json({ offers });
+  } catch (err) { next(err); }
+});
+
 // Mission owner accepts an offer -> creates Booking, marks mission ASSIGNED, rejects other offers
 router.post('/:id/accept', requireAuth, async (req, res, next) => {
   try {
