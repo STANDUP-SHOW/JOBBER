@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '../../lib/auth-context';
 import { api } from '../../lib/api';
 import AvatarUpload from '../../components/AvatarUpload';
+import ZoneSummaryCard from '../../components/ZoneSummaryCard';
 
 function ChevronIcon(props) {
   return (
@@ -93,6 +94,10 @@ export default function AccountPage() {
           sublabel={user.providerProfile?.payoutsEnabled ? 'Paiements activés' : 'Paiements non configurés'}
         />
       </Section>
+
+      <div className="mt-3">
+        <ZoneSummaryCard />
+      </div>
 
       <Section title="Informations utiles">
         <Row href="/messages" icon="💬" label="Messagerie" />
