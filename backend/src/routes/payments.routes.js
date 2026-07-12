@@ -8,6 +8,14 @@ const {
 
 const router = express.Router();
 
+// Users type local format (06...) out of habit — Stripe requires E.164.
+function toE164France(phone) {
+  const digits = phone.replace(/[^\d+]/g, '');
+  if (digits.startsWith('+')) return digits;
+  if (digits.startsWith('0')) return `+33${digits.slice(1)}`;
+  return `+33${digits}`;
+}
+
 // Wallet screen: missions paid out to the jobber + their withdrawal history,
 // merged into one reverse-chronological list.
 router.get('/wallet-history', requireAuth, async (req, res, next) => {
@@ -154,7 +162,7 @@ router.post('/connect/setup', requireAuth, async (req, res, next) => {
     const account = await upsertCustomAccount({
       accountId: profile.stripeAccountId || undefined,
       email: req.user.email,
-      firstName, lastName, phone,
+      firstName, lastName, phone: toE164France(phone),
       dobDay: Number(dobDay), dobMonth: Number(dobMonth), dobYear: Number(dobYear),
       addressLine1, addressCity, addressPostalCode,
       ip: req.ip,
