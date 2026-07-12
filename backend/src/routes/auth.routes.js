@@ -171,23 +171,6 @@ router.post('/google', async (req, res, next) => {
   }
 });
 
-// Redirect flow (Google POSTs the credential here directly — avoids popup
-// blocking, which happens for users with third-party cookies restricted).
-router.post('/google/callback', async (req, res) => {
-  const clientOrigin = process.env.CLIENT_ORIGIN?.split(',')[0] || '/';
-  try {
-    const { credential } = req.body;
-    if (!credential) return res.redirect(`${clientOrigin}/auth/login?error=google`);
-
-    const user = await findOrCreateGoogleUser(credential);
-    const token = signToken(user);
-    res.redirect(`${clientOrigin}/auth/google-callback?token=${encodeURIComponent(token)}`);
-  } catch (err) {
-    console.error('Google redirect callback failed:', err);
-    res.redirect(`${clientOrigin}/auth/login?error=google`);
-  }
-});
-
 function sanitize(user) {
   const { passwordHash, ...rest } = user;
   return rest;

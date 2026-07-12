@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { API_URL } from '../lib/api';
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
@@ -16,7 +15,10 @@ export default function GoogleSignInButton() {
       window.google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         ux_mode: 'redirect',
-        login_uri: `${API_URL}/api/auth/google/callback`,
+        // Same-origin route (not the Railway API) so Google's consent
+        // screen shows our own domain, and failures land on a page we
+        // control instead of a bare JSON error from the backend.
+        login_uri: `${window.location.origin}/api/auth/google-callback`,
       });
       window.google.accounts.id.renderButton(buttonRef.current, {
         theme: 'outline',
