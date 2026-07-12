@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
 import StarRating from '../../components/StarRating';
+import PaymentModal from '../../components/PaymentModal';
 
 export default function DashboardPage() {
   const { user, token, loading: authLoading } = useAuth();
@@ -14,6 +15,7 @@ export default function DashboardPage() {
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState(null);
   const [reviewDraft, setReviewDraft] = useState({}); // bookingId -> { rating, comment }
+  const [payingBooking, setPayingBooking] = useState(null);
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/auth/login');
@@ -73,6 +75,11 @@ export default function DashboardPage() {
               )}
 
               <div className="mt-4 flex flex-wrap gap-2">
+                {isClient && b.payment?.status === 'REQUIRES_PAYMENT' && (
+                  <ActionButton busy={busy} onClick={() => setPayingBooking(b)}>
+                    Payer maintenant ({b.totalAmount} €)
+                  </ActionButton>
+                )}
                 {isClient && b.status === 'SCHEDULED' && (
                   <ActionButton busy={busy} onClick={() => act(b.id, () => api.startBooking(b.id, token))}>Démarrer la mission</ActionButton>
                 )}
@@ -111,6 +118,15 @@ export default function DashboardPage() {
           );
         })}
       </div>
+
+      {payingBooking && (
+        <PaymentModal
+          booking={payingBooking}
+          token={token}
+          onClose={() => setPayingBooking(null)}
+          onPaid={() => { setPayingBooking(null); refresh(); }}
+        />
+      )}
     </div>
   );
 }
