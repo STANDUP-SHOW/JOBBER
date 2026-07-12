@@ -3,7 +3,7 @@ const prisma = require('../config/prisma');
 const { requireAuth } = require('../middleware/auth');
 const {
   createEscrowIntent, captureIntent, refundIntent, stripe,
-  upsertCustomAccount, setBankAccount, payoutToProvider,
+  upsertCustomAccount, setBankAccount, retrieveAccount, payoutToProvider,
 } = require('../services/stripeService');
 
 const router = express.Router();
@@ -169,12 +169,16 @@ router.post('/connect/setup', requireAuth, async (req, res, next) => {
     });
 
     const bankAccount = await setBankAccount(account.id, { iban, accountHolderName });
+    // payouts_enabled on `account` was captured before the bank account
+    // existed, so it's always stale here — re-check status now that Stripe
+    // has both identity and a payout method to evaluate.
+    const refreshedAccount = await retrieveAccount(account.id);
 
     const updated = await prisma.providerProfile.update({
       where: { userId: req.user.id },
       data: {
         stripeAccountId: account.id,
-        payoutsEnabled: !!account.payouts_enabled,
+        payoutsEnabled: !!refreshedAccount.payouts_enabled,
         bankLast4: bankAccount.last4,
         bankHolderName: accountHolderName,
       },
@@ -183,7 +187,7 @@ router.post('/connect/setup', requireAuth, async (req, res, next) => {
     res.json({
       payoutsEnabled: updated.payoutsEnabled,
       bankLast4: updated.bankLast4,
-      requirementsCurrentlyDue: account.requirements?.currently_due || [],
+      requirementsCurrentlyDue: refreshedAccount.requirements?.currently_due || [],
     });
   } catch (err) {
     if (err.type === 'StripeInvalidRequestError') {

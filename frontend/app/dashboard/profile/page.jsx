@@ -110,10 +110,13 @@ export default function ProviderProfilePage() {
     setConnectBusy(true);
     setConnectError('');
     try {
-      await api.connectSetup(bankForm, token);
+      const result = await api.connectSetup(bankForm, token);
       const { user: refreshed } = await api.me(token);
       login(token, refreshed);
       setShowBankForm(false);
+      if (!result.payoutsEnabled && result.requirementsCurrentlyDue?.length) {
+        setPayoutError(`Informations manquantes côté Stripe : ${result.requirementsCurrentlyDue.join(', ')}`);
+      }
     } catch (err) {
       setConnectError(err.message);
     } finally {
