@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 import ApplyOfferSheet from '../../../components/ApplyOfferSheet';
+import StarRating from '../../../components/StarRating';
 
 export default function MissionDetailPage() {
   const { id } = useParams();
@@ -109,7 +110,15 @@ export default function MissionDetailPage() {
           {mission.offers?.map((offer) => (
             <div key={offer.id} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4">
               <div>
-                <div className="font-medium text-ink">{offer.provider.firstName} {offer.provider.lastName?.[0]}.</div>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-ink">{offer.provider.firstName} {offer.provider.lastName?.[0]}.</span>
+                  {offer.provider.providerProfile?.ratingCount > 0 && (
+                    <span className="flex items-center gap-1 text-xs text-slate-500">
+                      <StarRating value={offer.provider.providerProfile.ratingAverage} size={12} />
+                      {offer.provider.providerProfile.ratingAverage.toFixed(1)} ({offer.provider.providerProfile.ratingCount})
+                    </span>
+                  )}
+                </div>
                 <div className="text-sm text-slate-500">{offer.hourlyRate} €/h {offer.message ? `— "${offer.message}"` : ''}</div>
                 <div className="text-xs text-slate-400 mt-1">Statut : {offer.status}</div>
               </div>
