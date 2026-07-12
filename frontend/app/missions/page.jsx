@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
 import MissionCard from '../../components/MissionCard';
+import ZoneSummaryCard from '../../components/ZoneSummaryCard';
 
 const MissionsMap = dynamic(() => import('../../components/MissionsMap'), {
   ssr: false,
@@ -38,13 +39,19 @@ export default function MissionsPage() {
       .catch((err) => { if (!cancelled) setError(err.message); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [categoryId, token]);
+  }, [categoryId, token, user?.address, user?.providerProfile?.radiusKm]);
 
   return (
     <div>
       <span className="label-eyebrow text-moss">Missions</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Missions disponibles</h1>
       <p className="mt-1 text-sm text-slate-500">Parcourez les besoins publiés par les clients et proposez votre tarif horaire.</p>
+
+      {user && (
+        <div className="mt-4">
+          <ZoneSummaryCard />
+        </div>
+      )}
 
       <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
         <label className="block max-w-xs grow">
