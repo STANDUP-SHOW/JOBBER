@@ -89,7 +89,7 @@ export default function AccountPage() {
         <Row href="/dashboard/offers" icon="📨" label="Mes offres" sublabel="Missions auxquelles vous avez postulé" />
         <Row href="/dashboard/profile" icon="🛠️" label="Mon profil jobber" sublabel="Zone d'intervention, tarif, catégories" />
         <Row
-          href="/dashboard/profile"
+          href="/dashboard/wallet"
           icon="💶"
           label={`Portefeuille — ${(user.providerProfile?.walletBalance ?? 0).toFixed(2)} €`}
           sublabel={user.providerProfile?.payoutsEnabled ? 'Paiements activés' : 'Paiements non configurés'}
