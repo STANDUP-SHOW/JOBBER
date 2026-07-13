@@ -122,6 +122,7 @@ model ProviderProfile {
   payoutsEnabled      Boolean             @default(false)
   bankLast4           String?
   bankHolderName      String?
+  autoPayout          Boolean             @default(false)
   categories          ProviderCategory[]
   services            ProviderService[]
   payouts             Payout[]

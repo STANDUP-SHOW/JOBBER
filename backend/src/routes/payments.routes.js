@@ -16,6 +16,20 @@ function toE164France(phone) {
   return `+33${digits}`;
 }
 
+// Shared by the manual "Virement" button and auto-payout-on-release: moves
+// the whole wallet balance out to the jobber's bank account right away.
+async function triggerPayout(profile) {
+  const amount = profile.walletBalance;
+  const { transfer, payout } = await payoutToProvider(profile.stripeAccountId, amount);
+  const [, payoutRecord] = await prisma.$transaction([
+    prisma.providerProfile.update({ where: { id: profile.id }, data: { walletBalance: 0 } }),
+    prisma.payout.create({
+      data: { providerId: profile.id, amount, stripeTransferId: transfer.id, stripePayoutId: payout.id },
+    }),
+  ]);
+  return payoutRecord;
+}
+
 // Wallet screen: missions paid out to the jobber + their withdrawal history,
 // merged into one reverse-chronological list.
 router.get('/wallet-history', requireAuth, async (req, res, next) => {
@@ -101,7 +115,7 @@ router.post('/:bookingId/release', requireAuth, async (req, res, next) => {
 
     await captureIntent(booking.payment.stripePaymentIntentId);
 
-    const [payment] = await prisma.$transaction([
+    const [payment, profile] = await prisma.$transaction([
       prisma.payment.update({
         where: { bookingId: booking.id },
         data: { status: 'RELEASED', paidAt: new Date(), releasedAt: new Date() },
@@ -114,6 +128,16 @@ router.post('/:bookingId/release', requireAuth, async (req, res, next) => {
         },
       }),
     ]);
+
+    // "Virement automatique" — skip the manual Virement click entirely if
+    // the jobber has opted in and can actually receive a payout.
+    if (profile.autoPayout && profile.stripeAccountId && profile.bankLast4 && profile.payoutsEnabled && profile.walletBalance > 0) {
+      try {
+        await triggerPayout(profile);
+      } catch (payoutErr) {
+        console.error('Auto-payout failed:', payoutErr);
+      }
+    }
 
     res.json({ payment });
   } catch (err) { next(err); }
@@ -211,20 +235,7 @@ router.post('/connect/payout', requireAuth, async (req, res, next) => {
       return res.status(400).json({ error: 'Solde insuffisant' });
     }
 
-    const amount = profile.walletBalance;
-    const { transfer, payout } = await payoutToProvider(profile.stripeAccountId, amount);
-
-    const [, payoutRecord] = await prisma.$transaction([
-      prisma.providerProfile.update({ where: { userId: req.user.id }, data: { walletBalance: 0 } }),
-      prisma.payout.create({
-        data: {
-          providerId: profile.id,
-          amount,
-          stripeTransferId: transfer.id,
-          stripePayoutId: payout.id,
-        },
-      }),
-    ]);
+    const payoutRecord = await triggerPayout(profile);
 
     res.json({ payout: payoutRecord });
   } catch (err) {
