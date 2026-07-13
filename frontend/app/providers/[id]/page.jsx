@@ -6,6 +6,11 @@ import { api } from '../../../lib/api';
 import StarRating from '../../../components/StarRating';
 
 const LEVEL_LABEL = { PROFESSIONNEL: 'Professionnel', EXPERT: 'Expert', PASSIONNE: 'Passionné' };
+const LEVEL_STYLE = {
+  PROFESSIONNEL: 'bg-purple-100 text-purple-700',
+  EXPERT: 'bg-green-100 text-green-700',
+  PASSIONNE: 'bg-ochre-light text-ochre-dark',
+};
 
 export default function ProviderProfilePage() {
   const { id } = useParams();
@@ -51,7 +56,7 @@ export default function ProviderProfilePage() {
                 <div key={pc.id} className="rounded-lg border border-slate-200 bg-white p-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-ink">{pc.category.icon} {pc.category.name}</span>
-                    <span className="rounded-full bg-moss-light px-2.5 py-1 text-xs font-medium text-moss-dark">
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${LEVEL_STYLE[pc.level] || 'bg-moss-light text-moss-dark'}`}>
                       {LEVEL_LABEL[pc.level] || pc.level}
                     </span>
                   </div>
