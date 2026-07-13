@@ -17,7 +17,7 @@ router.get('/providers', async (req, res, next) => {
       },
       select: {
         id: true, firstName: true, lastName: true, avatarUrl: true, address: true,
-        providerProfile: { include: { categories: { include: { category: true } } } },
+        providerProfile: { include: { categories: { include: { category: true } }, services: { include: { service: true } } } },
       },
     });
     res.json({ providers });
@@ -30,7 +30,7 @@ router.get('/providers/:id', async (req, res, next) => {
       where: { id: req.params.id },
       select: {
         id: true, firstName: true, lastName: true, avatarUrl: true, address: true, createdAt: true,
-        providerProfile: { include: { categories: { include: { category: true } } } },
+        providerProfile: { include: { categories: { include: { category: true } }, services: { include: { service: true } } } },
         reviewsReceived: { include: { author: { select: { firstName: true, avatarUrl: true } } }, orderBy: { createdAt: 'desc' } },
       },
     });
@@ -53,7 +53,7 @@ router.patch('/me', requireAuth, async (req, res, next) => {
 
 router.patch('/me/provider-profile', requireAuth, async (req, res, next) => {
   try {
-    const { bio, defaultHourlyRate, radiusKm, autoApply, categoryIds, address } = req.body;
+    const { bio, defaultHourlyRate, radiusKm, autoApply, categories, serviceIds, address } = req.body;
 
     if (address) {
       const geocoded = await geocodeAddress(address);
@@ -67,14 +67,20 @@ router.patch('/me/provider-profile', requireAuth, async (req, res, next) => {
       where: { userId: req.user.id },
       data: {
         bio, defaultHourlyRate, radiusKm, autoApply,
-        categories: categoryIds
+        categories: categories
           ? {
               deleteMany: {},
-              create: categoryIds.map((categoryId) => ({ categoryId })),
+              create: categories.map(({ categoryId, level }) => ({ categoryId, level: level || 'PASSIONNE' })),
+            }
+          : undefined,
+        services: serviceIds
+          ? {
+              deleteMany: {},
+              create: serviceIds.map((serviceId) => ({ serviceId })),
             }
           : undefined,
       },
-      include: { categories: { include: { category: true } } },
+      include: { categories: { include: { category: true } }, services: { include: { service: true } } },
     });
 
     res.json({ profile });

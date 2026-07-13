@@ -58,7 +58,7 @@ router.delete('/:id', requireAuth, requireRole('ADMIN'), async (req, res, next) 
     await prisma.category.delete({ where: { id: req.params.id } });
     res.status(204).end();
   } catch (err) {
-    if (err.code === 'P2003') { err.status = 409; err.expose = true; err.message = 'Impossible de supprimer : des missions ou services y sont rattachés'; }
+    if (err.code === 'P2003') { err.status = 409; err.expose = true; err.message = 'Impossible de supprimer : des missions, services ou compétences de prestataires y sont rattachés'; }
     next(err);
   }
 });

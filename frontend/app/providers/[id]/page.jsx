@@ -5,6 +5,8 @@ import { useParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import StarRating from '../../../components/StarRating';
 
+const LEVEL_LABEL = { PROFESSIONNEL: 'Professionnel', EXPERT: 'Expert', PASSIONNE: 'Passionné' };
+
 export default function ProviderProfilePage() {
   const { id } = useParams();
   const [provider, setProvider] = useState(null);
@@ -40,12 +42,32 @@ export default function ProviderProfilePage() {
       {profile.bio && <p className="mt-5 text-slate-600">{profile.bio}</p>}
 
       {profile.categories?.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {profile.categories.map((pc) => (
-            <span key={pc.id} className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600">
-              {pc.category.icon} {pc.category.name}
-            </span>
-          ))}
+        <div className="mt-5">
+          <h2 className="font-display text-lg font-medium text-ink">Compétences</h2>
+          <div className="mt-3 space-y-3">
+            {profile.categories.map((pc) => {
+              const services = (profile.services || []).filter((ps) => ps.service.categoryId === pc.categoryId);
+              return (
+                <div key={pc.id} className="rounded-lg border border-slate-200 bg-white p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-ink">{pc.category.icon} {pc.category.name}</span>
+                    <span className="rounded-full bg-moss-light px-2.5 py-1 text-xs font-medium text-moss-dark">
+                      {LEVEL_LABEL[pc.level] || pc.level}
+                    </span>
+                  </div>
+                  {services.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {services.map((ps) => (
+                        <span key={ps.id} className="rounded-full border border-slate-200 px-2.5 py-0.5 text-xs text-slate-500">
+                          {ps.service.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
