@@ -7,9 +7,9 @@ import { useAuth } from '../../../lib/auth-context';
 import StarRating from '../../../components/StarRating';
 
 const LEVELS = [
-  { value: 'PROFESSIONNEL', label: 'Professionnel' },
-  { value: 'EXPERT', label: 'Expert' },
-  { value: 'PASSIONNE', label: 'Passionné' },
+  { value: 'PROFESSIONNEL', label: 'Professionnel', activeClass: 'bg-purple-600 text-white' },
+  { value: 'EXPERT', label: 'Expert', activeClass: 'bg-green-600 text-white' },
+  { value: 'PASSIONNE', label: 'Passionné', activeClass: 'bg-ochre text-ink' },
 ];
 
 export default function ProviderProfilePage() {
@@ -368,7 +368,7 @@ export default function ProviderProfilePage() {
                             type="button"
                             onClick={() => setLevel(c.id, lvl.value)}
                             className={`rounded-full px-3 py-1 text-xs font-medium ${
-                              levels[c.id] === lvl.value ? 'bg-moss text-paper' : 'border border-slate-200 text-slate-500'
+                              levels[c.id] === lvl.value ? lvl.activeClass : 'border border-slate-200 text-slate-500'
                             }`}
                           >
                             {lvl.label}
