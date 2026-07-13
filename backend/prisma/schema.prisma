@@ -111,7 +111,6 @@ model ProviderProfile {
   userId              String              @unique
   user                User                @relation(fields: [userId], references: [id])
   bio                 String?
-  defaultHourlyRate   Float               @default(15)
   radiusKm            Int                 @default(15)
   verificationStatus  VerificationStatus  @default(UNVERIFIED)
   ratingAverage       Float               @default(0)
@@ -176,6 +175,7 @@ model ProviderCategory {
   categoryId String
   category   Category   @relation(fields: [categoryId], references: [id])
   level      SkillLevel @default(PASSIONNE)
+  hourlyRate Float      @default(15)
 
   @@unique([providerId, categoryId])
 }
