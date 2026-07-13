@@ -123,6 +123,7 @@ model ProviderProfile {
   bankLast4           String?
   bankHolderName      String?
   autoPayout          Boolean             @default(false)
+  siret               String?             @unique
   categories          ProviderCategory[]
   services            ProviderService[]
   payouts             Payout[]

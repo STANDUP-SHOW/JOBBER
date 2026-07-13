@@ -2,6 +2,7 @@ const express = require('express');
 const prisma = require('../config/prisma');
 const { requireAuth } = require('../middleware/auth');
 const { geocodeAddress } = require('../services/geocodingService');
+const { isValidSiret } = require('../utils/siret');
 
 const router = express.Router();
 
@@ -53,7 +54,22 @@ router.patch('/me', requireAuth, async (req, res, next) => {
 
 router.patch('/me/provider-profile', requireAuth, async (req, res, next) => {
   try {
-    const { bio, radiusKm, autoApply, autoPayout, categories, serviceIds, address } = req.body;
+    const { bio, radiusKm, autoApply, autoPayout, categories, serviceIds, address, siret } = req.body;
+
+    if (siret !== undefined && siret !== null && siret !== '' && !isValidSiret(siret)) {
+      return res.status(400).json({ error: 'Numéro SIRET invalide (14 chiffres)' });
+    }
+
+    // "Professionnel" is a claim of registered business status — gate it on
+    // a valid SIRET, whether that's already on file or supplied right now.
+    if (categories?.some((c) => c.level === 'PROFESSIONNEL')) {
+      const effectiveSiret = siret !== undefined
+        ? siret
+        : (await prisma.providerProfile.findUnique({ where: { userId: req.user.id }, select: { siret: true } }))?.siret;
+      if (!isValidSiret(effectiveSiret)) {
+        return res.status(400).json({ error: 'Un numéro SIRET valide est requis pour le niveau Professionnel' });
+      }
+    }
 
     if (address) {
       const geocoded = await geocodeAddress(address);
@@ -67,6 +83,7 @@ router.patch('/me/provider-profile', requireAuth, async (req, res, next) => {
       where: { userId: req.user.id },
       data: {
         bio, radiusKm, autoApply, autoPayout,
+        siret: siret !== undefined ? (siret || null) : undefined,
         categories: categories
           ? {
               deleteMany: {},
@@ -86,7 +103,12 @@ router.patch('/me/provider-profile', requireAuth, async (req, res, next) => {
     });
 
     res.json({ profile });
-  } catch (err) { next(err); }
+  } catch (err) {
+    if (err.code === 'P2002' && err.meta?.target?.includes('siret')) {
+      err.status = 409; err.expose = true; err.message = 'Ce numéro SIRET est déjà utilisé par un autre compte';
+    }
+    next(err);
+  }
 });
 
 module.exports = router;
