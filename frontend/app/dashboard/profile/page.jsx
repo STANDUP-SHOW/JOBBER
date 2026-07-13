@@ -6,6 +6,12 @@ import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 import StarRating from '../../../components/StarRating';
 
+const LEVELS = [
+  { value: 'PROFESSIONNEL', label: 'Professionnel' },
+  { value: 'EXPERT', label: 'Expert' },
+  { value: 'PASSIONNE', label: 'Passionné' },
+];
+
 export default function ProviderProfilePage() {
   const { user, token, login, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -17,8 +23,10 @@ export default function ProviderProfilePage() {
     defaultHourlyRate: 15,
     radiusKm: 15,
     autoApply: false,
-    categoryIds: [],
   });
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
+  const [levels, setLevels] = useState({}); // { [categoryId]: 'PROFESSIONNEL' | 'EXPERT' | 'PASSIONNE' }
+  const [serviceIds, setServiceIds] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
@@ -54,8 +62,10 @@ export default function ProviderProfilePage() {
         defaultHourlyRate: profile.defaultHourlyRate ?? 15,
         radiusKm: profile.radiusKm ?? 15,
         autoApply: profile.autoApply ?? false,
-        categoryIds: (profile.categories || []).map((c) => c.categoryId),
       });
+      setSelectedCategoryIds((profile.categories || []).map((c) => c.categoryId));
+      setLevels(Object.fromEntries((profile.categories || []).map((c) => [c.categoryId, c.level])));
+      setServiceIds((profile.services || []).map((s) => s.serviceId));
     }
   }, [token, user]);
 
@@ -69,13 +79,25 @@ export default function ProviderProfilePage() {
     setBankForm((f) => ({ ...f, firstName: user.firstName || '', lastName: user.lastName || '', phone: user.phone || '' }));
   }, [user]);
 
-  function toggleCategory(id) {
-    setForm((f) => ({
-      ...f,
-      categoryIds: f.categoryIds.includes(id)
-        ? f.categoryIds.filter((c) => c !== id)
-        : [...f.categoryIds, id],
-    }));
+  function toggleCategory(category) {
+    setSelectedCategoryIds((ids) => {
+      if (ids.includes(category.id)) {
+        setServiceIds((sids) => sids.filter((id) => !category.services.some((s) => s.id === id)));
+        return ids.filter((id) => id !== category.id);
+      }
+      setLevels((l) => (l[category.id] ? l : { ...l, [category.id]: 'PASSIONNE' }));
+      return [...ids, category.id];
+    });
+  }
+
+  function toggleService(categoryId, serviceId) {
+    setServiceIds((ids) => (ids.includes(serviceId) ? ids.filter((id) => id !== serviceId) : [...ids, serviceId]));
+    setSelectedCategoryIds((ids) => (ids.includes(categoryId) ? ids : [...ids, categoryId]));
+    setLevels((l) => (l[categoryId] ? l : { ...l, [categoryId]: 'PASSIONNE' }));
+  }
+
+  function setLevel(categoryId, level) {
+    setLevels((l) => ({ ...l, [categoryId]: level }));
   }
 
   async function onSubmit(e) {
@@ -91,7 +113,8 @@ export default function ProviderProfilePage() {
           defaultHourlyRate: Number(form.defaultHourlyRate),
           radiusKm: Number(form.radiusKm),
           autoApply: form.autoApply,
-          categoryIds: form.categoryIds,
+          categories: selectedCategoryIds.map((categoryId) => ({ categoryId, level: levels[categoryId] || 'PASSIONNE' })),
+          serviceIds,
         },
         token
       );
@@ -317,19 +340,59 @@ export default function ProviderProfilePage() {
         </label>
 
         <div>
-          <span className="text-xs font-medium text-slate-500">Catégories</span>
-          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {categories.map((c) => (
-              <label key={c.id} className="flex items-center gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={form.categoryIds.includes(c.id)}
-                  onChange={() => toggleCategory(c.id)}
-                  className="rounded border-slate-300"
-                />
-                {c.icon} {c.name}
-              </label>
-            ))}
+          <span className="text-xs font-medium text-slate-500">Compétences</span>
+          <p className="mt-1 text-xs text-slate-400">
+            Cochez vos domaines et les prestations précises que vous proposez, puis indiquez votre niveau pour chaque domaine.
+          </p>
+          <div className="mt-2 space-y-2">
+            {categories.map((c) => {
+              const active = selectedCategoryIds.includes(c.id);
+              return (
+                <div key={c.id} className="rounded-md border border-slate-200 p-3">
+                  <label className="flex items-center gap-2 text-sm font-medium text-ink">
+                    <input
+                      type="checkbox"
+                      checked={active}
+                      onChange={() => toggleCategory(c)}
+                      className="rounded border-slate-300"
+                    />
+                    {c.icon} {c.name}
+                  </label>
+
+                  {active && (
+                    <>
+                      <div className="mt-2 flex gap-2">
+                        {LEVELS.map((lvl) => (
+                          <button
+                            key={lvl.value}
+                            type="button"
+                            onClick={() => setLevel(c.id, lvl.value)}
+                            className={`rounded-full px-3 py-1 text-xs font-medium ${
+                              levels[c.id] === lvl.value ? 'bg-moss text-paper' : 'border border-slate-200 text-slate-500'
+                            }`}
+                          >
+                            {lvl.label}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                        {c.services?.map((svc) => (
+                          <label key={svc.id} className="flex items-center gap-1.5 text-xs text-slate-600">
+                            <input
+                              type="checkbox"
+                              checked={serviceIds.includes(svc.id)}
+                              onChange={() => toggleService(c.id, svc.id)}
+                              className="rounded border-slate-300"
+                            />
+                            {svc.name}
+                          </label>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 

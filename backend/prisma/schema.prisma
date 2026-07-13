@@ -68,6 +68,12 @@ enum PayoutStatus {
   FAILED
 }
 
+enum SkillLevel {
+  PROFESSIONNEL
+  EXPERT
+  PASSIONNE
+}
+
 model User {
   id                String     @id @default(cuid())
   email             String     @unique
@@ -118,6 +124,7 @@ model ProviderProfile {
   bankLast4           String?
   bankHolderName      String?
   categories          ProviderCategory[]
+  services            ProviderService[]
   payouts             Payout[]
   createdAt           DateTime            @default(now())
 }
@@ -156,16 +163,32 @@ model Service {
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [id])
   missions    Mission[]
+  providers   ProviderService[]
 }
 
+// One row per main category a jobber has picked, carrying their declared
+// skill level for that whole category (sub-service picks live separately
+// in ProviderService).
 model ProviderCategory {
-  id         String   @id @default(cuid())
+  id         String     @id @default(cuid())
   providerId String
   provider   ProviderProfile @relation(fields: [providerId], references: [id])
   categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
+  category   Category   @relation(fields: [categoryId], references: [id])
+  level      SkillLevel @default(PASSIONNE)
 
   @@unique([providerId, categoryId])
+}
+
+// Sub-category (Service) skills a jobber has checked off within a category.
+model ProviderService {
+  id         String   @id @default(cuid())
+  providerId String
+  provider   ProviderProfile @relation(fields: [providerId], references: [id])
+  serviceId  String
+  service    Service  @relation(fields: [serviceId], references: [id])
+
+  @@unique([providerId, serviceId])
 }
 
 model Mission {
