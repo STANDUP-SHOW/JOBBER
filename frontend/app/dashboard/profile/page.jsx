@@ -13,6 +13,21 @@ const LEVELS = [
   { value: 'PASSIONNE', label: 'Passionné', activeClass: 'bg-ochre text-ink' },
 ];
 
+// French SIRET: 14 digits, valid under the Luhn checksum.
+function isValidSiret(siret) {
+  if (typeof siret !== 'string' || !/^\d{14}$/.test(siret)) return false;
+  let sum = 0;
+  for (let i = 0; i < siret.length; i++) {
+    let digit = Number(siret[i]);
+    if (i % 2 === 0) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    sum += digit;
+  }
+  return sum % 10 === 0;
+}
+
 export default function ProviderProfilePage() {
   const { user, token, login, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -21,6 +36,7 @@ export default function ProviderProfilePage() {
   const [form, setForm] = useState({
     bio: '',
     autoApply: false,
+    siret: '',
   });
   const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
   const [levels, setLevels] = useState({}); // { [categoryId]: 'PROFESSIONNEL' | 'EXPERT' | 'PASSIONNE' }
@@ -45,6 +61,7 @@ export default function ProviderProfilePage() {
       setForm({
         bio: profile.bio || '',
         autoApply: profile.autoApply ?? false,
+        siret: profile.siret || '',
       });
       setSelectedCategoryIds((profile.categories || []).map((c) => c.categoryId));
       setLevels(Object.fromEntries((profile.categories || []).map((c) => [c.categoryId, c.level])));
@@ -84,12 +101,20 @@ export default function ProviderProfilePage() {
     e.preventDefault();
     setError('');
     setSaved(false);
+
+    const needsSiret = selectedCategoryIds.some((id) => levels[id] === 'PROFESSIONNEL');
+    if (needsSiret && !isValidSiret(form.siret)) {
+      setError('Un numéro SIRET valide (14 chiffres) est requis pour le niveau Professionnel.');
+      return;
+    }
+
     setLoading(true);
     try {
       await api.updateProviderProfile(
         {
           bio: form.bio,
           autoApply: form.autoApply,
+          siret: form.siret,
           categories: selectedCategoryIds.map((categoryId) => ({
             categoryId,
             level: levels[categoryId] || 'PASSIONNE',
@@ -152,6 +177,24 @@ export default function ProviderProfilePage() {
           Candidater automatiquement aux nouvelles missions de mes catégories
         </label>
 
+        <label className="block">
+          <span className="text-xs font-medium text-slate-500">Numéro SIRET</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={14}
+            value={form.siret}
+            onChange={(e) => setForm({ ...form, siret: e.target.value.replace(/\D/g, '') })}
+            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
+            placeholder="14 chiffres"
+          />
+          <span className="mt-1 block text-xs text-slate-400">
+            {form.siret && !isValidSiret(form.siret)
+              ? 'Numéro invalide.'
+              : "Requis pour déclarer le niveau Professionnel sur une compétence."}
+          </span>
+        </label>
+
         <div>
           <span className="text-xs font-medium text-slate-500">Compétences</span>
           <p className="mt-1 text-xs text-slate-400">
@@ -175,18 +218,23 @@ export default function ProviderProfilePage() {
                   {active && (
                     <>
                       <div className="mt-2 flex flex-wrap items-center gap-2">
-                        {LEVELS.map((lvl) => (
-                          <button
-                            key={lvl.value}
-                            type="button"
-                            onClick={() => setLevel(c.id, lvl.value)}
-                            className={`rounded-full px-3 py-1 text-xs font-medium ${
-                              levels[c.id] === lvl.value ? lvl.activeClass : 'border border-slate-200 text-slate-500'
-                            }`}
-                          >
-                            {lvl.label}
-                          </button>
-                        ))}
+                        {LEVELS.map((lvl) => {
+                          const locked = lvl.value === 'PROFESSIONNEL' && !isValidSiret(form.siret);
+                          return (
+                            <button
+                              key={lvl.value}
+                              type="button"
+                              disabled={locked}
+                              title={locked ? 'Renseignez un numéro SIRET valide ci-dessus pour choisir ce niveau' : undefined}
+                              onClick={() => setLevel(c.id, lvl.value)}
+                              className={`rounded-full px-3 py-1 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-40 ${
+                                levels[c.id] === lvl.value ? lvl.activeClass : 'border border-slate-200 text-slate-500'
+                              }`}
+                            >
+                              {lvl.label}
+                            </button>
+                          );
+                        })}
                         <label className="ml-auto flex items-center gap-1.5 text-xs text-slate-500">
                           Tarif horaire
                           <input
