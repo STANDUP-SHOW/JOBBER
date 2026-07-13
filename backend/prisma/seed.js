@@ -3,17 +3,49 @@ const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 const CATEGORIES = [
-  { name: 'Ménage', slug: 'menage', icon: '🧹', services: ['Ménage à domicile', 'Repassage', 'Nettoyage de vitres', "Aide au rangement"] },
-  { name: 'Bricolage', slug: 'bricolage', icon: '🔧', services: ['Petites réparations', 'Montage de meubles', 'Pose d\'étagères', 'Peinture intérieure'] },
-  { name: 'Déménagement', slug: 'demenagement', icon: '📦', services: ["Aide au déménagement", 'Déplacer un meuble', 'Emballage de cartons'] },
-  { name: 'Jardinage', slug: 'jardinage', icon: '🌱', services: ['Tonte de pelouse', 'Taille de haie', 'Entretien de jardin'] },
-  { name: "Garde d'enfants", slug: 'garde-enfants', icon: '🧒', services: ['Baby-sitting', 'Sortie d\'école', 'Aide aux devoirs'] },
-  { name: 'Cours particuliers', slug: 'cours-particuliers', icon: '📚', services: ['Soutien scolaire', "Cours d'informatique", 'Cours de langues'] },
-  { name: 'Aide à la personne', slug: 'aide-personne', icon: '🤝', services: ['Accompagnement courses', 'Accompagnement rendez-vous médicaux', 'Préparation de repas'] },
-  { name: "Garde d'animaux", slug: 'garde-animaux', icon: '🐾', services: ['Promenade de chien', 'Pet-sitting'] },
-  { name: 'Informatique', slug: 'informatique', icon: '💻', services: ["Installation d'imprimante", "Nettoyage d'ordinateur", 'Installation de box'] },
-  { name: 'Transport', slug: 'transport', icon: '🚗', services: ['Transport de personnes', 'Transport de colis', 'Livraison express'] },
-  { name: 'Convoi', slug: 'convoi', icon: '🚚', services: ['Convoyage de véhicule', 'Accompagnement longue distance'] },
+  { name: 'Ménage', slug: 'menage', icon: '🧹', services: [
+    'Ménage à domicile', 'Ménage de printemps', 'Repassage', 'Nettoyage de vitres', 'Aide au rangement',
+    'Nettoyage après travaux', 'Nettoyage de four', 'Nettoyage de tapis et moquettes', 'Nettoyage de fin de bail',
+  ] },
+  { name: 'Bricolage', slug: 'bricolage', icon: '🔧', services: [
+    'Petites réparations', 'Montage de meubles', "Pose d'étagères", 'Peinture intérieure', 'Pose de papier peint',
+    'Plomberie légère', 'Électricité légère', 'Fixation murale (TV, miroir…)', 'Pose de rideaux et stores', 'Montage de meubles de jardin',
+  ] },
+  { name: 'Déménagement', slug: 'demenagement', icon: '📦', services: [
+    'Aide au déménagement', 'Déplacer un meuble', 'Emballage de cartons', 'Déballage et rangement',
+    'Montage et démontage de meubles', 'Location et transport de camion', "Débarras d'encombrants",
+  ] },
+  { name: 'Jardinage', slug: 'jardinage', icon: '🌱', services: [
+    'Tonte de pelouse', 'Taille de haie', 'Entretien de jardin', 'Désherbage', 'Plantation',
+    'Ramassage de feuilles', 'Élagage', "Arrosage pendant l'absence", 'Création de potager',
+  ] },
+  { name: "Garde d'enfants", slug: 'garde-enfants', icon: '🧒', services: [
+    'Baby-sitting', "Sortie d'école", 'Aide aux devoirs', 'Garde le soir et le week-end',
+    'Garde pendant les vacances', 'Activités et jeux éducatifs', 'Trajet domicile-activités',
+  ] },
+  { name: 'Cours particuliers', slug: 'cours-particuliers', icon: '📚', services: [
+    'Soutien scolaire', "Cours d'informatique", 'Cours de langues', 'Cours de musique',
+    'Cours de mathématiques', 'Préparation aux examens', 'Coaching sportif',
+  ] },
+  { name: 'Aide à la personne', slug: 'aide-personne', icon: '🤝', services: [
+    'Accompagnement courses', 'Accompagnement rendez-vous médicaux', 'Préparation de repas', 'Aide à la toilette',
+    'Aide administrative', 'Compagnie et conversation', 'Aide au lever et au coucher', 'Accompagnement sorties',
+  ] },
+  { name: "Garde d'animaux", slug: 'garde-animaux', icon: '🐾', services: [
+    'Promenade de chien', 'Pet-sitting', 'Garde à domicile', 'Toilettage léger',
+    'Visite et soins quotidiens', 'Transport vétérinaire',
+  ] },
+  { name: 'Informatique', slug: 'informatique', icon: '💻', services: [
+    "Installation d'imprimante", "Nettoyage d'ordinateur", 'Installation de box', 'Dépannage informatique',
+    'Installation de logiciels', 'Sauvegarde de données', 'Configuration smartphone et tablette', 'Initiation informatique',
+  ] },
+  { name: 'Transport', slug: 'transport', icon: '🚗', services: [
+    'Transport de personnes', 'Transport de colis', 'Livraison express', 'Trajet aéroport ou gare',
+    'Covoiturage régulier', 'Transport de courses',
+  ] },
+  { name: 'Convoi', slug: 'convoi', icon: '🚚', services: [
+    'Convoyage de véhicule', 'Accompagnement longue distance', 'Livraison de véhicule', 'Transport de marchandises',
+  ] },
 ];
 
 async function main() {
