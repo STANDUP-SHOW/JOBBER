@@ -56,9 +56,12 @@ export default function ProviderProfilePage() {
                 <div key={pc.id} className="rounded-lg border border-slate-200 bg-white p-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-ink">{pc.category.icon} {pc.category.name}</span>
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${LEVEL_STYLE[pc.level] || 'bg-moss-light text-moss-dark'}`}>
-                      {LEVEL_LABEL[pc.level] || pc.level}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-500">{pc.hourlyRate} €/h</span>
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${LEVEL_STYLE[pc.level] || 'bg-moss-light text-moss-dark'}`}>
+                        {LEVEL_LABEL[pc.level] || pc.level}
+                      </span>
+                    </div>
                   </div>
                   {services.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1.5">
@@ -76,7 +79,7 @@ export default function ProviderProfilePage() {
         </div>
       )}
 
-      <div className="mt-4 text-sm text-slate-500">Tarif de base : {profile.defaultHourlyRate} €/h · Zone : {profile.radiusKm} km</div>
+      <div className="mt-4 text-sm text-slate-500">Zone d'intervention : {profile.radiusKm} km</div>
 
       <section className="mt-10">
         <h2 className="font-display text-lg font-medium text-ink">Avis clients</h2>

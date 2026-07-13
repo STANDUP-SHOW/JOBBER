@@ -53,7 +53,7 @@ router.patch('/me', requireAuth, async (req, res, next) => {
 
 router.patch('/me/provider-profile', requireAuth, async (req, res, next) => {
   try {
-    const { bio, defaultHourlyRate, radiusKm, autoApply, categories, serviceIds, address } = req.body;
+    const { bio, radiusKm, autoApply, categories, serviceIds, address } = req.body;
 
     if (address) {
       const geocoded = await geocodeAddress(address);
@@ -66,11 +66,13 @@ router.patch('/me/provider-profile', requireAuth, async (req, res, next) => {
     const profile = await prisma.providerProfile.update({
       where: { userId: req.user.id },
       data: {
-        bio, defaultHourlyRate, radiusKm, autoApply,
+        bio, radiusKm, autoApply,
         categories: categories
           ? {
               deleteMany: {},
-              create: categories.map(({ categoryId, level }) => ({ categoryId, level: level || 'PASSIONNE' })),
+              create: categories.map(({ categoryId, level, hourlyRate }) => ({
+                categoryId, level: level || 'PASSIONNE', hourlyRate: hourlyRate || 15,
+              })),
             }
           : undefined,
         services: serviceIds

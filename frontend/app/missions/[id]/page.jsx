@@ -89,7 +89,9 @@ export default function MissionDetailPage() {
       {sheetOpen && (
         <ApplyOfferSheet
           mission={mission}
-          defaultRate={user?.providerProfile?.defaultHourlyRate ?? 15}
+          defaultRate={
+            user?.providerProfile?.categories?.find((c) => c.categoryId === mission.categoryId)?.hourlyRate ?? 15
+          }
           busy={busy}
           error={offerError}
           onClose={() => setSheetOpen(false)}

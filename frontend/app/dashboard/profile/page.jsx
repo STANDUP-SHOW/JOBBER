@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 import StarRating from '../../../components/StarRating';
+import ZoneSummaryCard from '../../../components/ZoneSummaryCard';
 
 const LEVELS = [
   { value: 'PROFESSIONNEL', label: 'Professionnel', activeClass: 'bg-purple-600 text-white' },
@@ -18,14 +19,12 @@ export default function ProviderProfilePage() {
 
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState({
-    address: '',
     bio: '',
-    defaultHourlyRate: 15,
-    radiusKm: 15,
     autoApply: false,
   });
   const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
   const [levels, setLevels] = useState({}); // { [categoryId]: 'PROFESSIONNEL' | 'EXPERT' | 'PASSIONNE' }
+  const [rates, setRates] = useState({}); // { [categoryId]: hourlyRate }
   const [serviceIds, setServiceIds] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -57,14 +56,12 @@ export default function ProviderProfilePage() {
     const profile = user.providerProfile;
     if (profile) {
       setForm({
-        address: user.address || '',
         bio: profile.bio || '',
-        defaultHourlyRate: profile.defaultHourlyRate ?? 15,
-        radiusKm: profile.radiusKm ?? 15,
         autoApply: profile.autoApply ?? false,
       });
       setSelectedCategoryIds((profile.categories || []).map((c) => c.categoryId));
       setLevels(Object.fromEntries((profile.categories || []).map((c) => [c.categoryId, c.level])));
+      setRates(Object.fromEntries((profile.categories || []).map((c) => [c.categoryId, c.hourlyRate])));
       setServiceIds((profile.services || []).map((s) => s.serviceId));
     }
   }, [token, user]);
@@ -86,6 +83,7 @@ export default function ProviderProfilePage() {
         return ids.filter((id) => id !== category.id);
       }
       setLevels((l) => (l[category.id] ? l : { ...l, [category.id]: 'PASSIONNE' }));
+      setRates((r) => (r[category.id] ? r : { ...r, [category.id]: 15 }));
       return [...ids, category.id];
     });
   }
@@ -94,10 +92,15 @@ export default function ProviderProfilePage() {
     setServiceIds((ids) => (ids.includes(serviceId) ? ids.filter((id) => id !== serviceId) : [...ids, serviceId]));
     setSelectedCategoryIds((ids) => (ids.includes(categoryId) ? ids : [...ids, categoryId]));
     setLevels((l) => (l[categoryId] ? l : { ...l, [categoryId]: 'PASSIONNE' }));
+    setRates((r) => (r[categoryId] ? r : { ...r, [categoryId]: 15 }));
   }
 
   function setLevel(categoryId, level) {
     setLevels((l) => ({ ...l, [categoryId]: level }));
+  }
+
+  function setRate(categoryId, rate) {
+    setRates((r) => ({ ...r, [categoryId]: rate }));
   }
 
   async function onSubmit(e) {
@@ -108,12 +111,13 @@ export default function ProviderProfilePage() {
     try {
       await api.updateProviderProfile(
         {
-          address: form.address,
           bio: form.bio,
-          defaultHourlyRate: Number(form.defaultHourlyRate),
-          radiusKm: Number(form.radiusKm),
           autoApply: form.autoApply,
-          categories: selectedCategoryIds.map((categoryId) => ({ categoryId, level: levels[categoryId] || 'PASSIONNE' })),
+          categories: selectedCategoryIds.map((categoryId) => ({
+            categoryId,
+            level: levels[categoryId] || 'PASSIONNE',
+            hourlyRate: Number(rates[categoryId]) || 15,
+          })),
           serviceIds,
         },
         token
@@ -282,21 +286,11 @@ export default function ProviderProfilePage() {
         </div>
       )}
 
-      <form onSubmit={onSubmit} className="mt-6 space-y-4">
-        <label className="block">
-          <span className="text-xs font-medium text-slate-500">Adresse</span>
-          <input
-            type="text"
-            value={form.address}
-            onChange={(e) => setForm({ ...form, address: e.target.value })}
-            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
-            placeholder="Rue, ville, code postal"
-          />
-          <span className="mt-1 block text-xs text-slate-400">
-            Utilisée pour centrer votre zone d'intervention sur la carte des missions.
-          </span>
-        </label>
+      <div className="mt-6">
+        <ZoneSummaryCard />
+      </div>
 
+      <form onSubmit={onSubmit} className="mt-4 space-y-4">
         <label className="block">
           <span className="text-xs font-medium text-slate-500">Bio</span>
           <textarea
@@ -307,27 +301,6 @@ export default function ProviderProfilePage() {
             placeholder="Présentez votre expérience, vos compétences…"
           />
         </label>
-
-        <div className="grid grid-cols-2 gap-3">
-          <label className="block">
-            <span className="text-xs font-medium text-slate-500">Tarif horaire par défaut (€)</span>
-            <input
-              type="number" min="1" step="0.5"
-              value={form.defaultHourlyRate}
-              onChange={(e) => setForm({ ...form, defaultHourlyRate: e.target.value })}
-              className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
-            />
-          </label>
-          <label className="block">
-            <span className="text-xs font-medium text-slate-500">Zone d'intervention (km)</span>
-            <input
-              type="number" min="1" step="1"
-              value={form.radiusKm}
-              onChange={(e) => setForm({ ...form, radiusKm: e.target.value })}
-              className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
-            />
-          </label>
-        </div>
 
         <label className="flex items-center gap-2 text-sm text-ink">
           <input
@@ -361,7 +334,7 @@ export default function ProviderProfilePage() {
 
                   {active && (
                     <>
-                      <div className="mt-2 flex gap-2">
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
                         {LEVELS.map((lvl) => (
                           <button
                             key={lvl.value}
@@ -374,6 +347,16 @@ export default function ProviderProfilePage() {
                             {lvl.label}
                           </button>
                         ))}
+                        <label className="ml-auto flex items-center gap-1.5 text-xs text-slate-500">
+                          Tarif horaire
+                          <input
+                            type="number" min="1" step="0.5"
+                            value={rates[c.id] ?? 15}
+                            onChange={(e) => setRate(c.id, e.target.value)}
+                            className="w-16 rounded-md border border-slate-200 px-2 py-1 text-xs outline-none focus:border-moss"
+                          />
+                          €/h
+                        </label>
                       </div>
                       <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
                         {c.services?.map((svc) => (
