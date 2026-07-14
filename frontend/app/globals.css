@@ -38,6 +38,12 @@ body {
   display: none;
 }
 
+/* Google Places autocomplete dropdown defaults to z-index: 1000, which
+   renders behind our modals/sheets (z-index up to 1300). */
+.pac-container {
+  z-index: 10000 !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
