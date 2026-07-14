@@ -28,6 +28,7 @@ function NewMissionForm() {
     description: '',
     address: '',
     desiredDate: '',
+    desiredTime: '09:00',
     estimatedHours: 2,
     photos: [],
   });
@@ -46,8 +47,16 @@ function NewMissionForm() {
     setError('');
     setLoading(true);
     try {
+      const { desiredTime, ...rest } = form;
+      // Combine as local wall-clock time before converting to an
+      // unambiguous ISO string, so the stored instant matches what the
+      // user actually picked regardless of server timezone.
+      const [year, month, day] = form.desiredDate.split('-').map(Number);
+      const [hour, minute] = desiredTime.split(':').map(Number);
+      const desiredDateTime = new Date(year, month - 1, day, hour, minute).toISOString();
+
       const { mission } = await api.createMission(
-        { ...form, estimatedHours: Number(form.estimatedHours) },
+        { ...rest, desiredDate: desiredDateTime, estimatedHours: Number(form.estimatedHours) },
         token
       );
       router.push(`/missions/${mission.id}`);
@@ -126,8 +135,9 @@ function NewMissionForm() {
 
         <div className="grid grid-cols-2 gap-3">
           <Field label="Date souhaitée" type="date" value={form.desiredDate} onChange={(v) => setForm({ ...form, desiredDate: v })} required />
-          <Field label="Durée estimée (heures)" type="number" min="0.5" step="0.5" value={form.estimatedHours} onChange={(v) => setForm({ ...form, estimatedHours: v })} required />
+          <Field label="Heure de début" type="time" value={form.desiredTime} onChange={(v) => setForm({ ...form, desiredTime: v })} required />
         </div>
+        <Field label="Durée estimée (heures)" type="number" min="0.5" step="0.5" value={form.estimatedHours} onChange={(v) => setForm({ ...form, estimatedHours: v })} required />
 
         {error && <p className="rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
 
