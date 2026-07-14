@@ -79,7 +79,7 @@ function CheckoutForm({ booking, token, onClose, onPaid }) {
           disabled={!stripe || busy}
           className="flex-1 rounded-md bg-moss py-3 text-sm font-semibold text-white hover:bg-moss-dark disabled:opacity-60"
         >
-          {busy ? 'Traitement…' : `Payer ${booking.totalAmount} €`}
+          {busy ? 'Traitement…' : `Payer ${booking.payment?.amount ?? booking.totalAmount} €`}
         </button>
       </div>
     </form>

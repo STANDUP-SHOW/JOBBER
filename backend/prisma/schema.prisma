@@ -74,6 +74,17 @@ enum SkillLevel {
   PASSIONNE
 }
 
+enum SubscriptionPlan {
+  MANAGER_BOSS
+  MANAGER_HOLDER
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
 model User {
   id                String     @id @default(cuid())
   email             String     @unique
@@ -106,6 +117,7 @@ model User {
   updatedAt         DateTime   @updatedAt
 
   providerProfile   ProviderProfile?
+  subscription      Subscription?
   missions          Mission[]        @relation("ClientMissions")
   offers            Offer[]          @relation("ProviderOffers")
   bookingsAsClient  Booking[]        @relation("ClientBookings")
@@ -116,6 +128,24 @@ model User {
   documents         VerificationDocument[]
   conversationsAsClient   Conversation[] @relation("ConvClient")
   conversationsAsProvider Conversation[] @relation("ConvProvider")
+}
+
+// "Plus aucun frais" for the manager: MANAGER_BOSS waives the manager-side
+// 2€ booking fee for up to 10 missions per billing period, MANAGER_HOLDER
+// for unlimited missions. The jobber's own 2€ share is unaffected either
+// way — see offers.routes.js acceptOffer for where this is actually spent.
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String             @unique
+  user                 User               @relation(fields: [userId], references: [id])
+  plan                 SubscriptionPlan
+  status               SubscriptionStatus @default(ACTIVE)
+  stripeSubscriptionId String?            @unique
+  currentPeriodStart   DateTime           @default(now())
+  currentPeriodEnd     DateTime
+  missionsUsedInPeriod Int                @default(0)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
 }
 
 model ProviderProfile {
@@ -257,7 +287,6 @@ model Booking {
   hours          Float
   hourlyRate     Float
   totalAmount    Float
-  platformFeePct Float         @default(0.20)
   status         BookingStatus @default(SCHEDULED)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
@@ -273,6 +302,9 @@ model Payment {
   stripePaymentIntentId String?
   amount                Float
   platformFee           Float
+  managerFee            Float         @default(2)
+  providerFee           Float         @default(2)
+  feeWaived             Boolean       @default(false)
   providerPayout        Float
   status                PaymentStatus @default(REQUIRES_PAYMENT)
   paidAt                DateTime?
