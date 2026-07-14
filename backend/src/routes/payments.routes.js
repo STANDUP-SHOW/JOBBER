@@ -4,6 +4,7 @@ const { requireAuth } = require('../middleware/auth');
 const {
   createEscrowIntent, captureIntent, refundIntent, stripe,
   upsertCustomAccount, setBankAccount, retrieveAccount, payoutToProvider,
+  createCustomer, createSetupIntent, listPaymentMethods, detachPaymentMethod, setDefaultPaymentMethod,
 } = require('../services/stripeService');
 
 const router = express.Router();
@@ -69,6 +70,30 @@ router.get('/wallet-history', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// "Mon solde" screen (manager side): what they've paid for missions so far.
+// creditBalance itself (Cagnotte) has no funding source yet — gift cards and
+// promotions aren't built — so it stays at 0 until that lands.
+router.get('/spending-history', requireAuth, async (req, res, next) => {
+  try {
+    const payments = await prisma.payment.findMany({
+      where: { status: { in: ['HELD_IN_ESCROW', 'RELEASED'] }, booking: { clientId: req.user.id } },
+      include: { booking: { include: { mission: true, provider: true } } },
+      orderBy: { paidAt: 'desc' },
+    });
+
+    const entries = payments.map((p) => ({
+      type: 'mission',
+      label: p.booking.mission.title,
+      subLabel: p.booking.provider.firstName,
+      amount: -p.amount,
+      date: p.paidAt,
+      status: p.status,
+    }));
+
+    res.json({ entries });
+  } catch (err) { next(err); }
+});
+
 // Step 1: client authorizes the card for the booking amount (held, not
 // captured). Status only moves to HELD_IN_ESCROW once Stripe confirms the
 // card was actually authorized (see the amount_capturable_updated webhook
@@ -105,9 +130,14 @@ router.post('/:bookingId/create-intent', requireAuth, async (req, res, next) => 
 // Step 2: once the client confirms the mission is done, capture the payment
 // and credit the provider's in-app wallet (real payout/transfer would use
 // Stripe Connect in production).
+const REFERRAL_COMMISSION_PCT = 0.05;
+
 router.post('/:bookingId/release', requireAuth, async (req, res, next) => {
   try {
-    const booking = await prisma.booking.findUnique({ where: { id: req.params.bookingId }, include: { payment: true } });
+    const booking = await prisma.booking.findUnique({
+      where: { id: req.params.bookingId },
+      include: { payment: true, client: { select: { referredById: true } } },
+    });
     if (!booking) return res.status(404).json({ error: 'Réservation introuvable' });
     if (booking.clientId !== req.user.id) return res.status(403).json({ error: 'Non autorisé' });
     if (booking.status !== 'COMPLETED') return res.status(400).json({ error: 'La mission doit être marquée terminée avant le versement' });
@@ -128,6 +158,16 @@ router.post('/:bookingId/release', requireAuth, async (req, res, next) => {
         },
       }),
     ]);
+
+    // "Gagnez 5% du montant dépensé par vos amis, à vie" — credited to the
+    // referrer's Cagnotte the moment their friend's payment actually lands.
+    if (booking.client.referredById) {
+      const commission = Math.round(payment.amount * REFERRAL_COMMISSION_PCT * 100) / 100;
+      await prisma.user.update({
+        where: { id: booking.client.referredById },
+        data: { creditBalance: { increment: commission }, referralEarned: { increment: commission } },
+      });
+    }
 
     // "Virement automatique" — skip the manual Virement click entirely if
     // the jobber has opted in and can actually receive a payout.
@@ -245,6 +285,64 @@ router.post('/connect/payout', requireAuth, async (req, res, next) => {
     }
     next(err);
   }
+});
+
+// Saved cards (managers paying for missions) — a lightweight Stripe Customer
+// wraps whatever cards they add via a SetupIntent, reused across bookings.
+router.post('/setup-intent', requireAuth, async (req, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    let customerId = user.stripeCustomerId;
+    if (!customerId) {
+      const customer = await createCustomer(user.email, `${user.firstName} ${user.lastName}`);
+      customerId = customer.id;
+      await prisma.user.update({ where: { id: req.user.id }, data: { stripeCustomerId: customerId } });
+    }
+    const intent = await createSetupIntent(customerId);
+    res.json({ clientSecret: intent.client_secret });
+  } catch (err) { next(err); }
+});
+
+router.get('/payment-methods', requireAuth, async (req, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user.stripeCustomerId) return res.json({ paymentMethods: [] });
+    const methods = await listPaymentMethods(user.stripeCustomerId);
+    res.json({
+      paymentMethods: methods.map((m) => ({
+        id: m.id, brand: m.card.brand, last4: m.card.last4,
+        expMonth: m.card.exp_month, expYear: m.card.exp_year, isDefault: m.isDefault,
+      })),
+    });
+  } catch (err) { next(err); }
+});
+
+// Both routes below act on a Stripe object by id supplied by the client, so
+// ownership must be checked server-side — otherwise any authenticated user
+// could detach or default *anyone's* saved card by guessing/reusing an id.
+async function assertOwnsPaymentMethod(userId, paymentMethodId) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user.stripeCustomerId) return false;
+  const method = await stripe.paymentMethods.retrieve(paymentMethodId);
+  return method.customer === user.stripeCustomerId ? user : false;
+}
+
+router.post('/payment-methods/:id/default', requireAuth, async (req, res, next) => {
+  try {
+    const user = await assertOwnsPaymentMethod(req.user.id, req.params.id);
+    if (!user) return res.status(404).json({ error: 'Moyen de paiement introuvable' });
+    await setDefaultPaymentMethod(user.stripeCustomerId, req.params.id);
+    res.json({ ok: true });
+  } catch (err) { next(err); }
+});
+
+router.delete('/payment-methods/:id', requireAuth, async (req, res, next) => {
+  try {
+    const user = await assertOwnsPaymentMethod(req.user.id, req.params.id);
+    if (!user) return res.status(404).json({ error: 'Moyen de paiement introuvable' });
+    await detachPaymentMethod(req.params.id);
+    res.status(204).end();
+  } catch (err) { next(err); }
 });
 
 module.exports = router;

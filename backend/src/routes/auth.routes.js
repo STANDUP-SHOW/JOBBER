@@ -17,7 +17,18 @@ const registerSchema = z.object({
   firstName: z.string().min(1),
   lastName: z.string().min(1),
   phone: z.string().optional(),
+  referralCode: z.string().optional(),
 });
+
+const SIGNUP_BONUS_EUR = 3;
+
+async function generateReferralCode() {
+  for (let i = 0; i < 5; i++) {
+    const code = crypto.randomBytes(4).toString('hex').toUpperCase();
+    if (!(await prisma.user.findUnique({ where: { referralCode: code } }))) return code;
+  }
+  return crypto.randomBytes(6).toString('hex').toUpperCase();
+}
 
 router.post('/register', async (req, res, next) => {
   try {
@@ -26,6 +37,11 @@ router.post('/register', async (req, res, next) => {
     if (existing) {
       const err = new Error('Un compte existe déjà avec cet email');
       err.status = 409; err.expose = true; throw err;
+    }
+
+    let referrer = null;
+    if (data.referralCode) {
+      referrer = await prisma.user.findUnique({ where: { referralCode: data.referralCode.toUpperCase() } });
     }
 
     // Every account can both post missions (manager) and apply to them
@@ -39,6 +55,9 @@ router.post('/register', async (req, res, next) => {
         firstName: data.firstName,
         lastName: data.lastName,
         phone: data.phone,
+        referralCode: await generateReferralCode(),
+        referredById: referrer?.id,
+        creditBalance: referrer ? SIGNUP_BONUS_EUR : 0,
         providerProfile: { create: {} },
       },
     });
@@ -128,6 +147,29 @@ router.post('/reset-password', async (req, res, next) => {
   }
 });
 
+router.post('/change-password', requireAuth, async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!newPassword || newPassword.length < 8) {
+      const e = new Error('Le mot de passe doit contenir au moins 8 caractères');
+      e.status = 400; e.expose = true; throw e;
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (user.passwordHash) {
+      const valid = currentPassword && await bcrypt.compare(currentPassword, user.passwordHash);
+      if (!valid) {
+        const e = new Error('Mot de passe actuel incorrect');
+        e.status = 400; e.expose = true; throw e;
+      }
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({ where: { id: req.user.id }, data: { passwordHash } });
+    res.json({ message: 'Mot de passe mis à jour.' });
+  } catch (err) { next(err); }
+});
+
 async function findOrCreateGoogleUser(credential) {
   const ticket = await googleClient.verifyIdToken({
     idToken: credential,
@@ -173,7 +215,7 @@ router.post('/google', async (req, res, next) => {
 
 function sanitize(user) {
   const { passwordHash, ...rest } = user;
-  return rest;
+  return { ...rest, hasPassword: !!passwordHash };
 }
 
 module.exports = router;

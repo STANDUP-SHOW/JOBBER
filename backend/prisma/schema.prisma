@@ -90,6 +90,18 @@ model User {
   resetToken           String?   @unique
   resetTokenExpiresAt  DateTime?
   googleId             String?   @unique
+  stripeCustomerId     String?   @unique
+  creditBalance        Float     @default(0)
+  referralCode         String?   @unique
+  referredById         String?
+  referredBy           User?     @relation("Referrals", fields: [referredById], references: [id])
+  referrals            User[]    @relation("Referrals")
+  referralEarned       Float     @default(0)
+  notifyPushNews          Boolean @default(true)
+  notifyEmailNews         Boolean @default(true)
+  notifyEmailPartners     Boolean @default(true)
+  notifySmsOffers         Boolean @default(false)
+  notifySmsCancellation   Boolean @default(true)
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 

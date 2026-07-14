@@ -103,12 +103,17 @@ export default function AccountPage() {
 
       <Section title="Gérer mon compte">
         <Row href="/account/personal-info" icon="👤" label="Informations personnelles" />
-        <Row href="/dashboard/wallet" icon="💰" label="Mon solde" value={`${(user.providerProfile?.walletBalance ?? 0).toFixed(2)} €`} />
+        <Row href="/account/balance" icon="💰" label="Mon solde" value={`${(user.creditBalance ?? 0).toFixed(2)} €`} />
         <Row href="/account/cesu" icon="🎫" label="Mes tickets CESU" />
         <Row href="/account/payment-methods" icon="💳" label="Moyens de paiement" />
         <Row href="/account/tax-certificates" icon="📄" label="Attestations fiscales" />
         <Row href="/account/notifications" icon="🔔" label="Gérer mes notifications" />
         <Row href="/account/language" icon="🌐" label="Langage" value="Français" />
+      </Section>
+
+      <Section title="Produit">
+        <Row href="/account/tax-credit" icon="📋" label="Déclaratif et crédit d'impôt" sublabel="Gagnez du temps et baissez vos impôts." />
+        <Row href="/account/invite-friends" icon="🎁" label="Inviter des amis" sublabel="Gagnez 5 % du montant dépensé par vos amis" />
       </Section>
 
       <Section title="Informations utiles">
