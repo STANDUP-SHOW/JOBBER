@@ -70,6 +70,38 @@ router.get('/wallet-history', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// Annual tax certificate ("Attestation fiscale") — a real summary of what a
+// manager paid through Jobber each calendar year, for them to attach to
+// their own income tax return. This is NOT a télétransmission to the DGFiP:
+// actually filing on someone's behalf requires platform accreditation as a
+// "tiers de confiance", which is a business step, not something this builds.
+router.get('/tax-summary', requireAuth, async (req, res, next) => {
+  try {
+    const payments = await prisma.payment.findMany({
+      where: { status: 'RELEASED', booking: { clientId: req.user.id } },
+      include: { booking: { include: { mission: { include: { category: true } }, provider: true } } },
+      orderBy: { releasedAt: 'desc' },
+    });
+
+    const byYear = new Map();
+    for (const p of payments) {
+      const year = new Date(p.releasedAt).getFullYear();
+      if (!byYear.has(year)) byYear.set(year, { year, totalPaid: 0, missions: [] });
+      const bucket = byYear.get(year);
+      bucket.totalPaid += p.amount;
+      bucket.missions.push({
+        title: p.booking.mission.title,
+        category: p.booking.mission.category.name,
+        provider: `${p.booking.provider.firstName} ${p.booking.provider.lastName?.[0] || ''}.`,
+        amount: p.amount,
+        date: p.releasedAt,
+      });
+    }
+
+    res.json({ years: Array.from(byYear.values()).sort((a, b) => b.year - a.year) });
+  } catch (err) { next(err); }
+});
+
 // "Mon solde" screen (manager side): what they've paid for missions so far.
 // creditBalance itself (Cagnotte) has no funding source yet — gift cards and
 // promotions aren't built — so it stays at 0 until that lands.

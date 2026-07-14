@@ -50,6 +50,7 @@ export const api = {
   connectPayout: (token) => request('/payments/connect/payout', { method: 'POST', token }),
   walletHistory: (token) => request('/payments/wallet-history', { token }),
   spendingHistory: (token) => request('/payments/spending-history', { token }),
+  taxSummary: (token) => request('/payments/tax-summary', { token }),
   createSetupIntent: (token) => request('/payments/setup-intent', { method: 'POST', token }),
   paymentMethods: (token) => request('/payments/payment-methods', { token }),
   setDefaultPaymentMethod: (id, token) => request(`/payments/payment-methods/${id}/default`, { method: 'POST', token }),
