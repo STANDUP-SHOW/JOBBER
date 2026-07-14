@@ -85,6 +85,19 @@ enum SubscriptionStatus {
   CANCELED
 }
 
+enum VehicleType {
+  VOITURE_TOURISME
+  MINIBUS
+  CAMION_BENNE
+  REMORQUE
+  GRANDE_REMORQUE
+  PETIT_UTILITAIRE_4M3
+  FOURGONNETTE_9M3
+  CAMION_15M3
+  GRAND_CAMION_20M3
+  POIDS_LOURD
+}
+
 model User {
   id                String     @id @default(cuid())
   email             String     @unique
@@ -169,6 +182,7 @@ model ProviderProfile {
   categories          ProviderCategory[]
   services            ProviderService[]
   equipment           ProviderEquipment[]
+  vehicles            ProviderVehicle[]
   payouts             Payout[]
   createdAt           DateTime            @default(now())
 }
@@ -259,6 +273,17 @@ model ProviderEquipment {
   equipment   Equipment @relation(fields: [equipmentId], references: [id])
 
   @@unique([providerId, equipmentId])
+}
+
+// A vehicle type the jobber has access to for missions requiring transport
+// ("Mes véhicules") — a fixed global list, not tied to a skill category.
+model ProviderVehicle {
+  id         String      @id @default(cuid())
+  providerId String
+  provider   ProviderProfile @relation(fields: [providerId], references: [id])
+  type       VehicleType
+
+  @@unique([providerId, type])
 }
 
 model Mission {
