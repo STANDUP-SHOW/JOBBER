@@ -16,7 +16,7 @@ function ChevronIcon(props) {
   );
 }
 
-function Row({ href, icon, label, sublabel, onClick, danger }) {
+function Row({ href, icon, label, sublabel, value, onClick, danger }) {
   const content = (
     <div className={`flex items-center gap-3 px-4 py-3.5 ${danger ? 'text-clay' : 'text-ink'}`}>
       <span className="text-lg">{icon}</span>
@@ -24,6 +24,7 @@ function Row({ href, icon, label, sublabel, onClick, danger }) {
         <div className="text-sm font-medium">{label}</div>
         {sublabel && <div className="text-xs text-slate-400">{sublabel}</div>}
       </div>
+      {value && <span className="shrink-0 text-sm text-slate-400">{value}</span>}
       {!onClick && <ChevronIcon className="h-4 w-4 shrink-0 text-slate-300" />}
     </div>
   );
@@ -99,6 +100,16 @@ export default function AccountPage() {
       <div className="mt-3">
         <ZoneSummaryCard />
       </div>
+
+      <Section title="Gérer mon compte">
+        <Row href="/account/personal-info" icon="👤" label="Informations personnelles" />
+        <Row href="/dashboard/wallet" icon="💰" label="Mon solde" value={`${(user.providerProfile?.walletBalance ?? 0).toFixed(2)} €`} />
+        <Row href="/account/cesu" icon="🎫" label="Mes tickets CESU" />
+        <Row href="/account/payment-methods" icon="💳" label="Moyens de paiement" />
+        <Row href="/account/tax-certificates" icon="📄" label="Attestations fiscales" />
+        <Row href="/account/notifications" icon="🔔" label="Gérer mes notifications" />
+        <Row href="/account/language" icon="🌐" label="Langage" value="Français" />
+      </Section>
 
       <Section title="Informations utiles">
         <Row href="/messages" icon="💬" label="Messagerie" />
