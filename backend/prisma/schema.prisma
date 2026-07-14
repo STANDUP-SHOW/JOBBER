@@ -168,6 +168,7 @@ model ProviderProfile {
   siret               String?             @unique
   categories          ProviderCategory[]
   services            ProviderService[]
+  equipment           ProviderEquipment[]
   payouts             Payout[]
   createdAt           DateTime            @default(now())
 }
@@ -195,8 +196,21 @@ model Category {
   slug        String   @unique
   icon        String?
   services    Service[]
+  equipment   Equipment[]
   missions    Mission[]
   providers   ProviderCategory[]
+}
+
+// A piece of equipment/tooling typically needed for a category — the jobber
+// checks off which of these they personally own ("Matériel que je possède").
+model Equipment {
+  id          String   @id @default(cuid())
+  name        String
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  providers   ProviderEquipment[]
+
+  @@unique([categoryId, name])
 }
 
 model Service {
@@ -233,6 +247,18 @@ model ProviderService {
   service    Service  @relation(fields: [serviceId], references: [id])
 
   @@unique([providerId, serviceId])
+}
+
+// Equipment a jobber has checked off as owned within a category
+// ("Matériel que je possède").
+model ProviderEquipment {
+  id          String    @id @default(cuid())
+  providerId  String
+  provider    ProviderProfile @relation(fields: [providerId], references: [id])
+  equipmentId String
+  equipment   Equipment @relation(fields: [equipmentId], references: [id])
+
+  @@unique([providerId, equipmentId])
 }
 
 model Mission {

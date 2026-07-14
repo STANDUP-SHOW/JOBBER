@@ -42,6 +42,7 @@ export default function ProviderProfilePage() {
   const [levels, setLevels] = useState({}); // { [categoryId]: 'PROFESSIONNEL' | 'EXPERT' | 'PASSIONNE' }
   const [rates, setRates] = useState({}); // { [categoryId]: hourlyRate }
   const [serviceIds, setServiceIds] = useState([]);
+  const [equipmentIds, setEquipmentIds] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
@@ -67,6 +68,7 @@ export default function ProviderProfilePage() {
       setLevels(Object.fromEntries((profile.categories || []).map((c) => [c.categoryId, c.level])));
       setRates(Object.fromEntries((profile.categories || []).map((c) => [c.categoryId, c.hourlyRate])));
       setServiceIds((profile.services || []).map((s) => s.serviceId));
+      setEquipmentIds((profile.equipment || []).map((e) => e.equipmentId));
     }
   }, [token, user]);
 
@@ -74,6 +76,7 @@ export default function ProviderProfilePage() {
     setSelectedCategoryIds((ids) => {
       if (ids.includes(category.id)) {
         setServiceIds((sids) => sids.filter((id) => !category.services.some((s) => s.id === id)));
+        setEquipmentIds((eids) => eids.filter((id) => !category.equipment?.some((e) => e.id === id)));
         return ids.filter((id) => id !== category.id);
       }
       setLevels((l) => (l[category.id] ? l : { ...l, [category.id]: 'PASSIONNE' }));
@@ -87,6 +90,10 @@ export default function ProviderProfilePage() {
     setSelectedCategoryIds((ids) => (ids.includes(categoryId) ? ids : [...ids, categoryId]));
     setLevels((l) => (l[categoryId] ? l : { ...l, [categoryId]: 'PASSIONNE' }));
     setRates((r) => (r[categoryId] ? r : { ...r, [categoryId]: 15 }));
+  }
+
+  function toggleEquipment(equipmentId) {
+    setEquipmentIds((ids) => (ids.includes(equipmentId) ? ids.filter((id) => id !== equipmentId) : [...ids, equipmentId]));
   }
 
   function setLevel(categoryId, level) {
@@ -121,6 +128,7 @@ export default function ProviderProfilePage() {
             hourlyRate: Number(rates[categoryId]) || 15,
           })),
           serviceIds,
+          equipmentIds,
         },
         token
       );
@@ -259,6 +267,25 @@ export default function ProviderProfilePage() {
                           </label>
                         ))}
                       </div>
+
+                      {c.equipment?.length > 0 && (
+                        <div className="mt-3 border-t border-slate-100 pt-3">
+                          <span className="text-xs font-medium text-slate-500">Matériel que je possède</span>
+                          <div className="mt-1.5 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                            {c.equipment.map((eq) => (
+                              <label key={eq.id} className="flex items-center gap-1.5 text-xs text-slate-600">
+                                <input
+                                  type="checkbox"
+                                  checked={equipmentIds.includes(eq.id)}
+                                  onChange={() => toggleEquipment(eq.id)}
+                                  className="rounded border-slate-300"
+                                />
+                                {eq.name}
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>

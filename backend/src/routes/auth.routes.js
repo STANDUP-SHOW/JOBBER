@@ -90,7 +90,7 @@ router.get('/me', requireAuth, async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      include: { providerProfile: { include: { categories: { include: { category: true } }, services: { include: { service: true } } } } },
+      include: { providerProfile: { include: { categories: { include: { category: true } }, services: { include: { service: true } }, equipment: { include: { equipment: true } } } } },
     });
     res.json({ user: sanitize(user) });
   } catch (err) {

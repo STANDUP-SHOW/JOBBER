@@ -52,6 +52,7 @@ export default function ProviderProfilePage() {
           <div className="mt-3 space-y-3">
             {profile.categories.map((pc) => {
               const services = (profile.services || []).filter((ps) => ps.service.categoryId === pc.categoryId);
+              const equipment = (profile.equipment || []).filter((pe) => pe.equipment.categoryId === pc.categoryId);
               return (
                 <div key={pc.id} className="rounded-lg border border-slate-200 bg-white p-3">
                   <div className="flex items-center justify-between">
@@ -70,6 +71,18 @@ export default function ProviderProfilePage() {
                           {ps.service.name}
                         </span>
                       ))}
+                    </div>
+                  )}
+                  {equipment.length > 0 && (
+                    <div className="mt-2">
+                      <span className="text-xs font-medium text-slate-400">Matériel possédé</span>
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        {equipment.map((pe) => (
+                          <span key={pe.id} className="rounded-full bg-moss-light px-2.5 py-0.5 text-xs text-moss-dark">
+                            {pe.equipment.name}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

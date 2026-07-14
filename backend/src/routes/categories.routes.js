@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/', async (req, res, next) => {
   try {
     const categories = await prisma.category.findMany({
-      include: { services: true },
+      include: { services: true, equipment: true },
       orderBy: { name: 'asc' },
     });
     res.json({ categories });
@@ -82,6 +82,31 @@ router.post('/:categoryId/services', requireAuth, requireRole('ADMIN'), async (r
 router.delete('/services/:id', requireAuth, requireRole('ADMIN'), async (req, res, next) => {
   try {
     await prisma.service.delete({ where: { id: req.params.id } });
+    res.status(204).end();
+  } catch (err) {
+    next(err);
+  }
+});
+
+const equipmentSchema = z.object({ name: z.string().min(2), categoryId: z.string() });
+
+router.post('/:categoryId/equipment', requireAuth, requireRole('ADMIN'), async (req, res, next) => {
+  try {
+    const data = equipmentSchema.parse({ ...req.body, categoryId: req.params.categoryId });
+    const equipment = await prisma.equipment.create({
+      data: { name: data.name, categoryId: data.categoryId },
+    });
+    res.status(201).json({ equipment });
+  } catch (err) {
+    if (err.code === 'P2002') { err.status = 409; err.expose = true; err.message = 'Ce matériel existe déjà pour cette catégorie'; }
+    if (err.name === 'ZodError') { err.status = 400; err.expose = true; err.message = err.errors[0].message; }
+    next(err);
+  }
+});
+
+router.delete('/equipment/:id', requireAuth, requireRole('ADMIN'), async (req, res, next) => {
+  try {
+    await prisma.equipment.delete({ where: { id: req.params.id } });
     res.status(204).end();
   } catch (err) {
     next(err);
