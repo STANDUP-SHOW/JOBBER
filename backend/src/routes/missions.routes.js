@@ -16,7 +16,9 @@ function withPublicPosition(mission) {
 
 const createMissionSchema = z.object({
   categoryId: z.string(),
-  serviceId: z.string().optional(),
+  // The form sends "" for "no service selected" — treat that as unset,
+  // otherwise Prisma tries to connect a Service with id "" and 500s.
+  serviceId: z.string().optional().transform((v) => (v ? v : undefined)),
   title: z.string().min(3),
   description: z.string().min(10),
   address: z.string().min(3),
