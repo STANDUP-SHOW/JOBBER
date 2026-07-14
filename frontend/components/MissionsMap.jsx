@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { GoogleMap, Marker, Circle, useJsApiLoader } from '@react-google-maps/api';
 import Link from 'next/link';
+import { GOOGLE_MAPS_LIBRARIES } from '../lib/googleMapsLibraries';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 const MISSION_ZOOM = 13;
@@ -18,6 +19,7 @@ export default function MissionsMap({ missions, providerZone }) {
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'jobber-google-maps',
     googleMapsApiKey: GOOGLE_MAPS_API_KEY || '',
+    libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
   const located = useMemo(() => missions.filter((m) => m.lat != null && m.lng != null), [missions]);

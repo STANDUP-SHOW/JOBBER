@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 import MissionPhotosUpload from '../../../components/MissionPhotosUpload';
+import AddressAutocomplete from '../../../components/AddressAutocomplete';
 
 export default function NewMissionPage() {
   return (
@@ -106,7 +107,15 @@ function NewMissionForm() {
             placeholder="Détaillez la tâche, le matériel disponible, l'accès au logement…"
           />
         </label>
-        <Field label="Adresse" value={form.address} onChange={(v) => setForm({ ...form, address: v })} required placeholder="Rue, ville" />
+        <label className="block">
+          <span className="text-xs font-medium text-slate-500">Adresse</span>
+          <AddressAutocomplete
+            value={form.address}
+            onChange={(v) => setForm({ ...form, address: v })}
+            required
+            placeholder="Rue, ville"
+          />
+        </label>
 
         <div>
           <span className="text-xs font-medium text-slate-500">Photos (optionnel, jusqu'à 5)</span>
