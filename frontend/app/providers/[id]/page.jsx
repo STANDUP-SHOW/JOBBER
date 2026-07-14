@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import StarRating from '../../../components/StarRating';
+import VehicleIcon, { VEHICLES } from '../../../components/VehicleIcon';
 
 const LEVEL_LABEL = { PROFESSIONNEL: 'Professionnel', EXPERT: 'Expert', PASSIONNE: 'Passionné' };
 const LEVEL_STYLE = {
@@ -85,6 +86,25 @@ export default function ProviderProfilePage() {
                       </div>
                     </div>
                   )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {profile.vehicles?.length > 0 && (
+        <div className="mt-5">
+          <h2 className="font-display text-lg font-medium text-ink">Mes véhicules</h2>
+          <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
+            {profile.vehicles.map((pv) => {
+              const v = VEHICLES.find((x) => x.type === pv.type);
+              if (!v) return null;
+              return (
+                <div key={pv.id} className="flex flex-col items-center rounded-lg border border-slate-200 bg-white p-2 text-center">
+                  <VehicleIcon type={v.type} className="h-8 w-12 text-moss-dark" />
+                  <span className="mt-1 text-xs font-medium text-ink">{v.label}</span>
+                  {v.capacity && <span className="text-[10px] text-slate-400">{v.capacity}</span>}
                 </div>
               );
             })}

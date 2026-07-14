@@ -6,6 +6,7 @@ import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 import StarRating from '../../../components/StarRating';
 import ZoneSummaryCard from '../../../components/ZoneSummaryCard';
+import VehicleIcon, { VEHICLES } from '../../../components/VehicleIcon';
 
 const LEVELS = [
   { value: 'PROFESSIONNEL', label: 'Professionnel', activeClass: 'bg-purple-600 text-white' },
@@ -43,6 +44,7 @@ export default function ProviderProfilePage() {
   const [rates, setRates] = useState({}); // { [categoryId]: hourlyRate }
   const [serviceIds, setServiceIds] = useState([]);
   const [equipmentIds, setEquipmentIds] = useState([]);
+  const [vehicleTypes, setVehicleTypes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
@@ -69,8 +71,13 @@ export default function ProviderProfilePage() {
       setRates(Object.fromEntries((profile.categories || []).map((c) => [c.categoryId, c.hourlyRate])));
       setServiceIds((profile.services || []).map((s) => s.serviceId));
       setEquipmentIds((profile.equipment || []).map((e) => e.equipmentId));
+      setVehicleTypes((profile.vehicles || []).map((v) => v.type));
     }
   }, [token, user]);
+
+  function toggleVehicle(type) {
+    setVehicleTypes((types) => (types.includes(type) ? types.filter((t) => t !== type) : [...types, type]));
+  }
 
   function toggleCategory(category) {
     setSelectedCategoryIds((ids) => {
@@ -129,6 +136,7 @@ export default function ProviderProfilePage() {
           })),
           serviceIds,
           equipmentIds,
+          vehicleTypes,
         },
         token
       );
@@ -289,6 +297,32 @@ export default function ProviderProfilePage() {
                     </>
                   )}
                 </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <span className="text-xs font-medium text-slate-500">Mes véhicules</span>
+          <p className="mt-1 text-xs text-slate-400">
+            Cochez les véhicules dont vous disposez pour les missions nécessitant du transport.
+          </p>
+          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {VEHICLES.map((v) => {
+              const active = vehicleTypes.includes(v.type);
+              return (
+                <button
+                  key={v.type}
+                  type="button"
+                  onClick={() => toggleVehicle(v.type)}
+                  className={`flex flex-col items-center rounded-md border p-2 text-center ${
+                    active ? 'border-moss bg-moss-light' : 'border-slate-200 bg-white'
+                  }`}
+                >
+                  <VehicleIcon type={v.type} className={`h-8 w-12 ${active ? 'text-moss-dark' : 'text-slate-400'}`} />
+                  <span className={`mt-1 text-xs font-medium ${active ? 'text-moss-dark' : 'text-ink'}`}>{v.label}</span>
+                  {v.capacity && <span className="text-[10px] text-slate-400">{v.capacity}</span>}
+                </button>
               );
             })}
           </div>

@@ -55,7 +55,7 @@ router.get('/providers', async (req, res, next) => {
       },
       select: {
         id: true, firstName: true, lastName: true, avatarUrl: true, address: true,
-        providerProfile: { include: { categories: { include: { category: true } }, services: { include: { service: true } }, equipment: { include: { equipment: true } } } },
+        providerProfile: { include: { categories: { include: { category: true } }, services: { include: { service: true } }, equipment: { include: { equipment: true } }, vehicles: true } },
       },
     });
     res.json({ providers });
@@ -68,7 +68,7 @@ router.get('/providers/:id', async (req, res, next) => {
       where: { id: req.params.id },
       select: {
         id: true, firstName: true, lastName: true, avatarUrl: true, address: true, createdAt: true,
-        providerProfile: { include: { categories: { include: { category: true } }, services: { include: { service: true } }, equipment: { include: { equipment: true } } } },
+        providerProfile: { include: { categories: { include: { category: true } }, services: { include: { service: true } }, equipment: { include: { equipment: true } }, vehicles: true } },
         reviewsReceived: { include: { author: { select: { firstName: true, avatarUrl: true } } }, orderBy: { createdAt: 'desc' } },
       },
     });
@@ -132,7 +132,7 @@ router.delete('/me', requireAuth, async (req, res, next) => {
 
 router.patch('/me/provider-profile', requireAuth, async (req, res, next) => {
   try {
-    const { bio, radiusKm, autoApply, autoPayout, categories, serviceIds, equipmentIds, address, siret } = req.body;
+    const { bio, radiusKm, autoApply, autoPayout, categories, serviceIds, equipmentIds, vehicleTypes, address, siret } = req.body;
 
     if (siret !== undefined && siret !== null && siret !== '' && !isValidSiret(siret)) {
       return res.status(400).json({ error: 'Numéro SIRET invalide (14 chiffres)' });
@@ -182,8 +182,14 @@ router.patch('/me/provider-profile', requireAuth, async (req, res, next) => {
               create: equipmentIds.map((equipmentId) => ({ equipmentId })),
             }
           : undefined,
+        vehicles: vehicleTypes
+          ? {
+              deleteMany: {},
+              create: vehicleTypes.map((type) => ({ type })),
+            }
+          : undefined,
       },
-      include: { categories: { include: { category: true } }, services: { include: { service: true } }, equipment: { include: { equipment: true } } },
+      include: { categories: { include: { category: true } }, services: { include: { service: true } }, equipment: { include: { equipment: true } }, vehicles: true },
     });
 
     res.json({ profile });
