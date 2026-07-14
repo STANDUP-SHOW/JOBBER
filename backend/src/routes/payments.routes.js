@@ -478,13 +478,32 @@ module.exports.webhookHandler = async (req, res) => {
       break;
     }
     // Fired when a manual-capture PaymentIntent is successfully authorized —
-    // this is the real "card confirmed, money held" moment.
+    // this is the real "card confirmed, money held" moment, and also the
+    // earliest point manager and jobber are allowed to message each other —
+    // never before a transaction is actually paid.
     case 'payment_intent.amount_capturable_updated': {
       const intent = event.data.object;
-      await prisma.payment.updateMany({
+      const payment = await prisma.payment.findFirst({
         where: { stripePaymentIntentId: intent.id, status: 'REQUIRES_PAYMENT' },
-        data: { status: 'HELD_IN_ESCROW', paidAt: new Date() },
+        include: { booking: true },
       });
+      if (payment) {
+        await prisma.payment.update({
+          where: { id: payment.id },
+          data: { status: 'HELD_IN_ESCROW', paidAt: new Date() },
+        });
+        await prisma.conversation.upsert({
+          where: {
+            missionId_providerId: { missionId: payment.booking.missionId, providerId: payment.booking.providerId },
+          },
+          update: {},
+          create: {
+            missionId: payment.booking.missionId,
+            clientId: payment.booking.clientId,
+            providerId: payment.booking.providerId,
+          },
+        });
+      }
       break;
     }
     case 'account.updated': {
