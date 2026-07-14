@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { GoogleMap, Circle, useJsApiLoader } from '@react-google-maps/api';
 import { api } from '../lib/api';
+import { GOOGLE_MAPS_LIBRARIES } from '../lib/googleMapsLibraries';
+import AddressAutocomplete from './AddressAutocomplete';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 const BELGIUM_CENTER = { lat: 50.5039, lng: 4.4699 };
@@ -18,6 +20,7 @@ export default function ZoneSettingsSheet({ user, token, onClose, onSaved }) {
   const { isLoaded } = useJsApiLoader({
     id: 'jobber-google-maps',
     googleMapsApiKey: GOOGLE_MAPS_API_KEY || '',
+    libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
   const [address, setAddress] = useState(user.address || '');
@@ -68,12 +71,10 @@ export default function ZoneSettingsSheet({ user, token, onClose, onSaved }) {
 
         <label className="mt-4 block">
           <span className="text-xs font-medium text-slate-500">Code postal / Adresse</span>
-          <input
-            type="text"
+          <AddressAutocomplete
             value={address}
-            onChange={(e) => setAddress(e.target.value)}
+            onChange={setAddress}
             placeholder="Ex : 34300 Agde"
-            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
           />
         </label>
 

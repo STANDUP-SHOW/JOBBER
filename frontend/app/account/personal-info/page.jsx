@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
+import AddressAutocomplete from '../../../components/AddressAutocomplete';
 
 export default function PersonalInfoPage() {
   const { user, token, login, logout, loading: authLoading } = useAuth();
@@ -142,11 +143,10 @@ export default function PersonalInfoPage() {
 
         <label className="block">
           <span className="text-xs font-medium text-slate-500">Adresse de facturation</span>
-          <input
-            type="text"
+          <AddressAutocomplete
             value={form.address}
-            onChange={(e) => setForm({ ...form, address: e.target.value })}
-            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
+            onChange={(v) => setForm({ ...form, address: v })}
+            placeholder="Rue, ville"
           />
         </label>
 
