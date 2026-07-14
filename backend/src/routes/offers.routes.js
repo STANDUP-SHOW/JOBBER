@@ -8,7 +8,6 @@ const router = express.Router();
 const createOfferSchema = z.object({
   missionId: z.string(),
   hourlyRate: z.number().positive(),
-  message: z.string().optional(),
 });
 
 // Apply to a mission ("postuler") — any account can candidater, including
@@ -29,16 +28,12 @@ router.post('/', requireAuth, async (req, res, next) => {
         missionId: data.missionId,
         providerId: req.user.id,
         hourlyRate: data.hourlyRate,
-        message: data.message,
       },
     });
 
-    // Open (or reuse) a conversation tied to this mission/provider pair
-    await prisma.conversation.upsert({
-      where: { missionId_providerId: { missionId: data.missionId, providerId: req.user.id } },
-      update: {},
-      create: { missionId: data.missionId, clientId: mission.clientId, providerId: req.user.id },
-    });
+    // No conversation here on purpose — manager and jobber can only message
+    // each other once a booking is actually paid (see the Stripe webhook's
+    // payment_intent.amount_capturable_updated handler), never before.
 
     res.status(201).json({ offer });
   } catch (err) {

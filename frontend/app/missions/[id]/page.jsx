@@ -99,10 +99,10 @@ export default function MissionDetailPage() {
     setSheetOpen(true);
   }
 
-  async function applyToMission(hourlyRate, message) {
+  async function applyToMission(hourlyRate) {
     setBusy(true); setOfferError('');
     try {
-      await api.createOffer({ missionId: id, hourlyRate, message }, token);
+      await api.createOffer({ missionId: id, hourlyRate }, token);
       await refresh();
       setSheetOpen(false);
     } catch (err) { setOfferError(err.message); } finally { setBusy(false); }

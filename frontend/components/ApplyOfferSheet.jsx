@@ -4,7 +4,6 @@ import { useState } from 'react';
 
 export default function ApplyOfferSheet({ mission, defaultRate = 15, busy, error, onClose, onSubmit }) {
   const [rate, setRate] = useState(defaultRate);
-  const [message, setMessage] = useState('');
 
   const hours = mission.estimatedHours;
   const total = (rate * hours).toFixed(2).replace(/\.00$/, '');
@@ -54,22 +53,12 @@ export default function ApplyOfferSheet({ mission, defaultRate = 15, busy, error
           </div>
         </div>
 
-        <label className="mt-4 block">
-          <span className="text-xs font-medium text-slate-500">Message (optionnel)</span>
-          <textarea
-            rows={2}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
-          />
-        </label>
-
         {error && <p className="mt-3 rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
 
         <button
           type="button"
           disabled={busy}
-          onClick={() => onSubmit(rate, message)}
+          onClick={() => onSubmit(rate)}
           className="mt-5 w-full rounded-full bg-moss py-4 text-base font-semibold text-white hover:bg-moss-dark disabled:opacity-60"
         >
           {busy ? 'Envoi…' : "Confirmer l'offre"}
