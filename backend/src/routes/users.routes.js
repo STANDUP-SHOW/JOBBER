@@ -4,6 +4,7 @@ const prisma = require('../config/prisma');
 const { requireAuth } = require('../middleware/auth');
 const { geocodeAddress } = require('../services/geocodingService');
 const { isValidSiret } = require('../utils/siret');
+const { generateCategoryBio } = require('../services/aiService');
 
 const router = express.Router();
 
@@ -132,7 +133,7 @@ router.delete('/me', requireAuth, async (req, res, next) => {
 
 router.patch('/me/provider-profile', requireAuth, async (req, res, next) => {
   try {
-    const { bio, radiusKm, autoApply, autoPayout, categories, serviceIds, equipmentIds, vehicleTypes, address, siret } = req.body;
+    const { radiusKm, autoApply, autoPayout, categories, serviceIds, equipmentIds, vehicleTypes, address, siret } = req.body;
 
     if (siret !== undefined && siret !== null && siret !== '' && !isValidSiret(siret)) {
       return res.status(400).json({ error: 'Numéro SIRET invalide (14 chiffres)' });
@@ -160,13 +161,13 @@ router.patch('/me/provider-profile', requireAuth, async (req, res, next) => {
     const profile = await prisma.providerProfile.update({
       where: { userId: req.user.id },
       data: {
-        bio, radiusKm, autoApply, autoPayout,
+        radiusKm, autoApply, autoPayout,
         siret: siret !== undefined ? (siret || null) : undefined,
         categories: categories
           ? {
               deleteMany: {},
-              create: categories.map(({ categoryId, level, hourlyRate }) => ({
-                categoryId, level: level || 'PASSIONNE', hourlyRate: hourlyRate || 15,
+              create: categories.map(({ categoryId, level, hourlyRate, bio }) => ({
+                categoryId, level: level || 'PASSIONNE', hourlyRate: hourlyRate || 15, bio: bio || null,
               })),
             }
           : undefined,
@@ -197,6 +198,22 @@ router.patch('/me/provider-profile', requireAuth, async (req, res, next) => {
     if (err.code === 'P2002' && err.meta?.target?.includes('siret')) {
       err.status = 409; err.expose = true; err.message = 'Ce numéro SIRET est déjà utilisé par un autre compte';
     }
+    next(err);
+  }
+});
+
+// "Générer avec l'IA" on the skill-category bio field.
+router.post('/me/provider-profile/generate-bio', requireAuth, async (req, res, next) => {
+  try {
+    const { categoryId, level, serviceNames } = req.body;
+    if (!categoryId) return res.status(400).json({ error: 'categoryId requis' });
+
+    const category = await prisma.category.findUnique({ where: { id: categoryId } });
+    if (!category) return res.status(404).json({ error: 'Catégorie introuvable' });
+
+    const bio = await generateCategoryBio({ categoryName: category.name, level, serviceNames });
+    res.json({ bio });
+  } catch (err) {
     next(err);
   }
 });
