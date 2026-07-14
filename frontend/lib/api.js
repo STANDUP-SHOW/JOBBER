@@ -68,6 +68,7 @@ export const api = {
   provider: (id) => request(`/users/providers/${id}`),
   myReferral: (token) => request('/users/me/referral', { token }),
   updateProviderProfile: (payload, token) => request('/users/me/provider-profile', { method: 'PATCH', body: payload, token }),
+  generateCategoryBio: (payload, token) => request('/users/me/provider-profile/generate-bio', { method: 'POST', body: payload, token }),
 
   conversations: (token) => request('/messages/conversations', { token }),
   conversation: (id, token) => request(`/messages/conversations/${id}`, { token }),

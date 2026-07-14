@@ -35,13 +35,14 @@ export default function ProviderProfilePage() {
 
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState({
-    bio: '',
     autoApply: false,
     siret: '',
   });
   const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
   const [levels, setLevels] = useState({}); // { [categoryId]: 'PROFESSIONNEL' | 'EXPERT' | 'PASSIONNE' }
   const [rates, setRates] = useState({}); // { [categoryId]: hourlyRate }
+  const [bios, setBios] = useState({}); // { [categoryId]: bio text }
+  const [generatingBioFor, setGeneratingBioFor] = useState(null); // categoryId currently generating
   const [serviceIds, setServiceIds] = useState([]);
   const [equipmentIds, setEquipmentIds] = useState([]);
   const [vehicleTypes, setVehicleTypes] = useState([]);
@@ -62,13 +63,13 @@ export default function ProviderProfilePage() {
     const profile = user.providerProfile;
     if (profile) {
       setForm({
-        bio: profile.bio || '',
         autoApply: profile.autoApply ?? false,
         siret: profile.siret || '',
       });
       setSelectedCategoryIds((profile.categories || []).map((c) => c.categoryId));
       setLevels(Object.fromEntries((profile.categories || []).map((c) => [c.categoryId, c.level])));
       setRates(Object.fromEntries((profile.categories || []).map((c) => [c.categoryId, c.hourlyRate])));
+      setBios(Object.fromEntries((profile.categories || []).map((c) => [c.categoryId, c.bio || ''])));
       setServiceIds((profile.services || []).map((s) => s.serviceId));
       setEquipmentIds((profile.equipment || []).map((e) => e.equipmentId));
       setVehicleTypes((profile.vehicles || []).map((v) => v.type));
@@ -111,6 +112,29 @@ export default function ProviderProfilePage() {
     setRates((r) => ({ ...r, [categoryId]: rate }));
   }
 
+  function setBio(categoryId, bio) {
+    setBios((b) => ({ ...b, [categoryId]: bio }));
+  }
+
+  async function generateBio(category) {
+    setGeneratingBioFor(category.id);
+    setError('');
+    try {
+      const serviceNames = (category.services || [])
+        .filter((svc) => serviceIds.includes(svc.id))
+        .map((svc) => svc.name);
+      const { bio } = await api.generateCategoryBio(
+        { categoryId: category.id, level: levels[category.id] || 'PASSIONNE', serviceNames },
+        token
+      );
+      setBio(category.id, bio);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setGeneratingBioFor(null);
+    }
+  }
+
   async function onSubmit(e) {
     e.preventDefault();
     setError('');
@@ -126,13 +150,13 @@ export default function ProviderProfilePage() {
     try {
       await api.updateProviderProfile(
         {
-          bio: form.bio,
           autoApply: form.autoApply,
           siret: form.siret,
           categories: selectedCategoryIds.map((categoryId) => ({
             categoryId,
             level: levels[categoryId] || 'PASSIONNE',
             hourlyRate: Number(rates[categoryId]) || 15,
+            bio: bios[categoryId] || '',
           })),
           serviceIds,
           equipmentIds,
@@ -172,17 +196,6 @@ export default function ProviderProfilePage() {
       </div>
 
       <form onSubmit={onSubmit} className="mt-4 space-y-4">
-        <label className="block">
-          <span className="text-xs font-medium text-slate-500">Bio</span>
-          <textarea
-            rows={4}
-            value={form.bio}
-            onChange={(e) => setForm({ ...form, bio: e.target.value })}
-            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
-            placeholder="Présentez votre expérience, vos compétences…"
-          />
-        </label>
-
         <label className="flex items-center gap-2 text-sm text-ink">
           <input
             type="checkbox"
@@ -294,6 +307,27 @@ export default function ProviderProfilePage() {
                           </div>
                         </div>
                       )}
+
+                      <div className="mt-3 border-t border-slate-100 pt-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium text-slate-500">Présentation pour "{c.name}"</span>
+                          <button
+                            type="button"
+                            disabled={generatingBioFor === c.id}
+                            onClick={() => generateBio(c)}
+                            className="text-xs font-medium text-moss hover:text-moss-dark disabled:opacity-50"
+                          >
+                            {generatingBioFor === c.id ? 'Génération…' : '✨ Générer avec l\'IA'}
+                          </button>
+                        </div>
+                        <textarea
+                          rows={3}
+                          value={bios[c.id] || ''}
+                          onChange={(e) => setBio(c.id, e.target.value)}
+                          className="mt-1.5 w-full rounded-md border border-slate-200 px-3 py-2 text-xs outline-none focus:border-moss"
+                          placeholder="Présentez votre expérience dans ce domaine, ou laissez l'IA rédiger une première version…"
+                        />
+                      </div>
                     </>
                   )}
                 </div>

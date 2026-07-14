@@ -45,8 +45,6 @@ export default function ProviderProfilePage() {
         )}
       </div>
 
-      {profile.bio && <p className="mt-5 text-slate-600">{profile.bio}</p>}
-
       {profile.categories?.length > 0 && (
         <div className="mt-5">
           <h2 className="font-display text-lg font-medium text-ink">Compétences</h2>
@@ -65,6 +63,7 @@ export default function ProviderProfilePage() {
                       </span>
                     </div>
                   </div>
+                  {pc.bio && <p className="mt-2 text-sm text-slate-600">{pc.bio}</p>}
                   {services.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {services.map((ps) => (
