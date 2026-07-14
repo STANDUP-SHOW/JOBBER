@@ -23,6 +23,7 @@ export const api = {
   me: (token) => request('/auth/me', { token }),
   forgotPassword: (email) => request('/auth/forgot-password', { method: 'POST', body: { email } }),
   resetPassword: (token, password) => request('/auth/reset-password', { method: 'POST', body: { token, password } }),
+  changePassword: (payload, token) => request('/auth/change-password', { method: 'POST', body: payload, token }),
   googleAuth: (credential) => request('/auth/google', { method: 'POST', body: { credential } }),
 
   categories: () => request('/categories'),
@@ -48,13 +49,20 @@ export const api = {
   connectSetup: (payload, token) => request('/payments/connect/setup', { method: 'POST', body: payload, token }),
   connectPayout: (token) => request('/payments/connect/payout', { method: 'POST', token }),
   walletHistory: (token) => request('/payments/wallet-history', { token }),
+  spendingHistory: (token) => request('/payments/spending-history', { token }),
+  createSetupIntent: (token) => request('/payments/setup-intent', { method: 'POST', token }),
+  paymentMethods: (token) => request('/payments/payment-methods', { token }),
+  setDefaultPaymentMethod: (id, token) => request(`/payments/payment-methods/${id}/default`, { method: 'POST', token }),
+  deletePaymentMethod: (id, token) => request(`/payments/payment-methods/${id}`, { method: 'DELETE', token }),
 
   updateMe: (payload, token) => request('/users/me', { method: 'PATCH', body: payload, token }),
+  deleteAccount: (token) => request('/users/me', { method: 'DELETE', token }),
   providers: (params = {}) => {
     const qs = new URLSearchParams(params).toString();
     return request(`/users/providers${qs ? `?${qs}` : ''}`);
   },
   provider: (id) => request(`/users/providers/${id}`),
+  myReferral: (token) => request('/users/me/referral', { token }),
   updateProviderProfile: (payload, token) => request('/users/me/provider-profile', { method: 'PATCH', body: payload, token }),
 
   conversations: (token) => request('/messages/conversations', { token }),

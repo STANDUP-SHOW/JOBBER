@@ -109,6 +109,36 @@ async function payoutToProvider(accountId, amountEUR) {
   return { transfer, payout };
 }
 
+async function createCustomer(email, name) {
+  if (!stripe) throw wrap('Stripe n\'est pas configuré (STRIPE_SECRET_KEY manquant)');
+  return stripe.customers.create({ email, name });
+}
+
+async function createSetupIntent(customerId) {
+  if (!stripe) throw wrap('Stripe n\'est pas configuré (STRIPE_SECRET_KEY manquant)');
+  return stripe.setupIntents.create({ customer: customerId, payment_method_types: ['card'] });
+}
+
+async function listPaymentMethods(customerId) {
+  if (!stripe) throw wrap('Stripe n\'est pas configuré (STRIPE_SECRET_KEY manquant)');
+  const [methods, customer] = await Promise.all([
+    stripe.paymentMethods.list({ customer: customerId, type: 'card' }),
+    stripe.customers.retrieve(customerId),
+  ]);
+  const defaultId = customer.invoice_settings?.default_payment_method;
+  return methods.data.map((m) => ({ ...m, isDefault: m.id === defaultId }));
+}
+
+async function detachPaymentMethod(paymentMethodId) {
+  if (!stripe) throw wrap('Stripe n\'est pas configuré (STRIPE_SECRET_KEY manquant)');
+  return stripe.paymentMethods.detach(paymentMethodId);
+}
+
+async function setDefaultPaymentMethod(customerId, paymentMethodId) {
+  if (!stripe) throw wrap('Stripe n\'est pas configuré (STRIPE_SECRET_KEY manquant)');
+  return stripe.customers.update(customerId, { invoice_settings: { default_payment_method: paymentMethodId } });
+}
+
 function wrap(message) {
   const err = new Error(message);
   err.status = 503;
@@ -125,4 +155,9 @@ module.exports = {
   setBankAccount,
   retrieveAccount,
   payoutToProvider,
+  createCustomer,
+  createSetupIntent,
+  listPaymentMethods,
+  detachPaymentMethod,
+  setDefaultPaymentMethod,
 };

@@ -1,14 +1,24 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 import GoogleSignInButton from '../../../components/GoogleSignInButton';
 
 export default function RegisterPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterForm />
+    </Suspense>
+  );
+}
+
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuth();
+  const referralCode = searchParams.get('ref');
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', phone: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,7 +28,7 @@ export default function RegisterPage() {
     setError('');
     setLoading(true);
     try {
-      const { token, user } = await api.register(form);
+      const { token, user } = await api.register({ ...form, referralCode: referralCode || undefined });
       login(token, user);
       router.push('/dashboard');
     } catch (err) {
@@ -33,6 +43,11 @@ export default function RegisterPage() {
       <span className="label-eyebrow text-moss">Créer un compte</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Rejoindre Jobber</h1>
       <p className="mt-1 text-sm text-slate-500">Un seul compte pour publier vos besoins et proposer vos services.</p>
+      {referralCode && (
+        <p className="mt-3 rounded-md bg-moss-light px-3 py-2 text-sm text-moss-dark">
+          🎁 Vous avez été invité — 3 € offerts sur votre première mission !
+        </p>
+      )}
 
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <div className="grid grid-cols-2 gap-3">
