@@ -83,6 +83,7 @@ export default function AccountPage() {
       <Section title="Espace manager">
         <Row href="/missions/new" icon="📝" label="Publier un besoin" sublabel="Décrire une mission à réaliser" />
         <Row href="/dashboard" icon="📋" label="Mes réservations" sublabel="Suivre vos missions en cours" />
+        <Row href="/account/subscription" icon="⭐" label="Abonnement Manager" sublabel="Plus aucun frais sur vos missions" />
       </Section>
 
       <Section title="Espace jobber">

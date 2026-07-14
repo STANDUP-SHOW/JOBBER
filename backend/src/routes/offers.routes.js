@@ -67,6 +67,15 @@ router.get('/mine', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// Standard fee: Jobber (the platform) keeps a flat 4€ per mission, split
+// 2€ added to what the manager pays and 2€ held back from what the jobber
+// receives. A manager subscription can waive the manager's 2€ share (up to
+// their plan's monthly mission quota) — the jobber's 2€ share is unaffected
+// either way, that's not what the subscription is for.
+const MANAGER_FEE = 2;
+const PROVIDER_FEE = 2;
+const PLAN_LIMITS = { MANAGER_BOSS: 10, MANAGER_HOLDER: Infinity };
+
 // Mission owner accepts an offer -> creates Booking, marks mission ASSIGNED, rejects other offers
 router.post('/:id/accept', requireAuth, async (req, res, next) => {
   try {
@@ -76,6 +85,23 @@ router.post('/:id/accept', requireAuth, async (req, res, next) => {
     if (offer.status !== 'PENDING') return res.status(400).json({ error: 'Cette offre n\'est plus disponible' });
 
     const totalAmount = round2(offer.hourlyRate * offer.mission.estimatedHours);
+
+    const subscription = await prisma.subscription.findUnique({ where: { userId: req.user.id } });
+    let managerFee = MANAGER_FEE;
+    let feeWaived = false;
+    let quotaExceeded = false;
+    const subscriptionActive = subscription?.status === 'ACTIVE' && subscription.currentPeriodEnd > new Date();
+    if (subscriptionActive) {
+      if (subscription.missionsUsedInPeriod < PLAN_LIMITS[subscription.plan]) {
+        managerFee = 0;
+        feeWaived = true;
+      } else {
+        quotaExceeded = true;
+      }
+    }
+
+    const chargeAmount = round2(totalAmount + managerFee);
+    const providerPayout = round2(totalAmount - PROVIDER_FEE);
 
     const [booking] = await prisma.$transaction([
       prisma.booking.create({
@@ -88,7 +114,16 @@ router.post('/:id/accept', requireAuth, async (req, res, next) => {
           hours: offer.mission.estimatedHours,
           hourlyRate: offer.hourlyRate,
           totalAmount,
-          payment: { create: { amount: totalAmount, platformFee: round2(totalAmount * 0.2), providerPayout: round2(totalAmount * 0.8) } },
+          payment: {
+            create: {
+              amount: chargeAmount,
+              platformFee: round2(managerFee + PROVIDER_FEE),
+              managerFee,
+              providerFee: PROVIDER_FEE,
+              feeWaived,
+              providerPayout,
+            },
+          },
         },
       }),
       prisma.mission.update({ where: { id: offer.missionId }, data: { status: 'ASSIGNED' } }),
@@ -97,9 +132,12 @@ router.post('/:id/accept', requireAuth, async (req, res, next) => {
         where: { missionId: offer.missionId, id: { not: offer.id }, status: 'PENDING' },
         data: { status: 'REJECTED' },
       }),
+      ...(feeWaived
+        ? [prisma.subscription.update({ where: { userId: req.user.id }, data: { missionsUsedInPeriod: { increment: 1 } } })]
+        : []),
     ]);
 
-    res.json({ booking });
+    res.json({ booking, feeWaived, quotaExceeded, plan: subscription?.plan || null });
   } catch (err) {
     next(err);
   }

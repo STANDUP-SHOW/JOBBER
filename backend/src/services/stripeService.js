@@ -139,6 +139,44 @@ async function setDefaultPaymentMethod(customerId, paymentMethodId) {
   return stripe.customers.update(customerId, { invoice_settings: { default_payment_method: paymentMethodId } });
 }
 
+const PLAN_CONFIG = {
+  MANAGER_BOSS: { amount: 1000, lookupKey: 'manager_boss_monthly', name: 'Manager Boss' },
+  MANAGER_HOLDER: { amount: 2000, lookupKey: 'manager_holder_monthly', name: 'Manager Holder' },
+};
+
+// Prices are created once (looked up by a stable lookup_key so repeat calls
+// reuse the same Price instead of littering the Stripe dashboard with dupes).
+async function getOrCreatePlanPrice(plan) {
+  if (!stripe) throw wrap('Stripe n\'est pas configuré (STRIPE_SECRET_KEY manquant)');
+  const config = PLAN_CONFIG[plan];
+  const existing = await stripe.prices.list({ lookup_keys: [config.lookupKey], active: true, limit: 1 });
+  if (existing.data.length) return existing.data[0];
+  const product = await stripe.products.create({ name: config.name });
+  return stripe.prices.create({
+    product: product.id,
+    currency: 'eur',
+    unit_amount: config.amount,
+    recurring: { interval: 'month' },
+    lookup_key: config.lookupKey,
+  });
+}
+
+async function createManagerSubscription(customerId, plan, paymentMethodId) {
+  if (!stripe) throw wrap('Stripe n\'est pas configuré (STRIPE_SECRET_KEY manquant)');
+  const price = await getOrCreatePlanPrice(plan);
+  return stripe.subscriptions.create({
+    customer: customerId,
+    items: [{ price: price.id }],
+    default_payment_method: paymentMethodId,
+    metadata: { plan },
+  });
+}
+
+async function cancelSubscription(stripeSubscriptionId) {
+  if (!stripe) throw wrap('Stripe n\'est pas configuré (STRIPE_SECRET_KEY manquant)');
+  return stripe.subscriptions.cancel(stripeSubscriptionId);
+}
+
 function wrap(message) {
   const err = new Error(message);
   err.status = 503;
@@ -160,4 +198,6 @@ module.exports = {
   listPaymentMethods,
   detachPaymentMethod,
   setDefaultPaymentMethod,
+  createManagerSubscription,
+  cancelSubscription,
 };

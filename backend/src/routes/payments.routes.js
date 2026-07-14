@@ -5,6 +5,7 @@ const {
   createEscrowIntent, captureIntent, refundIntent, stripe,
   upsertCustomAccount, setBankAccount, retrieveAccount, payoutToProvider,
   createCustomer, createSetupIntent, listPaymentMethods, detachPaymentMethod, setDefaultPaymentMethod,
+  createManagerSubscription, cancelSubscription,
 } = require('../services/stripeService');
 
 const router = express.Router();
@@ -150,12 +151,15 @@ router.post('/:bookingId/create-intent', requireAuth, async (req, res, next) => 
     }
 
     if (!clientSecret) {
-      const intent = await createEscrowIntent({ amountEUR: booking.totalAmount, bookingId: booking.id });
+      // payment.amount includes the manager-side fee (or not, if waived by
+      // subscription) — it's what actually gets charged, not the raw
+      // jobber/manager-agreed totalAmount.
+      const intent = await createEscrowIntent({ amountEUR: booking.payment.amount, bookingId: booking.id });
       await prisma.payment.update({ where: { bookingId: booking.id }, data: { stripePaymentIntentId: intent.id } });
       clientSecret = intent.client_secret;
     }
 
-    res.json({ clientSecret });
+    res.json({ clientSecret, amount: booking.payment.amount });
   } catch (err) { next(err); }
 });
 
@@ -377,6 +381,77 @@ router.delete('/payment-methods/:id', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// "Plus aucun frais" manager plans — Manager Boss (10€/mo, up to 10 missions)
+// and Manager Holder (20€/mo, unlimited). Requires a saved card first; the
+// subscription's default payment method is whichever card is currently set
+// as the customer's default.
+router.get('/subscription', requireAuth, async (req, res, next) => {
+  try {
+    const subscription = await prisma.subscription.findUnique({ where: { userId: req.user.id } });
+    res.json({ subscription });
+  } catch (err) { next(err); }
+});
+
+router.post('/subscribe', requireAuth, async (req, res, next) => {
+  try {
+    const { plan } = req.body;
+    if (!['MANAGER_BOSS', 'MANAGER_HOLDER'].includes(plan)) {
+      return res.status(400).json({ error: 'Offre invalide' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user.stripeCustomerId) {
+      return res.status(400).json({ error: 'Ajoutez d\'abord un moyen de paiement' });
+    }
+    const methods = await listPaymentMethods(user.stripeCustomerId);
+    const method = methods.find((m) => m.isDefault) || methods[0];
+    if (!method) {
+      return res.status(400).json({ error: 'Ajoutez d\'abord un moyen de paiement' });
+    }
+
+    const existing = await prisma.subscription.findUnique({ where: { userId: req.user.id } });
+    if (existing?.stripeSubscriptionId && existing.status === 'ACTIVE') {
+      await cancelSubscription(existing.stripeSubscriptionId).catch(() => {});
+    }
+
+    const stripeSub = await createManagerSubscription(user.stripeCustomerId, plan, method.id);
+
+    const data = {
+      plan,
+      status: 'ACTIVE',
+      stripeSubscriptionId: stripeSub.id,
+      currentPeriodStart: new Date(stripeSub.current_period_start * 1000),
+      currentPeriodEnd: new Date(stripeSub.current_period_end * 1000),
+      missionsUsedInPeriod: 0,
+    };
+    const subscription = await prisma.subscription.upsert({
+      where: { userId: req.user.id },
+      create: { userId: req.user.id, ...data },
+      update: data,
+    });
+
+    res.json({ subscription });
+  } catch (err) {
+    if (err.type === 'StripeInvalidRequestError') {
+      err.status = 400;
+      err.expose = true;
+    }
+    next(err);
+  }
+});
+
+router.post('/subscribe/cancel', requireAuth, async (req, res, next) => {
+  try {
+    const subscription = await prisma.subscription.findUnique({ where: { userId: req.user.id } });
+    if (!subscription) return res.status(404).json({ error: 'Aucun abonnement actif' });
+    if (subscription.stripeSubscriptionId) {
+      await cancelSubscription(subscription.stripeSubscriptionId).catch(() => {});
+    }
+    const updated = await prisma.subscription.update({ where: { userId: req.user.id }, data: { status: 'CANCELED' } });
+    res.json({ subscription: updated });
+  } catch (err) { next(err); }
+});
+
 module.exports = router;
 
 // Stripe webhook handler — exported separately because it needs the RAW
@@ -445,6 +520,49 @@ module.exports.webhookHandler = async (req, res) => {
           }),
         ]);
       }
+      break;
+    }
+    // Subscription lifecycle — keeps period dates and status in sync, and
+    // resets the monthly mission quota exactly when Stripe renews billing
+    // rather than on some approximate date we'd compute ourselves.
+    case 'invoice.payment_succeeded': {
+      const invoice = event.data.object;
+      if (invoice.subscription) {
+        await prisma.subscription.updateMany({
+          where: { stripeSubscriptionId: invoice.subscription },
+          data: { missionsUsedInPeriod: 0, status: 'ACTIVE' },
+        });
+      }
+      break;
+    }
+    case 'invoice.payment_failed': {
+      const invoice = event.data.object;
+      if (invoice.subscription) {
+        await prisma.subscription.updateMany({
+          where: { stripeSubscriptionId: invoice.subscription },
+          data: { status: 'PAST_DUE' },
+        });
+      }
+      break;
+    }
+    case 'customer.subscription.updated': {
+      const sub = event.data.object;
+      await prisma.subscription.updateMany({
+        where: { stripeSubscriptionId: sub.id },
+        data: {
+          currentPeriodStart: new Date(sub.current_period_start * 1000),
+          currentPeriodEnd: new Date(sub.current_period_end * 1000),
+          status: sub.status === 'active' ? 'ACTIVE' : sub.status === 'past_due' ? 'PAST_DUE' : 'CANCELED',
+        },
+      });
+      break;
+    }
+    case 'customer.subscription.deleted': {
+      const sub = event.data.object;
+      await prisma.subscription.updateMany({
+        where: { stripeSubscriptionId: sub.id },
+        data: { status: 'CANCELED' },
+      });
       break;
     }
     default:

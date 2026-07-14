@@ -17,6 +17,7 @@ export default function MissionDetailPage() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [offerError, setOfferError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [quotaNotice, setQuotaNotice] = useState(null);
 
   async function refresh() {
     const { mission } = await api.getMission(id);
@@ -46,9 +47,14 @@ export default function MissionDetailPage() {
   async function acceptOffer(offerId) {
     setBusy(true); setError('');
     try {
-      const { booking } = await api.acceptOffer(offerId, token);
+      const { quotaExceeded } = await api.acceptOffer(offerId, token);
+      if (quotaExceeded) {
+        setQuotaNotice('Vous avez dépassé votre quota de missions sans frais ce mois-ci : les frais standards s\'appliquent sur cette mission.');
+        setBusy(false);
+        return;
+      }
       router.push(`/dashboard`);
-    } catch (err) { setError(err.message); } finally { setBusy(false); }
+    } catch (err) { setError(err.message); setBusy(false); }
   }
 
   if (error && !mission) return <p className="text-clay">{error}</p>;
@@ -76,6 +82,16 @@ export default function MissionDetailPage() {
       </dl>
 
       {error && <p className="mt-4 rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
+
+      {quotaNotice && (
+        <div className="mt-4 rounded-md bg-ochre/10 px-4 py-3 text-sm text-ink">
+          <p>{quotaNotice}</p>
+          <div className="mt-2 flex gap-3">
+            <a href="/dashboard" className="font-medium text-moss">Voir mes réservations</a>
+            <a href="/account/subscription" className="font-medium text-moss">Passer à Manager Holder</a>
+          </div>
+        </div>
+      )}
 
       {!isOwner && mission.status === 'OPEN' && !alreadyApplied && (
         <button

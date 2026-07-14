@@ -70,14 +70,16 @@ export default function DashboardPage() {
 
               {b.payment && (
                 <div className="mt-2 text-xs text-slate-400">
-                  Paiement : {b.payment.status} {isClient && ` — prestataire touche ${b.payment.providerPayout} € (frais plateforme ${b.payment.platformFee} €)`}
+                  Paiement : {b.payment.status}
+                  {isClient && ` — vous payez ${b.payment.amount} €${b.payment.feeWaived ? ' (sans frais, abonnement actif)' : ` (dont ${b.payment.managerFee} € de frais)`}`}
+                  {!isClient && ` — vous touchez ${b.payment.providerPayout} € (frais ${b.payment.providerFee} €)`}
                 </div>
               )}
 
               <div className="mt-4 flex flex-wrap gap-2">
                 {isClient && b.payment?.status === 'REQUIRES_PAYMENT' && (
                   <ActionButton busy={busy} onClick={() => setPayingBooking(b)}>
-                    Payer maintenant ({b.totalAmount} €)
+                    Payer maintenant ({b.payment.amount} €)
                   </ActionButton>
                 )}
                 {isClient && b.status === 'SCHEDULED' && (
@@ -91,7 +93,7 @@ export default function DashboardPage() {
                 )}
                 {isClient && b.status === 'COMPLETED' && b.payment?.status !== 'RELEASED' && (
                   <ActionButton busy={busy} variant="ochre" onClick={() => act(b.id, () => api.releasePayment(b.id, token))}>
-                    Verser le prestataire ({b.totalAmount} €)
+                    Verser le prestataire ({b.payment.providerPayout} €)
                   </ActionButton>
                 )}
               </div>
