@@ -85,6 +85,36 @@ const CATEGORIES = [
     'Permis de conduire adapté au véhicule', 'Sangles et cales d\'arrimage', 'Gilet et triangle de sécurité',
     'GPS / application de navigation', 'Bâche de protection', 'Diable pour marchandises',
   ] },
+  { name: 'Mécanique', slug: 'mecanique', icon: '🔩', services: [
+    'Voiture', 'Scooter', 'Moto', 'Camion', 'Autre véhicule',
+  ], equipment: [
+    'Cric hydraulique', 'Chandelles de sécurité', 'Jeu de clés à cliquet et douilles', 'Multimètre',
+    'Valise de diagnostic OBD', 'Compresseur d\'air', 'Bac de vidange', 'Chiffons et absorbant',
+    'Gants mécanicien', 'Lampe torche / frontale', 'Chargeur de batterie / booster',
+  ] },
+  { name: 'Électricité', slug: 'electricite', icon: '⚡', services: [
+    'Installation électrique', 'Mise aux normes', 'Dépannage électrique', 'Tableau électrique',
+    'Éclairage', 'Domotique', 'Chauffage électrique', 'Prises et interrupteurs',
+  ], equipment: [
+    'Multimètre', 'Pince ampèremétrique', 'Testeur de tension (VAT)', 'Tournevis isolés',
+    'Pince à dénuder', 'Perceuse-visseuse', 'Détecteur de câbles et métaux', 'Gants isolants',
+    'Casque et lunettes de protection', 'Dominos et connectiques',
+  ] },
+  { name: 'Plomberie', slug: 'plomberie', icon: '🚰', services: [
+    'Dépannage plomberie', 'Installation sanitaire', 'Débouchage de canalisation', 'Chauffe-eau et ballon',
+    'Robinetterie', 'Recherche de fuite', 'Salle de bain', 'Cuisine (plomberie)',
+  ], equipment: [
+    'Clé à molette', 'Pince multiprise', 'Furet / dégorgeoir', 'Ventouse', 'Chalumeau',
+    'Téflon et joints', 'Kit de raccords PVC/cuivre', 'Détecteur de fuite', 'Seau et bassine', 'Gants étanches',
+  ] },
+  { name: 'Peinture', slug: 'peinture', icon: '🎨', services: [
+    'Peinture intérieure', 'Peinture extérieure', 'Ravalement de façade', 'Enduit et lissage des murs',
+    'Pose de papier peint', 'Peinture décorative', 'Vernis et lasure',
+  ], equipment: [
+    'Rouleaux et pinceaux', 'Bâches de protection', 'Ruban de masquage', 'Escabeau / échelle',
+    'Échafaudage léger', 'Pistolet à peinture', 'Ponceuse', 'Enduit et spatules',
+    'Combinaison de protection', 'Bac et grille à peinture',
+  ] },
 ];
 
 async function main() {
