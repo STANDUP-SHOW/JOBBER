@@ -1,0 +1,118 @@
+// Natural-language search terms per category — real people search "femme de
+// ménage" or "électricien", never the raw category name "Aide à la
+// personne" or "Électricité". Used to build titles/H1s/copy that actually
+// match search intent on the /services landing pages.
+export const SEO_CATEGORIES = {
+  menage: {
+    title: 'Femme de ménage',
+    worker: 'une femme de ménage',
+    plural: 'des femmes de ménage',
+    searchTerms: ['femme de ménage', 'ménage à domicile', "agent d'entretien"],
+    intro: "Que ce soit pour un ménage ponctuel avant une occasion spéciale ou un entretien régulier de votre domicile, trouvez rapidement une femme de ménage de confiance près de chez vous.",
+  },
+  bricolage: {
+    title: 'Bricoleur',
+    worker: 'un bricoleur',
+    plural: 'des bricoleurs',
+    searchTerms: ['bricoleur', 'homme toutes mains', 'petits travaux à domicile'],
+    intro: "Montage de meubles, petites réparations, fixations murales : trouvez un bricoleur fiable pour tous vos petits travaux du quotidien.",
+  },
+  demenagement: {
+    title: 'Déménageur',
+    worker: 'un déménageur',
+    plural: 'des déménageurs',
+    searchTerms: ['déménageur', 'aide au déménagement', 'aide déménagement pas cher'],
+    intro: "Portage, emballage, montage de meubles : trouvez de l'aide pour votre déménagement, au juste prix et sans mauvaise surprise.",
+  },
+  jardinage: {
+    title: 'Jardinier',
+    worker: 'un jardinier',
+    plural: 'des jardiniers',
+    searchTerms: ['jardinier', 'paysagiste', 'entretien de jardin'],
+    intro: "Tonte de pelouse, taille de haie, entretien régulier : trouvez un jardinier disponible près de chez vous, pour une intervention ponctuelle ou toute l'année.",
+  },
+  'garde-enfants': {
+    title: "Baby-sitter",
+    worker: 'une baby-sitter',
+    plural: 'des baby-sitters',
+    searchTerms: ['baby-sitter', "garde d'enfants", 'nounou'],
+    intro: "Sortie d'école, garde ponctuelle ou régulière, soirée entre parents : trouvez une baby-sitter de confiance pour vos enfants.",
+  },
+  'cours-particuliers': {
+    title: 'Professeur particulier',
+    worker: 'un professeur particulier',
+    plural: 'des professeurs particuliers',
+    searchTerms: ['cours particuliers', 'professeur particulier', 'soutien scolaire'],
+    intro: "Soutien scolaire, langues, musique, préparation aux examens : trouvez un professeur particulier adapté au niveau et aux objectifs de votre enfant.",
+  },
+  'aide-personne': {
+    title: 'Aide à domicile',
+    worker: 'une aide à domicile',
+    plural: 'des aides à domicile',
+    searchTerms: ['aide à domicile', 'auxiliaire de vie', 'aide à la personne âgée'],
+    intro: "Accompagnement aux courses, présence rassurante, aide administrative : trouvez une aide à domicile bienveillante pour vous ou vos proches.",
+  },
+  'garde-animaux': {
+    title: 'Pet-sitter',
+    worker: 'un pet-sitter',
+    plural: 'des pet-sitters',
+    searchTerms: ['pet-sitter', "garde d'animaux", 'promeneur de chien'],
+    intro: "Promenade quotidienne, garde à domicile ou visites pendant vos absences : trouvez un pet-sitter pour vos animaux de compagnie.",
+  },
+  informatique: {
+    title: 'Dépanneur informatique',
+    worker: 'un dépanneur informatique',
+    plural: 'des dépanneurs informatiques',
+    searchTerms: ['dépannage informatique', 'technicien informatique', 'réparation ordinateur'],
+    intro: "Panne, installation de logiciels, initiation aux outils numériques : trouvez un dépanneur informatique disponible rapidement.",
+  },
+  transport: {
+    title: 'Chauffeur / Transport',
+    worker: 'un chauffeur',
+    plural: 'des chauffeurs',
+    searchTerms: ['transport de personnes', 'transport de colis', 'trajet gare aéroport'],
+    intro: "Trajet, livraison de colis, transport de courses : trouvez une solution de transport flexible, quand vous en avez besoin.",
+  },
+  convoi: {
+    title: 'Convoyeur de véhicule',
+    worker: 'un convoyeur',
+    plural: 'des convoyeurs',
+    searchTerms: ['convoyage de véhicule', 'convoyeur automobile'],
+    intro: "Convoyage ou livraison de véhicule partout en France : trouvez un convoyeur fiable et assuré.",
+  },
+  mecanique: {
+    title: 'Mécanicien',
+    worker: 'un mécanicien',
+    plural: 'des mécaniciens',
+    searchTerms: ['mécanicien à domicile', 'garage mobile', 'mécanique auto'],
+    intro: "Vidange, diagnostic, petites réparations sur voiture, scooter ou moto : trouvez un mécanicien qui se déplace chez vous.",
+  },
+  electricite: {
+    title: 'Électricien',
+    worker: 'un électricien',
+    plural: 'des électriciens',
+    searchTerms: ['électricien', 'dépannage électrique', 'électricien pas cher'],
+    intro: "Panne électrique, installation, mise aux normes : trouvez un électricien disponible près de chez vous, y compris en urgence.",
+  },
+  plomberie: {
+    title: 'Plombier',
+    worker: 'un plombier',
+    plural: 'des plombiers',
+    searchTerms: ['plombier', 'dépannage plomberie', 'plombier urgence'],
+    intro: "Fuite d'eau, débouchage, installation sanitaire : trouvez un plombier rapidement, y compris en cas d'urgence.",
+  },
+  peinture: {
+    title: 'Peintre',
+    worker: 'un peintre',
+    plural: 'des peintres',
+    searchTerms: ['peintre en bâtiment', 'peinture intérieure', 'entreprise de peinture'],
+    intro: "Peinture intérieure, extérieure ou décorative, ravalement de façade : trouvez un peintre soigné pour vos travaux.",
+  },
+  piscine: {
+    title: 'Pisciniste',
+    worker: 'un pisciniste',
+    plural: 'des piscinistes',
+    searchTerms: ['entretien piscine', 'pisciniste', 'remise en état piscine'],
+    intro: "Entretien régulier, remise en état, traitement de l'eau : trouvez un pisciniste pour profiter de votre bassin toute la saison.",
+  },
+};
