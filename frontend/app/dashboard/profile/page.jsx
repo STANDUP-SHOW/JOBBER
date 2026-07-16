@@ -195,29 +195,29 @@ export default function ProviderProfilePage() {
         <ZoneSummaryCard />
       </div>
 
-      <form onSubmit={onSubmit} className="mt-4 space-y-4">
-        <label className="flex items-center gap-2 text-sm text-ink">
+      <form onSubmit={onSubmit} className="mt-6 space-y-6">
+        <label className="flex items-center gap-3 text-base text-ink">
           <input
             type="checkbox"
             checked={form.autoApply}
             onChange={(e) => setForm({ ...form, autoApply: e.target.checked })}
-            className="rounded border-slate-300"
+            className="h-5 w-5 shrink-0 rounded border-slate-300 accent-moss"
           />
           Candidater automatiquement aux nouvelles missions de mes catégories
         </label>
 
         <label className="block">
-          <span className="text-xs font-medium text-slate-500">Numéro SIRET</span>
+          <span className="text-sm font-semibold text-ink">Numéro SIRET</span>
           <input
             type="text"
             inputMode="numeric"
             maxLength={14}
             value={form.siret}
             onChange={(e) => setForm({ ...form, siret: e.target.value.replace(/\D/g, '') })}
-            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
+            className="mt-1.5 w-full rounded-md border border-slate-200 px-3 py-2.5 text-base outline-none focus:border-moss"
             placeholder="14 chiffres"
           />
-          <span className="mt-1 block text-xs text-slate-400">
+          <span className="mt-1.5 block text-sm text-slate-400">
             {form.siret && !isValidSiret(form.siret)
               ? 'Numéro invalide.'
               : "Requis pour déclarer le niveau Professionnel sur une compétence."}
@@ -225,28 +225,28 @@ export default function ProviderProfilePage() {
         </label>
 
         <div>
-          <span className="text-xs font-medium text-slate-500">Compétences</span>
-          <p className="mt-1 text-xs text-slate-400">
+          <span className="text-sm font-semibold text-ink">Compétences</span>
+          <p className="mt-1 text-sm text-slate-500">
             Cochez vos domaines et les prestations précises que vous proposez, puis indiquez votre niveau pour chaque domaine.
           </p>
-          <div className="mt-2 space-y-2">
+          <div className="mt-3 space-y-3">
             {categories.map((c) => {
               const active = selectedCategoryIds.includes(c.id);
               return (
-                <div key={c.id} className="rounded-md border border-slate-200 p-3">
-                  <label className="flex items-center gap-2 text-sm font-medium text-ink">
+                <div key={c.id} className={`rounded-lg border p-4 ${active ? 'border-moss' : 'border-slate-200'}`}>
+                  <label className="flex items-center gap-3 text-lg font-semibold text-ink">
                     <input
                       type="checkbox"
                       checked={active}
                       onChange={() => toggleCategory(c)}
-                      className="rounded border-slate-300"
+                      className="h-5 w-5 shrink-0 rounded border-slate-300 accent-moss"
                     />
-                    {c.icon} {c.name}
+                    <span className="text-xl">{c.icon}</span> {c.name}
                   </label>
 
                   {active && (
                     <>
-                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <div className="mt-3 flex flex-wrap items-center gap-2.5">
                         {LEVELS.map((lvl) => {
                           const locked = lvl.value === 'PROFESSIONNEL' && !isValidSiret(form.siret);
                           return (
@@ -256,50 +256,54 @@ export default function ProviderProfilePage() {
                               disabled={locked}
                               title={locked ? 'Renseignez un numéro SIRET valide ci-dessus pour choisir ce niveau' : undefined}
                               onClick={() => setLevel(c.id, lvl.value)}
-                              className={`rounded-full px-3 py-1 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-40 ${
-                                levels[c.id] === lvl.value ? lvl.activeClass : 'border border-slate-200 text-slate-500'
+                              className={`rounded-full px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${
+                                levels[c.id] === lvl.value ? lvl.activeClass : 'border-2 border-slate-200 text-slate-500'
                               }`}
                             >
                               {lvl.label}
                             </button>
                           );
                         })}
-                        <label className="ml-auto flex items-center gap-1.5 text-xs text-slate-500">
+                        <label className="mt-2 flex w-full items-center gap-2 text-sm font-medium text-slate-600 sm:ml-auto sm:mt-0 sm:w-auto">
                           Tarif horaire
                           <input
                             type="number" min="1" step="0.5"
                             value={rates[c.id] ?? 15}
                             onChange={(e) => setRate(c.id, e.target.value)}
-                            className="w-16 rounded-md border border-slate-200 px-2 py-1 text-xs outline-none focus:border-moss"
+                            className="w-20 rounded-md border border-slate-200 px-2 py-1.5 text-base outline-none focus:border-moss"
                           />
                           €/h
                         </label>
                       </div>
-                      <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
-                        {c.services?.map((svc) => (
-                          <label key={svc.id} className="flex items-center gap-1.5 text-xs text-slate-600">
-                            <input
-                              type="checkbox"
-                              checked={serviceIds.includes(svc.id)}
-                              onChange={() => toggleService(c.id, svc.id)}
-                              className="rounded border-slate-300"
-                            />
-                            {svc.name}
-                          </label>
-                        ))}
+
+                      <div className="mt-4 border-t border-slate-100 pt-4">
+                        <span className="text-sm font-semibold text-slate-600">Prestations proposées</span>
+                        <div className="mt-2 grid grid-cols-1 gap-x-4 gap-y-2.5 sm:grid-cols-2">
+                          {c.services?.map((svc) => (
+                            <label key={svc.id} className="flex items-center gap-2.5 text-base text-ink">
+                              <input
+                                type="checkbox"
+                                checked={serviceIds.includes(svc.id)}
+                                onChange={() => toggleService(c.id, svc.id)}
+                                className="h-4 w-4 shrink-0 rounded border-slate-300 accent-moss"
+                              />
+                              {svc.name}
+                            </label>
+                          ))}
+                        </div>
                       </div>
 
                       {c.equipment?.length > 0 && (
-                        <div className="mt-3 border-t border-slate-100 pt-3">
-                          <span className="text-xs font-medium text-slate-500">Matériel que je possède</span>
-                          <div className="mt-1.5 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                        <div className="mt-4 border-t border-slate-100 pt-4">
+                          <span className="text-sm font-semibold text-slate-600">Matériel que je possède</span>
+                          <div className="mt-2 grid grid-cols-1 gap-x-4 gap-y-2.5 sm:grid-cols-2">
                             {c.equipment.map((eq) => (
-                              <label key={eq.id} className="flex items-center gap-1.5 text-xs text-slate-600">
+                              <label key={eq.id} className="flex items-center gap-2.5 text-base text-ink">
                                 <input
                                   type="checkbox"
                                   checked={equipmentIds.includes(eq.id)}
                                   onChange={() => toggleEquipment(eq.id)}
-                                  className="rounded border-slate-300"
+                                  className="h-4 w-4 shrink-0 rounded border-slate-300 accent-moss"
                                 />
                                 {eq.name}
                               </label>
@@ -308,14 +312,14 @@ export default function ProviderProfilePage() {
                         </div>
                       )}
 
-                      <div className="mt-3 border-t border-slate-100 pt-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-medium text-slate-500">Présentation pour "{c.name}"</span>
+                      <div className="mt-4 border-t border-slate-100 pt-4">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="text-sm font-semibold text-slate-600">Présentation pour « {c.name} »</span>
                           <button
                             type="button"
                             disabled={generatingBioFor === c.id}
                             onClick={() => generateBio(c)}
-                            className="text-xs font-medium text-moss hover:text-moss-dark disabled:opacity-50"
+                            className="text-sm font-semibold text-moss hover:text-moss-dark disabled:opacity-50"
                           >
                             {generatingBioFor === c.id ? 'Génération…' : '✨ Générer avec l\'IA'}
                           </button>
@@ -324,7 +328,7 @@ export default function ProviderProfilePage() {
                           rows={3}
                           value={bios[c.id] || ''}
                           onChange={(e) => setBio(c.id, e.target.value)}
-                          className="mt-1.5 w-full rounded-md border border-slate-200 px-3 py-2 text-xs outline-none focus:border-moss"
+                          className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2.5 text-base outline-none focus:border-moss"
                           placeholder="Présentez votre expérience dans ce domaine, ou laissez l'IA rédiger une première version…"
                         />
                       </div>
@@ -337,11 +341,11 @@ export default function ProviderProfilePage() {
         </div>
 
         <div>
-          <span className="text-xs font-medium text-slate-500">Mes véhicules</span>
-          <p className="mt-1 text-xs text-slate-400">
+          <span className="text-sm font-semibold text-ink">Mes véhicules</span>
+          <p className="mt-1 text-sm text-slate-500">
             Cochez les véhicules dont vous disposez pour les missions nécessitant du transport.
           </p>
-          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
             {VEHICLES.map((v) => {
               const active = vehicleTypes.includes(v.type);
               return (
@@ -349,13 +353,13 @@ export default function ProviderProfilePage() {
                   key={v.type}
                   type="button"
                   onClick={() => toggleVehicle(v.type)}
-                  className={`flex flex-col items-center rounded-md border p-2 text-center ${
+                  className={`flex flex-col items-center rounded-lg border-2 p-3 text-center ${
                     active ? 'border-moss bg-moss-light' : 'border-slate-200 bg-white'
                   }`}
                 >
-                  <VehicleIcon type={v.type} className={`h-8 w-12 ${active ? 'text-moss-dark' : 'text-slate-400'}`} />
-                  <span className={`mt-1 text-xs font-medium ${active ? 'text-moss-dark' : 'text-ink'}`}>{v.label}</span>
-                  {v.capacity && <span className="text-[10px] text-slate-400">{v.capacity}</span>}
+                  <VehicleIcon type={v.type} className={`h-9 w-14 ${active ? 'text-moss-dark' : 'text-slate-400'}`} />
+                  <span className={`mt-1.5 text-sm font-semibold ${active ? 'text-moss-dark' : 'text-ink'}`}>{v.label}</span>
+                  {v.capacity && <span className="text-xs text-slate-400">{v.capacity}</span>}
                 </button>
               );
             })}
@@ -365,7 +369,7 @@ export default function ProviderProfilePage() {
         {error && <p className="rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
         {saved && <p className="rounded-md bg-moss-light px-3 py-2 text-sm text-moss-dark">Profil mis à jour.</p>}
 
-        <button disabled={loading} className="w-full rounded-md bg-moss py-3 font-medium text-paper hover:bg-moss-dark disabled:opacity-60">
+        <button disabled={loading} className="w-full rounded-md bg-moss py-3.5 text-base font-semibold text-paper hover:bg-moss-dark disabled:opacity-60">
           {loading ? 'Enregistrement…' : 'Enregistrer'}
         </button>
       </form>
