@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import MissionBadges from './MissionBadges';
 
 const STATUS_LABEL = {
   OPEN: { text: 'Ouverte', cls: 'bg-moss-light text-moss-dark' },
@@ -42,6 +43,7 @@ export default function MissionCard({ mission }) {
             <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-ink">{mission.estimatedHours} h</span>
           </div>
           <div className="mt-0.5 truncate text-sm text-slate-400">{mission.address}</div>
+          <MissionBadges mission={mission} className="mt-1.5" />
         </div>
       </div>
 

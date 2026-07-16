@@ -27,6 +27,8 @@ const createMissionSchema = z.object({
   photos: z.array(z.string().url()).max(5).optional(),
   desiredDate: z.string(), // ISO date
   estimatedHours: z.number().positive().default(1),
+  isUrgent: z.boolean().optional().default(false),
+  datesFlexible: z.boolean().optional().default(false),
 });
 
 // Create a mission — any authenticated account can post a job request
