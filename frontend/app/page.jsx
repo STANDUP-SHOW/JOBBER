@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { API_URL } from '../lib/api';
 import CategoryGrid from '../components/CategoryGrid';
 import MissionCard from '../components/MissionCard';
+import { SEO_CATEGORIES } from '../lib/seoCategories';
 
 async function getData() {
   try {
@@ -68,6 +69,22 @@ export default async function HomePage() {
         <h2 className="font-display text-2xl font-semibold text-ink">Toutes les catégories</h2>
         <div className="mt-5">
           <CategoryGrid categories={categories} />
+        </div>
+      </section>
+
+      <section className="mt-16">
+        <h2 className="font-display text-2xl font-semibold text-ink">Nos services, partout en France</h2>
+        <p className="mt-1 text-sm text-slate-500">Trouvez le bon professionnel près de chez vous, quel que soit votre besoin.</p>
+        <div className="mt-5 flex flex-wrap gap-2">
+          {Object.entries(SEO_CATEGORIES).map(([slug, s]) => (
+            <Link
+              key={slug}
+              href={`/services/${slug}`}
+              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-ink hover:border-moss hover:text-moss-dark"
+            >
+              {s.title}
+            </Link>
+          ))}
         </div>
       </section>
 
