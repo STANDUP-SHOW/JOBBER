@@ -115,6 +115,13 @@ const CATEGORIES = [
     'Échafaudage léger', 'Pistolet à peinture', 'Ponceuse', 'Enduit et spatules',
     'Combinaison de protection', 'Bac et grille à peinture',
   ] },
+  { name: 'Piscine', slug: 'piscine', icon: '🏊', services: [
+    'Entretien', 'Remise en état', 'Peinture',
+  ], equipment: [
+    'Épuisette', 'Robot de piscine / aspirateur', 'Kit d\'analyse d\'eau (pH et chlore)', 'Brosse de bassin',
+    'Perche télescopique', 'Floculant et produits de traitement', 'Pompe de vidange', 'Peinture piscine (résine/époxy)',
+    'Rouleaux et pinceaux', 'Ponceuse / décapeur', 'Gants et lunettes de protection',
+  ] },
 ];
 
 async function main() {
