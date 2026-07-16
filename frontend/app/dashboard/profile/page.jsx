@@ -112,6 +112,10 @@ export default function ProviderProfilePage() {
     setRates((r) => ({ ...r, [categoryId]: rate }));
   }
 
+  function adjustRate(categoryId, delta) {
+    setRates((r) => ({ ...r, [categoryId]: Math.max(5, (Number(r[categoryId]) || 15) + delta) }));
+  }
+
   function setBio(categoryId, bio) {
     setBios((b) => ({ ...b, [categoryId]: bio }));
   }
@@ -264,16 +268,29 @@ export default function ProviderProfilePage() {
                             </button>
                           );
                         })}
-                        <label className="mt-2 flex w-full items-center gap-2 text-sm font-medium text-slate-600 sm:ml-auto sm:mt-0 sm:w-auto">
-                          Tarif horaire
-                          <input
-                            type="number" min="1" step="0.5"
-                            value={rates[c.id] ?? 15}
-                            onChange={(e) => setRate(c.id, e.target.value)}
-                            className="w-20 rounded-md border border-slate-200 px-2 py-1.5 text-base outline-none focus:border-moss"
-                          />
-                          €/h
-                        </label>
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-center gap-5">
+                        <button
+                          type="button"
+                          onClick={() => adjustRate(c.id, -1)}
+                          aria-label="Diminuer le tarif"
+                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-moss text-2xl font-semibold text-white hover:bg-moss-dark"
+                        >
+                          −
+                        </button>
+                        <div className="text-center">
+                          <div className="font-display text-2xl font-bold text-ink">{rates[c.id] ?? 15} €/h</div>
+                          <div className="text-xs text-slate-400">Tarif horaire</div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => adjustRate(c.id, 1)}
+                          aria-label="Augmenter le tarif"
+                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-moss text-2xl font-semibold text-white hover:bg-moss-dark"
+                        >
+                          +
+                        </button>
                       </div>
 
                       <div className="mt-4 border-t border-slate-100 pt-4">
