@@ -302,6 +302,8 @@ model Mission {
   photos         String[]      @default([])
   desiredDate    DateTime
   estimatedHours Float         @default(1)
+  isUrgent       Boolean       @default(false)
+  datesFlexible  Boolean       @default(false)
   status         MissionStatus @default(OPEN)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt

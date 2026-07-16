@@ -7,6 +7,7 @@ import { useAuth } from '../../../lib/auth-context';
 import ApplyOfferSheet from '../../../components/ApplyOfferSheet';
 import StarRating from '../../../components/StarRating';
 import MissionRouteMap from '../../../components/MissionRouteMap';
+import MissionBadges from '../../../components/MissionBadges';
 
 function CalendarIcon(props) {
   return (
@@ -151,6 +152,8 @@ export default function MissionDetailPage() {
           </div>
         </div>
 
+        <MissionBadges mission={mission} className="mt-2" />
+
         <div className="mt-2 flex items-center gap-2">
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-moss-light font-display text-xs text-moss-dark">
             {mission.client?.avatarUrl ? (
@@ -241,6 +244,7 @@ export default function MissionDetailPage() {
     <div className="mx-auto max-w-2xl">
       <span className="label-eyebrow text-moss">{mission.category?.name}</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">{mission.title}</h1>
+      <MissionBadges mission={mission} className="mt-2" />
       <p className="mt-3 text-slate-600">{mission.description}</p>
 
       {mission.photos?.length > 0 && (

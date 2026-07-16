@@ -31,6 +31,8 @@ function NewMissionForm() {
     desiredTime: '09:00',
     estimatedHours: 2,
     photos: [],
+    isUrgent: false,
+    datesFlexible: false,
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -138,6 +140,30 @@ function NewMissionForm() {
           <Field label="Heure de début" type="time" value={form.desiredTime} onChange={(v) => setForm({ ...form, desiredTime: v })} required />
         </div>
         <Field label="Durée estimée (heures)" type="number" min="0.5" step="0.5" value={form.estimatedHours} onChange={(v) => setForm({ ...form, estimatedHours: v })} required />
+
+        <div>
+          <span className="text-xs font-medium text-slate-500">Options (cumulables)</span>
+          <div className="mt-2 grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, isUrgent: !f.isUrgent }))}
+              className={`rounded-lg border-2 py-4 text-center font-display text-base font-bold uppercase tracking-wide transition ${
+                form.isUrgent ? 'border-clay bg-clay text-white' : 'border-slate-200 text-slate-500 hover:border-clay hover:text-clay'
+              }`}
+            >
+              Urgent
+            </button>
+            <button
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, datesFlexible: !f.datesFlexible }))}
+              className={`rounded-lg border-2 py-4 text-center font-display text-base font-bold uppercase tracking-wide transition ${
+                form.datesFlexible ? 'border-green-600 bg-green-600 text-white' : 'border-slate-200 text-slate-500 hover:border-green-600 hover:text-green-600'
+              }`}
+            >
+              Dates flexibles
+            </button>
+          </div>
+        </div>
 
         {error && <p className="rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
 
