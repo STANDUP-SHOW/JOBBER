@@ -9,9 +9,17 @@ const router = express.Router();
 // While a mission is still OPEN (open to candidature), expose an approximate
 // pin instead of the client's exact geocoded address.
 function withPublicPosition(mission) {
-  if (mission.status !== 'OPEN' || mission.lat == null || mission.lng == null) return mission;
-  const { lat, lng } = jitterCoordinate(mission.id, mission.lat, mission.lng);
-  return { ...mission, lat, lng };
+  if (mission.status !== 'OPEN') return mission;
+  let result = mission;
+  if (mission.lat != null && mission.lng != null) {
+    const { lat, lng } = jitterCoordinate(mission.id, mission.lat, mission.lng);
+    result = { ...result, lat, lng };
+  }
+  if (mission.dropoffLat != null && mission.dropoffLng != null) {
+    const { lat, lng } = jitterCoordinate(`${mission.id}-dropoff`, mission.dropoffLat, mission.dropoffLng);
+    result = { ...result, dropoffLat: lat, dropoffLng: lng };
+  }
+  return result;
 }
 
 const VEHICLE_TYPES = [
@@ -29,6 +37,9 @@ const createMissionSchema = z.object({
   address: z.string().min(3),
   lat: z.number().optional(),
   lng: z.number().optional(),
+  // Arrival point for transport-type missions (déménagement, convoi,
+  // transport) — `address` above is then the departure point.
+  dropoffAddress: z.string().optional().transform((v) => (v ? v : undefined)),
   photos: z.array(z.string().url()).max(5).optional(),
   desiredDate: z.string(), // ISO date
   estimatedHours: z.number().positive().default(1),
@@ -44,12 +55,17 @@ const createMissionSchema = z.object({
 router.post('/', requireAuth, async (req, res, next) => {
   try {
     const { requiredEquipmentIds, ...data } = createMissionSchema.parse(req.body);
-    const geocoded = await geocodeAddress(data.address);
+    const [geocoded, dropoffGeocoded] = await Promise.all([
+      geocodeAddress(data.address),
+      data.dropoffAddress ? geocodeAddress(data.dropoffAddress) : null,
+    ]);
     const mission = await prisma.mission.create({
       data: {
         ...data,
         lat: geocoded?.lat ?? data.lat,
         lng: geocoded?.lng ?? data.lng,
+        dropoffLat: dropoffGeocoded?.lat,
+        dropoffLng: dropoffGeocoded?.lng,
         desiredDate: new Date(data.desiredDate),
         clientId: req.user.id,
         requiredEquipment: requiredEquipmentIds.length

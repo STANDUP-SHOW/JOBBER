@@ -8,6 +8,8 @@ import MissionPhotosUpload from '../../../components/MissionPhotosUpload';
 import AddressAutocomplete from '../../../components/AddressAutocomplete';
 import VehicleIcon, { VEHICLES } from '../../../components/VehicleIcon';
 
+const TRANSPORT_CATEGORY_SLUGS = ['convoi', 'demenagement', 'transport'];
+
 export default function NewMissionPage() {
   return (
     <Suspense fallback={<p className="text-slate-400">Chargement…</p>}>
@@ -28,6 +30,7 @@ function NewMissionForm() {
     title: '',
     description: '',
     address: '',
+    dropoffAddress: '',
     desiredDate: '',
     desiredTime: '09:00',
     estimatedHours: 2,
@@ -49,6 +52,7 @@ function NewMissionForm() {
   }, []);
 
   const selectedCategory = categories.find((c) => c.id === form.categoryId);
+  const isTransportMission = selectedCategory && TRANSPORT_CATEGORY_SLUGS.includes(selectedCategory.slug);
 
   function toggleRequiredEquipment(equipmentId) {
     setForm((f) => ({
@@ -150,7 +154,7 @@ function NewMissionForm() {
           />
         </label>
         <label className="block">
-          <span className="text-xs font-medium text-slate-500">Adresse</span>
+          <span className="text-xs font-medium text-slate-500">{isTransportMission ? 'Adresse de départ' : 'Adresse'}</span>
           <AddressAutocomplete
             value={form.address}
             onChange={(v) => setForm({ ...form, address: v })}
@@ -158,6 +162,18 @@ function NewMissionForm() {
             placeholder="Rue, ville"
           />
         </label>
+
+        {isTransportMission && (
+          <label className="block">
+            <span className="text-xs font-medium text-slate-500">Adresse d'arrivée</span>
+            <AddressAutocomplete
+              value={form.dropoffAddress}
+              onChange={(v) => setForm({ ...form, dropoffAddress: v })}
+              required
+              placeholder="Rue, ville"
+            />
+          </label>
+        )}
 
         <div>
           <span className="text-xs font-medium text-slate-500">Photos (optionnel, jusqu'à 5)</span>

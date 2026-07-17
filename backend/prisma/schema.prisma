@@ -300,6 +300,12 @@ model Mission {
   address        String
   lat            Float?
   lng            Float?
+  // Only set for transport-type missions (déménagement, convoi, transport):
+  // `address`/`lat`/`lng` above act as the departure point, and these
+  // describe the arrival point so a route can be drawn between the two.
+  dropoffAddress String?
+  dropoffLat     Float?
+  dropoffLng     Float?
   photos         String[]      @default([])
   desiredDate    DateTime
   estimatedHours Float         @default(1)

@@ -176,6 +176,7 @@ export default function MissionDetailPage() {
     const indicativeRate = user?.providerProfile?.categories?.find((c) => c.categoryId === mission.categoryId)?.hourlyRate ?? 15;
     const indicativePrice = Math.round(indicativeRate * mission.estimatedHours);
     const applicantCount = mission.offers?.length ?? 0;
+    const isTransportMission = mission.dropoffAddress && mission.dropoffLat != null && mission.dropoffLng != null;
 
     return (
       <div className="mx-auto max-w-2xl">
@@ -184,7 +185,14 @@ export default function MissionDetailPage() {
         </button>
 
         <div className="mt-3 overflow-hidden rounded-lg border border-slate-200">
-          <MissionRouteMap destination={mission.lat != null && mission.lng != null ? { lat: mission.lat, lng: mission.lng } : null} />
+          {isTransportMission ? (
+            <MissionRouteMap
+              origin={{ lat: mission.lat, lng: mission.lng }}
+              destination={{ lat: mission.dropoffLat, lng: mission.dropoffLng }}
+            />
+          ) : (
+            <MissionRouteMap destination={mission.lat != null && mission.lng != null ? { lat: mission.lat, lng: mission.lng } : null} />
+          )}
         </div>
 
         <div className="mt-5 flex items-start justify-between gap-3">
@@ -213,7 +221,14 @@ export default function MissionDetailPage() {
         <div className="mt-5 space-y-3">
           <InfoRow icon={CalendarIcon}>{dateLabel}</InfoRow>
           <InfoRow icon={ClockIcon}>{fmtTime(start)} à {fmtTime(end)} ({mission.estimatedHours}h)</InfoRow>
-          <InfoRow icon={PinIcon}>{shortAddress(mission.address)}</InfoRow>
+          {isTransportMission ? (
+            <>
+              <InfoRow icon={PinIcon}>Départ : {shortAddress(mission.address)}</InfoRow>
+              <InfoRow icon={PinIcon}>Arrivée : {shortAddress(mission.dropoffAddress)}</InfoRow>
+            </>
+          ) : (
+            <InfoRow icon={PinIcon}>{shortAddress(mission.address)}</InfoRow>
+          )}
         </div>
 
         {mission.photos?.length > 0 && (
@@ -301,11 +316,21 @@ export default function MissionDetailPage() {
       )}
 
       <dl className="mt-5 grid grid-cols-2 gap-4 rounded-lg border border-slate-200 bg-white p-4 text-sm sm:grid-cols-4">
-        <Item label="Adresse" value={mission.address} />
+        <Item label={mission.dropoffAddress ? 'Adresse de départ' : 'Adresse'} value={mission.address} />
+        {mission.dropoffAddress && <Item label="Adresse d'arrivée" value={mission.dropoffAddress} />}
         <Item label="Date souhaitée" value={new Date(mission.desiredDate).toLocaleDateString('fr-FR')} />
         <Item label="Durée estimée" value={`${mission.estimatedHours} h`} />
         <Item label="Statut" value={mission.status} />
       </dl>
+
+      {mission.dropoffAddress && mission.lat != null && mission.lng != null && mission.dropoffLat != null && mission.dropoffLng != null && (
+        <div className="mt-5 overflow-hidden rounded-lg border border-slate-200">
+          <MissionRouteMap
+            origin={{ lat: mission.lat, lng: mission.lng }}
+            destination={{ lat: mission.dropoffLat, lng: mission.dropoffLng }}
+          />
+        </div>
+      )}
 
       <MissionRequirements mission={mission} />
 
