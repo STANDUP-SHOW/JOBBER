@@ -222,6 +222,7 @@ model Equipment {
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [id])
   providers   ProviderEquipment[]
+  missions    MissionEquipment[]
 
   @@unique([categoryId, name])
 }
@@ -304,13 +305,29 @@ model Mission {
   estimatedHours Float         @default(1)
   isUrgent       Boolean       @default(false)
   datesFlexible  Boolean       @default(false)
+  requiredVehicleTypes VehicleType[] @default([])
+  otherVehicleNote     String?
+  otherEquipmentNote   String?
   status         MissionStatus @default(OPEN)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
-  offers         Offer[]
-  booking        Booking?
-  conversations  Conversation[]
+  offers            Offer[]
+  booking           Booking?
+  conversations     Conversation[]
+  requiredEquipment MissionEquipment[]
+}
+
+// Equipment the client is asking the jobber to bring for this specific
+// mission — distinct from ProviderEquipment (what a jobber owns overall).
+model MissionEquipment {
+  id          String    @id @default(cuid())
+  missionId   String
+  mission     Mission   @relation(fields: [missionId], references: [id])
+  equipmentId String
+  equipment   Equipment @relation(fields: [equipmentId], references: [id])
+
+  @@unique([missionId, equipmentId])
 }
 
 model Offer {
