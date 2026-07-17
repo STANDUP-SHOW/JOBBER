@@ -10,7 +10,8 @@
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
     "seed": "node prisma/seed.js",
-    "backfill:provider-profiles": "node scripts/backfillProviderProfiles.js"
+    "backfill:provider-profiles": "node scripts/backfillProviderProfiles.js",
+    "backfill:mission-geocoding": "node scripts/backfillMissionGeocoding.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.65.0",
