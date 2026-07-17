@@ -1,19 +1,20 @@
-const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
+const GEOCODE_URL = 'https://maps.googleapis.com/maps/api/geocode/json';
+const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 
-// Free OpenStreetMap geocoder. Usage policy requires a descriptive User-Agent
-// and caps us at ~1 request/sec, which is fine for mission creation volume.
+// Google Geocoding API — resolves French addresses reliably (the free
+// Nominatim/OSM geocoder previously used here frequently failed or
+// mismatched on real French addresses). Uses the same Google Cloud project
+// as the frontend's Maps/Places key.
 async function geocodeAddress(address) {
-  if (!address) return null;
+  if (!address || !GOOGLE_MAPS_API_KEY) return null;
   try {
-    const params = new URLSearchParams({ q: address, format: 'json', limit: '1' });
-    const res = await fetch(`${NOMINATIM_URL}?${params}`, {
-      headers: { 'User-Agent': 'Jobber/1.0 (contact@jobbers.be)' },
-      signal: AbortSignal.timeout(5000),
-    });
+    const params = new URLSearchParams({ address, region: 'fr', key: GOOGLE_MAPS_API_KEY });
+    const res = await fetch(`${GEOCODE_URL}?${params}`, { signal: AbortSignal.timeout(5000) });
     if (!res.ok) return null;
-    const results = await res.json();
-    if (!results.length) return null;
-    return { lat: parseFloat(results[0].lat), lng: parseFloat(results[0].lon) };
+    const data = await res.json();
+    if (data.status !== 'OK' || !data.results.length) return null;
+    const { lat, lng } = data.results[0].geometry.location;
+    return { lat, lng };
   } catch (err) {
     return null;
   }
