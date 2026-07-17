@@ -8,6 +8,7 @@ import ApplyOfferSheet from '../../../components/ApplyOfferSheet';
 import StarRating from '../../../components/StarRating';
 import MissionRouteMap from '../../../components/MissionRouteMap';
 import MissionBadges from '../../../components/MissionBadges';
+import { VEHICLES } from '../../../components/VehicleIcon';
 
 function CalendarIcon(props) {
   return (
@@ -70,6 +71,48 @@ function shortAddress(address) {
 
 function capitalize(s) {
   return s ? s[0].toUpperCase() + s.slice(1) : s;
+}
+
+function MissionRequirements({ mission }) {
+  const equipmentNames = (mission.requiredEquipment || []).map((re) => re.equipment.name);
+  const vehicleLabels = (mission.requiredVehicleTypes || []).map((t) => VEHICLES.find((v) => v.type === t)?.label || t);
+  const hasEquipment = equipmentNames.length > 0 || mission.otherEquipmentNote;
+  const hasVehicle = vehicleLabels.length > 0 || mission.otherVehicleNote;
+  if (!hasEquipment && !hasVehicle) return null;
+
+  return (
+    <div className="mt-6 border-t border-slate-100 pt-5">
+      <h2 className="font-display text-lg font-medium text-ink">Prérequis</h2>
+      <div className="mt-3 space-y-3">
+        {hasEquipment && (
+          <div>
+            <span className="text-sm font-semibold text-slate-600">Matériel à apporter</span>
+            <div className="mt-1.5 flex flex-wrap gap-2">
+              {equipmentNames.map((name) => (
+                <span key={name} className="rounded-full bg-moss-light px-3 py-1 text-sm text-moss-dark">{name}</span>
+              ))}
+              {mission.otherEquipmentNote && (
+                <span className="rounded-full bg-moss-light px-3 py-1 text-sm text-moss-dark">{mission.otherEquipmentNote}</span>
+              )}
+            </div>
+          </div>
+        )}
+        {hasVehicle && (
+          <div>
+            <span className="text-sm font-semibold text-slate-600">Véhicule requis</span>
+            <div className="mt-1.5 flex flex-wrap gap-2">
+              {vehicleLabels.map((label) => (
+                <span key={label} className="rounded-full bg-ochre-light px-3 py-1 text-sm text-ochre-dark">{label}</span>
+              ))}
+              {mission.otherVehicleNote && (
+                <span className="rounded-full bg-ochre-light px-3 py-1 text-sm text-ochre-dark">{mission.otherVehicleNote}</span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function MissionDetailPage() {
@@ -186,6 +229,8 @@ export default function MissionDetailPage() {
           <p className="mt-2 text-sm text-slate-600">{mission.description}</p>
         </div>
 
+        <MissionRequirements mission={mission} />
+
         {applicantCount > 0 && mission.status === 'OPEN' && (
           <div className="mt-5 flex items-center gap-2 rounded-md bg-slate-100 px-4 py-3 text-sm text-slate-600">
             <span>ℹ️</span>
@@ -261,6 +306,8 @@ export default function MissionDetailPage() {
         <Item label="Durée estimée" value={`${mission.estimatedHours} h`} />
         <Item label="Statut" value={mission.status} />
       </dl>
+
+      <MissionRequirements mission={mission} />
 
       {error && <p className="mt-4 rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
 

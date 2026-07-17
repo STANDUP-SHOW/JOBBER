@@ -14,6 +14,11 @@ function withPublicPosition(mission) {
   return { ...mission, lat, lng };
 }
 
+const VEHICLE_TYPES = [
+  'VOITURE_TOURISME', 'MINIBUS', 'CAMION_BENNE', 'REMORQUE', 'GRANDE_REMORQUE',
+  'PETIT_UTILITAIRE_4M3', 'FOURGONNETTE_9M3', 'CAMION_15M3', 'GRAND_CAMION_20M3', 'POIDS_LOURD',
+];
+
 const createMissionSchema = z.object({
   categoryId: z.string(),
   // The form sends "" for "no service selected" — treat that as unset,
@@ -29,12 +34,16 @@ const createMissionSchema = z.object({
   estimatedHours: z.number().positive().default(1),
   isUrgent: z.boolean().optional().default(false),
   datesFlexible: z.boolean().optional().default(false),
+  requiredEquipmentIds: z.array(z.string()).optional().default([]),
+  requiredVehicleTypes: z.array(z.enum(VEHICLE_TYPES)).optional().default([]),
+  otherEquipmentNote: z.string().max(200).optional().transform((v) => (v ? v : undefined)),
+  otherVehicleNote: z.string().max(200).optional().transform((v) => (v ? v : undefined)),
 });
 
 // Create a mission — any authenticated account can post a job request
 router.post('/', requireAuth, async (req, res, next) => {
   try {
-    const data = createMissionSchema.parse(req.body);
+    const { requiredEquipmentIds, ...data } = createMissionSchema.parse(req.body);
     const geocoded = await geocodeAddress(data.address);
     const mission = await prisma.mission.create({
       data: {
@@ -43,7 +52,11 @@ router.post('/', requireAuth, async (req, res, next) => {
         lng: geocoded?.lng ?? data.lng,
         desiredDate: new Date(data.desiredDate),
         clientId: req.user.id,
+        requiredEquipment: requiredEquipmentIds.length
+          ? { create: requiredEquipmentIds.map((equipmentId) => ({ equipmentId })) }
+          : undefined,
       },
+      include: { requiredEquipment: { include: { equipment: true } } },
     });
     res.status(201).json({ mission });
   } catch (err) {
@@ -66,7 +79,10 @@ router.get('/', optionalAuth, async (req, res, next) => {
         status: status || undefined,
         clientId: clientId || undefined,
       },
-      include: { category: true, service: true, client: { select: { id: true, firstName: true, avatarUrl: true } }, _count: { select: { offers: true } } },
+      include: {
+        category: true, service: true, client: { select: { id: true, firstName: true, avatarUrl: true } },
+        _count: { select: { offers: true } }, requiredEquipment: { include: { equipment: true } },
+      },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -108,6 +124,7 @@ router.get('/:id', async (req, res, next) => {
         client: { select: { id: true, firstName: true, avatarUrl: true } },
         offers: { include: { provider: { select: { id: true, firstName: true, lastName: true, avatarUrl: true, providerProfile: true } } } },
         booking: true,
+        requiredEquipment: { include: { equipment: true } },
       },
     });
     if (!mission) return res.status(404).json({ error: 'Mission introuvable' });
