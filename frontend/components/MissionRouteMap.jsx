@@ -12,30 +12,33 @@ const ROUTE_OPTIONS = {
   polylineOptions: { strokeColor: '#0B66FF', strokeWeight: 4, strokeOpacity: 0.9 },
 };
 
-// Route map on a mission's detail page — geolocates the jobber, draws a
-// driving route to the (privacy-jittered while OPEN) mission pin, and shows
-// the distance badge. Falls back to a plain centered map if geolocation is
-// denied/unavailable, and to nothing if there's no coordinate at all.
-export default function MissionRouteMap({ destination }) {
+// Route map on a mission's detail page. With a fixed `origin` (e.g. a
+// transport mission's departure point), draws that route directly. Otherwise
+// geolocates the jobber and draws a driving route to the (privacy-jittered
+// while OPEN) mission pin. Shows the distance badge either way. Falls back
+// to a plain centered map if geolocation is denied/unavailable, and to
+// nothing if there's no coordinate at all.
+export default function MissionRouteMap({ destination, origin: fixedOrigin }) {
   const { isLoaded } = useJsApiLoader({
     id: 'jobber-google-maps',
     googleMapsApiKey: GOOGLE_MAPS_API_KEY || '',
     libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
-  const [origin, setOrigin] = useState(null);
+  const [geoOrigin, setGeoOrigin] = useState(null);
   const [directions, setDirections] = useState(null);
   const [distanceText, setDistanceText] = useState(null);
   const [requested, setRequested] = useState(false);
+  const origin = fixedOrigin || geoOrigin;
 
   useEffect(() => {
-    if (!navigator.geolocation) return;
+    if (fixedOrigin || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (pos) => setOrigin({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      (pos) => setGeoOrigin({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
       () => {},
       { timeout: 8000 }
     );
-  }, []);
+  }, [fixedOrigin]);
 
   const routeOptions = useMemo(() => {
     if (!origin || !destination) return null;
