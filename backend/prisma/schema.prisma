@@ -98,6 +98,13 @@ enum VehicleType {
   POIDS_LOURD
 }
 
+enum RecurrenceUnit {
+  JOUR
+  SEMAINE
+  MOIS
+  AN
+}
+
 model User {
   id                String     @id @default(cuid())
   email             String     @unique
@@ -311,6 +318,9 @@ model Mission {
   estimatedHours Float         @default(1)
   isUrgent       Boolean       @default(false)
   datesFlexible  Boolean       @default(false)
+  isRecurring     Boolean         @default(false)
+  recurrenceCount Int?
+  recurrenceUnit  RecurrenceUnit?
   requiredVehicleTypes VehicleType[] @default([])
   otherVehicleNote     String?
   otherEquipmentNote   String?

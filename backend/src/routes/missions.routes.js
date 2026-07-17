@@ -27,6 +27,8 @@ const VEHICLE_TYPES = [
   'PETIT_UTILITAIRE_4M3', 'FOURGONNETTE_9M3', 'CAMION_15M3', 'GRAND_CAMION_20M3', 'POIDS_LOURD',
 ];
 
+const RECURRENCE_UNITS = ['JOUR', 'SEMAINE', 'MOIS', 'AN'];
+
 const createMissionSchema = z.object({
   categoryId: z.string(),
   // The form sends "" for "no service selected" — treat that as unset,
@@ -45,6 +47,9 @@ const createMissionSchema = z.object({
   estimatedHours: z.number().positive().default(1),
   isUrgent: z.boolean().optional().default(false),
   datesFlexible: z.boolean().optional().default(false),
+  isRecurring: z.boolean().optional().default(false),
+  recurrenceCount: z.number().int().min(1).max(10).optional(),
+  recurrenceUnit: z.enum(RECURRENCE_UNITS).optional(),
   requiredEquipmentIds: z.array(z.string()).optional().default([]),
   requiredVehicleTypes: z.array(z.enum(VEHICLE_TYPES)).optional().default([]),
   otherEquipmentNote: z.string().max(200).optional().transform((v) => (v ? v : undefined)),
@@ -55,6 +60,7 @@ const createMissionSchema = z.object({
 router.post('/', requireAuth, async (req, res, next) => {
   try {
     const { requiredEquipmentIds, ...data } = createMissionSchema.parse(req.body);
+    if (!data.isRecurring) { data.recurrenceCount = undefined; data.recurrenceUnit = undefined; }
     const [geocoded, dropoffGeocoded] = await Promise.all([
       geocodeAddress(data.address),
       data.dropoffAddress ? geocodeAddress(data.dropoffAddress) : null,

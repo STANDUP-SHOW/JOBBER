@@ -37,6 +37,9 @@ function NewMissionForm() {
     photos: [],
     isUrgent: false,
     datesFlexible: false,
+    recurrenceType: 'PONCTUEL',
+    recurrenceCount: 1,
+    recurrenceUnit: 'SEMAINE',
     requiredEquipmentIds: [],
     otherEquipmentChecked: false,
     otherEquipmentNote: '',
@@ -78,7 +81,8 @@ function NewMissionForm() {
     setError('');
     setLoading(true);
     try {
-      const { desiredTime, otherEquipmentChecked, otherVehicleChecked, ...rest } = form;
+      const { desiredTime, otherEquipmentChecked, otherVehicleChecked, recurrenceType, ...rest } = form;
+      const isRecurring = recurrenceType === 'RECURRENT';
       // Combine as local wall-clock time before converting to an
       // unambiguous ISO string, so the stored instant matches what the
       // user actually picked regardless of server timezone.
@@ -93,6 +97,9 @@ function NewMissionForm() {
           estimatedHours: Number(form.estimatedHours),
           otherEquipmentNote: otherEquipmentChecked ? form.otherEquipmentNote.trim() : '',
           otherVehicleNote: otherVehicleChecked ? form.otherVehicleNote.trim() : '',
+          isRecurring,
+          recurrenceCount: isRecurring ? Number(form.recurrenceCount) : undefined,
+          recurrenceUnit: isRecurring ? form.recurrenceUnit : undefined,
         },
         token
       );
@@ -210,6 +217,55 @@ function NewMissionForm() {
               Dates flexibles
             </button>
           </div>
+        </div>
+
+        <div>
+          <span className="text-xs font-medium text-slate-500">Fréquence</span>
+          <div className="mt-2 grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, recurrenceType: 'PONCTUEL' }))}
+              className={`rounded-lg border-2 py-4 text-center font-display text-base font-bold uppercase tracking-wide transition ${
+                form.recurrenceType === 'PONCTUEL' ? 'border-moss bg-moss text-white' : 'border-slate-200 text-slate-500 hover:border-moss hover:text-moss'
+              }`}
+            >
+              Ponctuel
+            </button>
+            <button
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, recurrenceType: 'RECURRENT' }))}
+              className={`rounded-lg border-2 py-4 text-center font-display text-base font-bold uppercase tracking-wide transition ${
+                form.recurrenceType === 'RECURRENT' ? 'border-moss bg-moss text-white' : 'border-slate-200 text-slate-500 hover:border-moss hover:text-moss'
+              }`}
+            >
+              Récurrent
+            </button>
+          </div>
+          {form.recurrenceType === 'RECURRENT' && (
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-ink">
+              <span>Mission à réaliser</span>
+              <select
+                value={form.recurrenceCount}
+                onChange={(e) => setForm((f) => ({ ...f, recurrenceCount: e.target.value }))}
+                className="rounded-md border border-slate-200 bg-white px-2 py-1.5 text-sm outline-none focus:border-moss"
+              >
+                {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+              <span>fois par</span>
+              <select
+                value={form.recurrenceUnit}
+                onChange={(e) => setForm((f) => ({ ...f, recurrenceUnit: e.target.value }))}
+                className="rounded-md border border-slate-200 bg-white px-2 py-1.5 text-sm outline-none focus:border-moss"
+              >
+                <option value="JOUR">jour</option>
+                <option value="SEMAINE">semaine</option>
+                <option value="MOIS">mois</option>
+                <option value="AN">an</option>
+              </select>
+            </div>
+          )}
         </div>
 
         {selectedCategory?.equipment?.length > 0 && (
