@@ -28,6 +28,17 @@ function ClockIcon(props) {
   );
 }
 
+function RepeatIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M17 2l4 4-4 4" />
+      <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+      <path d="M7 22l-4-4 4-4" />
+      <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+    </svg>
+  );
+}
+
 function PinIcon(props) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -71,6 +82,14 @@ function shortAddress(address) {
 
 function capitalize(s) {
   return s ? s[0].toUpperCase() + s.slice(1) : s;
+}
+
+const RECURRENCE_UNIT_LABELS = { JOUR: 'jour', SEMAINE: 'semaine', MOIS: 'mois', AN: 'an' };
+
+function recurrenceLabel(mission) {
+  if (!mission?.isRecurring || !mission.recurrenceCount || !mission.recurrenceUnit) return null;
+  const unit = RECURRENCE_UNIT_LABELS[mission.recurrenceUnit] || mission.recurrenceUnit.toLowerCase();
+  return `${mission.recurrenceCount} fois par ${unit}`;
 }
 
 function MissionRequirements({ mission }) {
@@ -221,6 +240,7 @@ export default function MissionDetailPage() {
         <div className="mt-5 space-y-3">
           <InfoRow icon={CalendarIcon}>{dateLabel}</InfoRow>
           <InfoRow icon={ClockIcon}>{fmtTime(start)} à {fmtTime(end)} ({mission.estimatedHours}h)</InfoRow>
+          {recurrenceLabel(mission) && <InfoRow icon={RepeatIcon}>Mission à réaliser {recurrenceLabel(mission)}</InfoRow>}
           {isTransportMission ? (
             <>
               <InfoRow icon={PinIcon}>Départ : {shortAddress(mission.address)}</InfoRow>
@@ -320,6 +340,7 @@ export default function MissionDetailPage() {
         {mission.dropoffAddress && <Item label="Adresse d'arrivée" value={mission.dropoffAddress} />}
         <Item label="Date souhaitée" value={new Date(mission.desiredDate).toLocaleDateString('fr-FR')} />
         <Item label="Durée estimée" value={`${mission.estimatedHours} h`} />
+        {recurrenceLabel(mission) && <Item label="Fréquence" value={recurrenceLabel(mission)} />}
         <Item label="Statut" value={mission.status} />
       </dl>
 
