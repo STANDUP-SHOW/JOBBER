@@ -8,7 +8,7 @@ async function getData() {
   try {
     const [catRes, missionsRes] = await Promise.all([
       fetch(`${API_URL}/api/categories`, { cache: 'no-store' }),
-      fetch(`${API_URL}/api/missions?status=OPEN`, { cache: 'no-store' }),
+      fetch(`${API_URL}/api/missions?status=OPEN&type=TASK`, { cache: 'no-store' }),
     ]);
     const categories = catRes.ok ? (await catRes.json()).categories : [];
     const missions = missionsRes.ok ? (await missionsRes.json()).missions : [];
@@ -62,6 +62,30 @@ export default async function HomePage() {
               </li>
             ))}
           </ol>
+        </div>
+      </section>
+
+      <section className="mt-16 overflow-hidden rounded-lg border border-purple-200 bg-purple-50">
+        <div className="grid items-center gap-6 p-6 md:grid-cols-[1fr_auto] md:p-8">
+          <div>
+            <span className="rounded-full bg-purple-600 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">Nouveau !</span>
+            <h2 className="mt-3 font-display text-2xl font-semibold text-ink">
+              Vous voulez jobber mais vous n'avez pas d'expérience ?
+            </h2>
+            <p className="mt-2 max-w-2xl text-slate-600">
+              Vous souhaitez apprendre ? Bonne nouvelle ! Sur Jobber, vous apprenez avec un pro — on passe direct à la
+              pratique. Demandez des cours de jardinage, de ménage, d'électricité, de plomberie… nos jobbers viennent
+              chez vous vous apprendre !
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-3 md:flex-col">
+            <Link href="/lessons" className="rounded-md bg-purple-600 px-5 py-3 text-center font-medium text-white hover:bg-purple-700">
+              Voir les leçons proposées
+            </Link>
+            <Link href="/missions/new?type=lesson" className="rounded-md border border-purple-300 bg-white px-5 py-3 text-center font-medium text-purple-700 hover:border-purple-500">
+              Demander un cours
+            </Link>
+          </div>
         </div>
       </section>
 
