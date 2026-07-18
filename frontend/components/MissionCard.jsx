@@ -61,6 +61,9 @@ export default function MissionCard({ mission }) {
             {mission._count?.offers ?? 0} candidature{(mission._count?.offers ?? 0) > 1 ? 's' : ''}
           </span>
         </div>
+        {mission.client?.firstName && (
+          <div className="mt-1 truncate text-xs text-slate-400">Publié par {mission.client.firstName}</div>
+        )}
       </div>
     </Link>
   );

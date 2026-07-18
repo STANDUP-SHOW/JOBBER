@@ -34,7 +34,7 @@ export default function MissionsPage() {
     let cancelled = false;
     setLoading(true);
     setError('');
-    api.listMissions({ status: 'OPEN', ...(categoryId ? { categoryId } : {}) }, token)
+    api.listMissions({ status: 'OPEN', type: 'TASK', ...(categoryId ? { categoryId } : {}) }, token)
       .then(({ missions }) => { if (!cancelled) setMissions(missions); })
       .catch((err) => { if (!cancelled) setError(err.message); })
       .finally(() => { if (!cancelled) setLoading(false); });
