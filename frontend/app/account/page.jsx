@@ -98,6 +98,17 @@ export default function AccountPage() {
         />
       </Section>
 
+      <Section title="Espace formation">
+        <Row
+          href="/account/teach-lessons"
+          icon="🎓"
+          label="Donner des cours"
+          sublabel={user.providerProfile?.offersLessons ? 'Activé' : 'Enseignez dans vos catégories'}
+        />
+        <Row href="/missions/new?type=lesson" icon="🙋" label="Demander des cours" sublabel="Un jobber vient vous apprendre chez vous" />
+        <Row href="/lessons" icon="📚" label="Consulter les cours proposés" sublabel="Par d'autres jobbers" />
+      </Section>
+
       <div className="mt-3">
         <ZoneSummaryCard />
       </div>
