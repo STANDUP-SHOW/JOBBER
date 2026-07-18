@@ -12,7 +12,8 @@
     "seed": "node prisma/seed.js",
     "backfill:provider-profiles": "node scripts/backfillProviderProfiles.js",
     "backfill:mission-geocoding": "node scripts/backfillMissionGeocoding.js",
-    "seed:diverse-missions": "node scripts/seedDiverseMissions.js"
+    "seed:diverse-missions": "node scripts/seedDiverseMissions.js",
+    "fix:seed-geocoding": "node scripts/fixMisgeocodedSeedAddresses.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.65.0",
