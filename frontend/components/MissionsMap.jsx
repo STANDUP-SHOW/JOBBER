@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { GoogleMap, Marker, Circle, useJsApiLoader } from '@react-google-maps/api';
 import Link from 'next/link';
 import { GOOGLE_MAPS_LIBRARIES } from '../lib/googleMapsLibraries';
+import MissionBadges from './MissionBadges';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 const MISSION_ZOOM = 13;
@@ -134,8 +135,12 @@ export default function MissionsMap({ missions, providerZone }) {
             >
               <span className="label-eyebrow text-moss">{active.category?.name}</span>
               <div className="mt-1 truncate font-display text-lg font-medium text-ink">{active.title}</div>
-              <p className="mt-1 line-clamp-2 text-sm text-slate-600">{active.description}</p>
+              <MissionBadges mission={active} className="mt-1.5" />
+              <p className="mt-1.5 line-clamp-2 text-sm text-slate-600">{active.description}</p>
               <div className="mt-2 truncate text-xs text-slate-400">{active.address}</div>
+              {active.client?.firstName && (
+                <div className="mt-0.5 truncate text-xs text-slate-400">Publié par {active.client.firstName}</div>
+              )}
             </Link>
 
             {located.length > 1 && (
