@@ -105,6 +105,11 @@ enum RecurrenceUnit {
   AN
 }
 
+enum MissionType {
+  TASK
+  LESSON
+}
+
 model User {
   id                String     @id @default(cuid())
   email             String     @unique
@@ -179,6 +184,7 @@ model ProviderProfile {
   completedMissions   Int                 @default(0)
   walletBalance       Float               @default(0)
   autoApply           Boolean             @default(false)
+  offersLessons       Boolean             @default(false)
   stripeAccountId     String?             @unique
   payoutsEnabled      Boolean             @default(false)
   bankLast4           String?
@@ -296,6 +302,7 @@ model ProviderVehicle {
 
 model Mission {
   id             String        @id @default(cuid())
+  type           MissionType   @default(TASK)
   clientId       String
   client         User          @relation("ClientMissions", fields: [clientId], references: [id])
   categoryId     String

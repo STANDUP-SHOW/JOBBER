@@ -133,7 +133,7 @@ router.delete('/me', requireAuth, async (req, res, next) => {
 
 router.patch('/me/provider-profile', requireAuth, async (req, res, next) => {
   try {
-    const { radiusKm, autoApply, autoPayout, categories, serviceIds, equipmentIds, vehicleTypes, address, siret } = req.body;
+    const { radiusKm, autoApply, autoPayout, offersLessons, categories, serviceIds, equipmentIds, vehicleTypes, address, siret } = req.body;
 
     if (siret !== undefined && siret !== null && siret !== '' && !isValidSiret(siret)) {
       return res.status(400).json({ error: 'Numéro SIRET invalide (14 chiffres)' });
@@ -161,7 +161,7 @@ router.patch('/me/provider-profile', requireAuth, async (req, res, next) => {
     const profile = await prisma.providerProfile.update({
       where: { userId: req.user.id },
       data: {
-        radiusKm, autoApply, autoPayout,
+        radiusKm, autoApply, autoPayout, offersLessons,
         siret: siret !== undefined ? (siret || null) : undefined,
         categories: categories
           ? {

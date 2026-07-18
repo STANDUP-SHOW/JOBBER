@@ -28,8 +28,10 @@ const VEHICLE_TYPES = [
 ];
 
 const RECURRENCE_UNITS = ['JOUR', 'SEMAINE', 'MOIS', 'AN'];
+const MISSION_TYPES = ['TASK', 'LESSON'];
 
 const createMissionSchema = z.object({
+  type: z.enum(MISSION_TYPES).optional().default('TASK'),
   categoryId: z.string(),
   // The form sends "" for "no service selected" — treat that as unset,
   // otherwise Prisma tries to connect a Service with id "" and 500s.
@@ -94,12 +96,13 @@ router.post('/', requireAuth, async (req, res, next) => {
 // so this personalization applies regardless of any "role" label.
 router.get('/', optionalAuth, async (req, res, next) => {
   try {
-    const { categoryId, status, clientId } = req.query;
+    const { categoryId, status, clientId, type } = req.query;
     let missions = await prisma.mission.findMany({
       where: {
         categoryId: categoryId || undefined,
         status: status || undefined,
         clientId: clientId || undefined,
+        type: MISSION_TYPES.includes(type) ? type : undefined,
       },
       include: {
         category: true, service: true, client: { select: { id: true, firstName: true, avatarUrl: true } },

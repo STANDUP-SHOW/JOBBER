@@ -23,6 +23,7 @@ function NewMissionForm() {
   const searchParams = useSearchParams();
   const { user, token, loading: authLoading } = useAuth();
 
+  const isLessonMode = searchParams.get('type') === 'lesson';
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState({
     categoryId: searchParams.get('categoryId') || '',
@@ -97,6 +98,7 @@ function NewMissionForm() {
           estimatedHours: Number(form.estimatedHours),
           otherEquipmentNote: otherEquipmentChecked ? form.otherEquipmentNote.trim() : '',
           otherVehicleNote: otherVehicleChecked ? form.otherVehicleNote.trim() : '',
+          type: isLessonMode ? 'LESSON' : 'TASK',
           isRecurring,
           recurrenceCount: isRecurring ? Number(form.recurrenceCount) : undefined,
           recurrenceUnit: isRecurring ? form.recurrenceUnit : undefined,
@@ -113,9 +115,15 @@ function NewMissionForm() {
 
   return (
     <div className="mx-auto max-w-xl">
-      <span className="label-eyebrow text-moss">Publier un besoin</span>
-      <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Décrivez votre mission</h1>
-      <p className="mt-1 text-sm text-slate-500">Les prestataires disponibles pourront vous proposer leur tarif horaire.</p>
+      <span className="label-eyebrow text-moss">{isLessonMode ? 'Demander un cours' : 'Publier un besoin'}</span>
+      <h1 className="mt-2 font-display text-3xl font-semibold text-ink">
+        {isLessonMode ? 'Décrivez le cours que vous recherchez' : 'Décrivez votre mission'}
+      </h1>
+      <p className="mt-1 text-sm text-slate-500">
+        {isLessonMode
+          ? 'Un jobber qui propose des cours dans cette catégorie viendra vous apprendre chez vous.'
+          : 'Les prestataires disponibles pourront vous proposer leur tarif horaire.'}
+      </p>
 
       {!authLoading && !user && (
         <p className="mt-4 rounded-md bg-ochre-light px-4 py-3 text-sm text-ochre-dark">
@@ -150,14 +158,20 @@ function NewMissionForm() {
           </label>
         )}
 
-        <Field label="Titre" value={form.title} onChange={(v) => setForm({ ...form, title: v })} required placeholder="Ex : Montage de meubles de cuisine" />
+        <Field
+          label="Titre"
+          value={form.title}
+          onChange={(v) => setForm({ ...form, title: v })}
+          required
+          placeholder={isLessonMode ? 'Ex : Cours de jardinage pour débutant' : 'Ex : Montage de meubles de cuisine'}
+        />
         <label className="block">
           <span className="text-xs font-medium text-slate-500">Description</span>
           <textarea
             required rows={4} value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
-            placeholder="Détaillez la tâche, le matériel disponible, l'accès au logement…"
+            placeholder={isLessonMode ? 'Décrivez ce que vous souhaitez apprendre et votre niveau actuel…' : 'Détaillez la tâche, le matériel disponible, l\'accès au logement…'}
           />
         </label>
         <label className="block">
@@ -268,7 +282,7 @@ function NewMissionForm() {
           )}
         </div>
 
-        {selectedCategory?.equipment?.length > 0 && (
+        {!isLessonMode && selectedCategory?.equipment?.length > 0 && (
           <div>
             <span className="text-sm font-semibold text-ink">Le jobber doit-il apporter du matériel ?</span>
             <p className="mt-1 text-sm text-slate-500">Cochez le matériel que le prestataire doit avoir avec lui.</p>
@@ -310,6 +324,7 @@ function NewMissionForm() {
           </div>
         )}
 
+        {!isLessonMode && (
         <div>
           <span className="text-sm font-semibold text-ink">Le jobber doit-il être équipé d'un véhicule spécial ?</span>
           <p className="mt-1 text-sm text-slate-500">Cochez le ou les véhicules requis pour cette mission.</p>
@@ -355,11 +370,12 @@ function NewMissionForm() {
             </div>
           )}
         </div>
+        )}
 
         {error && <p className="rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
 
         <button disabled={loading} className="w-full rounded-md bg-moss py-3 font-medium text-paper hover:bg-moss-dark disabled:opacity-60">
-          {loading ? 'Publication…' : 'Publier la mission'}
+          {loading ? 'Publication…' : isLessonMode ? 'Publier la demande de cours' : 'Publier la mission'}
         </button>
       </form>
     </div>

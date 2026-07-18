@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
@@ -37,6 +38,7 @@ export default function ProviderProfilePage() {
   const [form, setForm] = useState({
     autoApply: false,
     siret: '',
+    offersLessons: false,
   });
   const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
   const [levels, setLevels] = useState({}); // { [categoryId]: 'PROFESSIONNEL' | 'EXPERT' | 'PASSIONNE' }
@@ -65,6 +67,7 @@ export default function ProviderProfilePage() {
       setForm({
         autoApply: profile.autoApply ?? false,
         siret: profile.siret || '',
+        offersLessons: profile.offersLessons ?? false,
       });
       setSelectedCategoryIds((profile.categories || []).map((c) => c.categoryId));
       setLevels(Object.fromEntries((profile.categories || []).map((c) => [c.categoryId, c.level])));
@@ -156,6 +159,7 @@ export default function ProviderProfilePage() {
         {
           autoApply: form.autoApply,
           siret: form.siret,
+          offersLessons: form.offersLessons,
           categories: selectedCategoryIds.map((categoryId) => ({
             categoryId,
             level: levels[categoryId] || 'PASSIONNE',
@@ -380,6 +384,41 @@ export default function ProviderProfilePage() {
                 </button>
               );
             })}
+          </div>
+        </div>
+
+        <div>
+          <span className="text-sm font-semibold text-ink">Apprendre</span>
+          <p className="mt-1 text-sm text-slate-500">
+            Sur Jobber, on peut aussi apprendre avec un pro — dans les mêmes catégories que ci-dessus.
+          </p>
+          <div className="mt-3 space-y-3">
+            <label className={`flex items-start gap-3 rounded-lg border p-4 text-base text-ink ${form.offersLessons ? 'border-moss' : 'border-slate-200'}`}>
+              <input
+                type="checkbox"
+                checked={form.offersLessons}
+                onChange={(e) => setForm({ ...form, offersLessons: e.target.checked })}
+                className="mt-0.5 h-5 w-5 shrink-0 rounded border-slate-300 accent-moss"
+              />
+              <span>
+                <span className="font-semibold">Proposer des cours</span>
+                <span className="mt-0.5 block text-sm text-slate-500">
+                  J'accepte de donner des cours pratiques aux clients dans mes catégories sélectionnées ci-dessus.
+                </span>
+              </span>
+            </label>
+
+            <Link
+              href="/missions/new?type=lesson"
+              className="flex items-start gap-3 rounded-lg border border-slate-200 p-4 text-base text-ink hover:border-moss"
+            >
+              <span>
+                <span className="font-semibold">Demander des cours</span>
+                <span className="mt-0.5 block text-sm text-slate-500">
+                  Publiez une demande de cours dans la catégorie de votre choix — un jobber viendra vous apprendre.
+                </span>
+              </span>
+            </Link>
           </div>
         </div>
 

@@ -40,9 +40,14 @@ export default function ProviderProfilePage() {
             <span>{profile.ratingAverage.toFixed(1)} ({profile.ratingCount} avis) · {profile.completedMissions} missions réalisées</span>
           </div>
         </div>
-        {profile.verificationStatus === 'APPROVED' && (
-          <span className="ml-auto rounded-full bg-moss-light px-3 py-1 text-xs font-medium text-moss-dark">✓ Vérifié</span>
-        )}
+        <div className="ml-auto flex flex-col items-end gap-1.5">
+          {profile.verificationStatus === 'APPROVED' && (
+            <span className="rounded-full bg-moss-light px-3 py-1 text-xs font-medium text-moss-dark">✓ Vérifié</span>
+          )}
+          {profile.offersLessons && (
+            <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-700">📚 Propose des cours</span>
+          )}
+        </div>
       </div>
 
       {profile.categories?.length > 0 && (
