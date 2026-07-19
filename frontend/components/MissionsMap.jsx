@@ -7,7 +7,7 @@ import { GOOGLE_MAPS_LIBRARIES } from '../lib/googleMapsLibraries';
 import MissionBadges from './MissionBadges';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-const MISSION_ZOOM = 13;
+const MISSION_ZOOM = 16;
 const BELGIUM_CENTER = { lat: 50.5039, lng: 4.4699 };
 
 const MAP_OPTIONS = {
@@ -36,6 +36,7 @@ export default function MissionsMap({ missions, providerZone }) {
   useEffect(() => {
     if (map && active) {
       map.panTo({ lat: active.lat, lng: active.lng });
+      map.setZoom(MISSION_ZOOM);
     }
   }, [map, active?.id]);
 
