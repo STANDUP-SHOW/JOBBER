@@ -6,23 +6,23 @@ export default function Logo({ className = 'h-14 w-14' }) {
     <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
       <defs>
         <clipPath id="jobber-logo-lens">
-          <circle cx="19" cy="19" r="13" />
+          <circle cx="16" cy="16" r="13" />
         </clipPath>
       </defs>
       <text
-        x="19"
-        y="32"
+        x="16"
+        y="28"
         textAnchor="middle"
         fontFamily="'Inter', sans-serif"
         fontWeight="800"
-        fontSize="33"
+        fontSize="34"
         fill="#FFB020"
         clipPath="url(#jobber-logo-lens)"
       >
         b
       </text>
-      <circle cx="19" cy="19" r="13" fill="none" stroke="#0B66FF" strokeWidth="4.5" />
-      <line x1="29" y1="29" x2="43" y2="43" stroke="#0B66FF" strokeWidth="5.5" strokeLinecap="round" />
+      <circle cx="16" cy="16" r="15" fill="none" stroke="#0B66FF" strokeWidth="4.5" />
+      <line x1="26.5" y1="26.5" x2="43" y2="43" stroke="#0B66FF" strokeWidth="6" strokeLinecap="round" />
     </svg>
   );
 }
