@@ -1,11 +1,12 @@
 import { SITE_URL } from '../lib/seo';
 import { SEO_CATEGORIES } from '../lib/seoCategories';
+import { SEO_LESSON_CATEGORIES } from '../lib/seoLessonCategories';
 import { SEO_CITIES } from '../lib/seoCities';
 
 export default function sitemap() {
   const now = new Date();
 
-  const staticRoutes = ['', '/missions'].map((path) => ({
+  const staticRoutes = ['', '/missions', '/lessons'].map((path) => ({
     url: `${SITE_URL}${path}`,
     lastModified: now,
     changeFrequency: 'daily',
@@ -28,5 +29,21 @@ export default function sitemap() {
     }))
   );
 
-  return [...staticRoutes, ...categoryRoutes, ...cityRoutes];
+  const lessonCategoryRoutes = Object.keys(SEO_LESSON_CATEGORIES).map((slug) => ({
+    url: `${SITE_URL}/cours/${slug}`,
+    lastModified: now,
+    changeFrequency: 'weekly',
+    priority: 0.8,
+  }));
+
+  const lessonCityRoutes = Object.keys(SEO_LESSON_CATEGORIES).flatMap((categorySlug) =>
+    SEO_CITIES.map((city) => ({
+      url: `${SITE_URL}/cours/${categorySlug}/${city.slug}`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.6,
+    }))
+  );
+
+  return [...staticRoutes, ...categoryRoutes, ...cityRoutes, ...lessonCategoryRoutes, ...lessonCityRoutes];
 }
