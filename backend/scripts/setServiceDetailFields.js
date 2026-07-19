@@ -14,6 +14,26 @@ const bool = (key, label) => ({ key, label, type: 'boolean' });
 const select = (key, label, options) => ({ key, label, type: 'select', options });
 
 const SURFACE_M2 = (label = 'Surface') => num('surfaceM2', label, 'm²');
+const WALL_TYPES = ['Béton', 'Placo', 'Brique', 'Bois', 'Autre'];
+
+const CAR_BRANDS = [
+  'Alfa Romeo', 'Audi', 'BMW', 'Citroën', 'Cupra', 'Dacia', 'DS', 'Fiat', 'Ford', 'Honda',
+  'Hyundai', 'Jaguar', 'Jeep', 'Kia', 'Land Rover', 'Lexus', 'Mazda', 'Mercedes-Benz', 'Mini',
+  'Mitsubishi', 'Nissan', 'Opel', 'Peugeot', 'Porsche', 'Renault', 'Seat', 'Škoda', 'Smart',
+  'Subaru', 'Suzuki', 'Tesla', 'Toyota', 'Volkswagen', 'Volvo', 'Autre',
+];
+const MOTO_BRANDS = [
+  'Aprilia', 'BMW', 'Ducati', 'Harley-Davidson', 'Honda', 'Husqvarna', 'Kawasaki', 'KTM',
+  'Kymco', 'MBK', 'Peugeot', 'Piaggio', 'Suzuki', 'SYM', 'Triumph', 'Vespa', 'Yamaha', 'Autre',
+];
+const TRUCK_BRANDS = ['DAF', 'Fiat', 'Ford', 'Iveco', 'MAN', 'Mercedes-Benz', 'Renault', 'Scania', 'Volvo', 'Autre'];
+
+const vehicleFields = (brands) => [
+  select('brand', 'Marque', brands),
+  text('model', 'Modèle'),
+  num('year', 'Année'),
+  num('mileageKm', 'Kilométrage', 'km'),
+];
 
 const SERVICE_FIELDS = {
   // --- Aide à la personne ---
@@ -21,11 +41,11 @@ const SERVICE_FIELDS = {
 
   // --- Bricolage ---
   'bricolage-montage-de-meubles': [num('furnitureCount', "Nombre de meubles à monter")],
-  'bricolage-pose-d-etageres': [num('shelfCount', "Nombre d'étagères"), select('wallType', 'Type de mur', ['Béton', 'Placo', 'Brique', 'Bois', 'Autre'])],
+  'bricolage-pose-d-etageres': [num('shelfCount', "Nombre d'étagères"), select('wallType', 'Type de mur', WALL_TYPES)],
   'bricolage-peinture-interieure': [SURFACE_M2(), num('roomsCount', 'Nombre de pièces')],
   'bricolage-pose-de-papier-peint': [SURFACE_M2()],
-  'bricolage-fixation-murale-tv-miroir-': [num('weightKg', 'Poids approximatif', 'kg'), select('wallType', 'Type de mur', ['Béton', 'Placo', 'Brique', 'Bois', 'Autre'])],
-  'bricolage-pose-de-rideaux-et-stores': [num('windowsCount', 'Nombre de fenêtres')],
+  'bricolage-fixation-murale-tv-miroir-': [num('weightKg', 'Poids approximatif', 'kg'), select('wallType', 'Type de mur', WALL_TYPES)],
+  'bricolage-pose-de-rideaux-et-stores': [num('windowsCount', 'Nombre de fenêtres'), select('wallType', 'Type de mur', WALL_TYPES)],
   'bricolage-montage-de-meubles-de-jardin': [num('furnitureCount', 'Nombre de meubles')],
 
   // --- Convoi ---
@@ -108,11 +128,11 @@ const SERVICE_FIELDS = {
   'jardinage-creation-de-potager': [SURFACE_M2()],
 
   // --- Mécanique ---
-  'mecanique-voiture': [text('vehicleModel', 'Marque / modèle'), num('mileageKm', 'Kilométrage', 'km')],
-  'mecanique-scooter': [text('vehicleModel', 'Marque / modèle')],
-  'mecanique-moto': [text('vehicleModel', 'Marque / modèle')],
-  'mecanique-camion': [text('vehicleModel', 'Marque / modèle')],
-  'mecanique-autre-vehicule': [text('vehicleType', 'Type de véhicule')],
+  'mecanique-voiture': vehicleFields(CAR_BRANDS),
+  'mecanique-scooter': vehicleFields(MOTO_BRANDS),
+  'mecanique-moto': vehicleFields(MOTO_BRANDS),
+  'mecanique-camion': vehicleFields(TRUCK_BRANDS),
+  'mecanique-autre-vehicule': [text('vehicleType', 'Type de véhicule'), text('brand', 'Marque'), text('model', 'Modèle'), num('year', 'Année'), num('mileageKm', 'Kilométrage', 'km')],
 
   // --- Ménage ---
   'menage-menage-a-domicile': [SURFACE_M2()],
