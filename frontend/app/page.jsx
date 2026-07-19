@@ -3,6 +3,7 @@ import { API_URL } from '../lib/api';
 import CategoryGrid from '../components/CategoryGrid';
 import MissionCard from '../components/MissionCard';
 import { SEO_CATEGORIES } from '../lib/seoCategories';
+import { SEO_LESSON_CATEGORIES } from '../lib/seoLessonCategories';
 
 async function getData() {
   try {
@@ -105,6 +106,22 @@ export default async function HomePage() {
               key={slug}
               href={`/services/${slug}`}
               className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-ink hover:border-moss hover:text-moss-dark"
+            >
+              {s.title}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-16">
+        <h2 className="font-display text-2xl font-semibold text-ink">Nos cours, partout en France</h2>
+        <p className="mt-1 text-sm text-slate-500">Apprenez en pratique avec un pro, directement chez vous.</p>
+        <div className="mt-5 flex flex-wrap gap-2">
+          {Object.entries(SEO_LESSON_CATEGORIES).map(([slug, s]) => (
+            <Link
+              key={slug}
+              href={`/cours/${slug}`}
+              className="rounded-full border border-purple-200 bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700 hover:border-purple-400"
             >
               {s.title}
             </Link>
