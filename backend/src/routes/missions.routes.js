@@ -56,6 +56,9 @@ const createMissionSchema = z.object({
   requiredVehicleTypes: z.array(z.enum(VEHICLE_TYPES)).optional().default([]),
   otherEquipmentNote: z.string().max(200).optional().transform((v) => (v ? v : undefined)),
   otherVehicleNote: z.string().max(200).optional().transform((v) => (v ? v : undefined)),
+  // Answers to the selected service's detailFields — loosely validated here
+  // (the form only ever sends primitives), shape is defined per-service.
+  details: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
 });
 
 // Create a mission — any authenticated account can post a job request

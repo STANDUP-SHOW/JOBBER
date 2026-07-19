@@ -28,6 +28,7 @@ function NewMissionForm() {
   const [form, setForm] = useState({
     categoryId: searchParams.get('categoryId') || '',
     serviceId: '',
+    details: {},
     title: '',
     description: '',
     address: '',
@@ -57,6 +58,12 @@ function NewMissionForm() {
 
   const selectedCategory = categories.find((c) => c.id === form.categoryId);
   const isTransportMission = selectedCategory && TRANSPORT_CATEGORY_SLUGS.includes(selectedCategory.slug);
+  const selectedService = selectedCategory?.services?.find((s) => s.id === form.serviceId);
+  const detailFields = selectedService?.detailFields || [];
+
+  function setDetail(key, value) {
+    setForm((f) => ({ ...f, details: { ...f.details, [key]: value } }));
+  }
 
   function toggleRequiredEquipment(equipmentId) {
     setForm((f) => ({
@@ -98,6 +105,7 @@ function NewMissionForm() {
           estimatedHours: Number(form.estimatedHours),
           otherEquipmentNote: otherEquipmentChecked ? form.otherEquipmentNote.trim() : '',
           otherVehicleNote: otherVehicleChecked ? form.otherVehicleNote.trim() : '',
+          details: Object.fromEntries(Object.entries(form.details).filter(([, v]) => v !== '' && v != null)),
           type: isLessonMode ? 'LESSON' : 'TASK',
           isRecurring,
           recurrenceCount: isRecurring ? Number(form.recurrenceCount) : undefined,
@@ -149,13 +157,24 @@ function NewMissionForm() {
             <span className="text-xs font-medium text-slate-500">Service précis (optionnel)</span>
             <select
               value={form.serviceId}
-              onChange={(e) => setForm({ ...form, serviceId: e.target.value })}
+              onChange={(e) => setForm({ ...form, serviceId: e.target.value, details: {} })}
               className="mt-1 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-moss"
             >
               <option value="">Non précisé</option>
               {selectedCategory.services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </label>
+        )}
+
+        {detailFields.length > 0 && (
+          <div className="rounded-lg border border-slate-200 bg-white p-4">
+            <span className="text-sm font-semibold text-ink">Précisions sur « {selectedService.name} »</span>
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {detailFields.map((field) => (
+                <DetailField key={field.key} field={field} value={form.details[field.key]} onChange={(v) => setDetail(field.key, v)} />
+              ))}
+            </div>
+          </div>
         )}
 
         <Field
@@ -379,6 +398,52 @@ function NewMissionForm() {
         </button>
       </form>
     </div>
+  );
+}
+
+function DetailField({ field, value, onChange }) {
+  if (field.type === 'boolean') {
+    return (
+      <label className="flex items-center gap-2.5 text-sm text-ink">
+        <input
+          type="checkbox"
+          checked={!!value}
+          onChange={(e) => onChange(e.target.checked)}
+          className="h-4 w-4 shrink-0 rounded border-slate-300 accent-moss"
+        />
+        {field.label}
+      </label>
+    );
+  }
+
+  if (field.type === 'select') {
+    return (
+      <label className="block">
+        <span className="text-xs font-medium text-slate-500">{field.label}</span>
+        <select
+          value={value ?? ''}
+          onChange={(e) => onChange(e.target.value)}
+          className="mt-1 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-moss"
+        >
+          <option value="">Choisir…</option>
+          {field.options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+        </select>
+      </label>
+    );
+  }
+
+  return (
+    <label className="block">
+      <span className="text-xs font-medium text-slate-500">{field.label}{field.unit ? ` (${field.unit})` : ''}</span>
+      <input
+        type={field.type === 'number' ? 'number' : 'text'}
+        step={field.type === 'number' ? 'any' : undefined}
+        value={value ?? ''}
+        placeholder={field.placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
+      />
+    </label>
   );
 }
 

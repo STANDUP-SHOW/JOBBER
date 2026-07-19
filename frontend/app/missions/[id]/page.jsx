@@ -92,6 +92,36 @@ function recurrenceLabel(mission) {
   return `${mission.recurrenceCount} fois par ${unit}`;
 }
 
+function formatDetailValue(field, value) {
+  if (value == null || value === '') return null;
+  if (field?.type === 'boolean') return value ? 'Oui' : 'Non';
+  if (field?.unit) return `${value} ${field.unit}`;
+  return String(value);
+}
+
+function MissionDetails({ mission }) {
+  const fields = mission.service?.detailFields || [];
+  const details = mission.details || {};
+  const entries = fields
+    .map((field) => ({ field, display: formatDetailValue(field, details[field.key]) }))
+    .filter((e) => e.display != null);
+  if (entries.length === 0) return null;
+
+  return (
+    <div className="mt-6 border-t border-slate-100 pt-5">
+      <h2 className="font-display text-lg font-medium text-ink">Précisions sur « {mission.service?.name} »</h2>
+      <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {entries.map(({ field, display }) => (
+          <div key={field.key}>
+            <dt className="text-xs text-slate-400">{field.label}</dt>
+            <dd className="mt-0.5 text-sm font-medium text-ink">{display}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
 function MissionRequirements({ mission }) {
   const equipmentNames = (mission.requiredEquipment || []).map((re) => re.equipment.name);
   const vehicleLabels = (mission.requiredVehicleTypes || []).map((t) => VEHICLES.find((v) => v.type === t)?.label || t);
@@ -264,6 +294,7 @@ export default function MissionDetailPage() {
           <p className="mt-2 text-sm text-slate-600">{mission.description}</p>
         </div>
 
+        <MissionDetails mission={mission} />
         <MissionRequirements mission={mission} />
 
         {applicantCount > 0 && mission.status === 'OPEN' && (
@@ -353,6 +384,7 @@ export default function MissionDetailPage() {
         </div>
       )}
 
+      <MissionDetails mission={mission} />
       <MissionRequirements mission={mission} />
 
       {error && <p className="mt-4 rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}

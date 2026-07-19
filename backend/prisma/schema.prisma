@@ -248,6 +248,10 @@ model Service {
   category    Category @relation(fields: [categoryId], references: [id])
   missions    Mission[]
   providers   ProviderService[]
+  // Extra structured fields to collect at mission-publishing time for this
+  // service, e.g. [{ key: 'surfaceM2', label: 'Surface', type: 'number',
+  // unit: 'm²' }] — rendered dynamically, answers stored on Mission.details.
+  detailFields Json?
 }
 
 // One row per main category a jobber has picked, carrying their declared
@@ -331,6 +335,9 @@ model Mission {
   requiredVehicleTypes VehicleType[] @default([])
   otherVehicleNote     String?
   otherEquipmentNote   String?
+  // Answers to the selected service's detailFields (e.g. { hedgeHeightM: 1.5,
+  // hedgeLengthM: 12 }) — keyed by field key, shape defined per-service.
+  details        Json?
   status         MissionStatus @default(OPEN)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
