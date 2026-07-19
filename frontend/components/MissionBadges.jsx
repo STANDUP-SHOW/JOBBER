@@ -16,7 +16,9 @@ function ToolboxIcon(props) {
 // glance in list and map view alike.
 export default function MissionBadges({ mission, className = '' }) {
   if (!mission) return null;
-  const hasEquipment = mission.requiredEquipment?.length > 0 || !!mission.otherEquipmentNote;
+  const equipmentNames = (mission.requiredEquipment || []).map((re) => re.equipment.name);
+  if (mission.otherEquipmentNote) equipmentNames.push(mission.otherEquipmentNote);
+  const hasEquipment = equipmentNames.length > 0;
   const vehicleTypes = mission.requiredVehicleTypes || [];
 
   return (
@@ -47,10 +49,10 @@ export default function MissionBadges({ mission, className = '' }) {
       )}
       {hasEquipment && (
         <span
-          title="Le jobber doit apporter du matériel"
-          className="flex h-6 w-6 items-center justify-center rounded-full bg-moss-light text-moss-dark"
+          title={`Matériel requis : ${equipmentNames.join(', ')}`}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-moss-light text-moss-dark"
         >
-          <ToolboxIcon className="h-3.5 w-3.5" />
+          <ToolboxIcon className="h-6 w-6" />
         </span>
       )}
       {vehicleTypes.map((type) => {
@@ -59,9 +61,9 @@ export default function MissionBadges({ mission, className = '' }) {
           <span
             key={type}
             title={v ? `Véhicule requis : ${v.label}` : 'Véhicule requis'}
-            className="flex h-6 w-9 items-center justify-center rounded-full bg-ochre-light text-ochre-dark"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ochre-light text-ochre-dark"
           >
-            <VehicleIcon type={type} className="h-4 w-6" />
+            <VehicleIcon type={type} className="h-7 w-9" />
           </span>
         );
       })}

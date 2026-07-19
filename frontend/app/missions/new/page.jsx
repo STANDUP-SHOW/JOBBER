@@ -9,6 +9,12 @@ import AddressAutocomplete from '../../../components/AddressAutocomplete';
 import VehicleIcon, { VEHICLES } from '../../../components/VehicleIcon';
 
 const TRANSPORT_CATEGORY_SLUGS = ['convoi', 'demenagement', 'transport'];
+// Categories where the jobber accompanies a person (courses, rendez-vous,
+// sorties…) rather than hauling cargo — only a passenger vehicle is ever
+// relevant, so the full 10-type cargo list (camion benne, remorque…) would
+// just be noise. "Autre véhicule" below still covers anything unusual.
+const SIMPLE_VEHICLE_CATEGORY_SLUGS = ['aide-personne'];
+const SIMPLE_VEHICLE_TYPES = ['VOITURE_TOURISME', 'MINIBUS'];
 
 export default function NewMissionPage() {
   return (
@@ -60,6 +66,9 @@ function NewMissionForm() {
   const isTransportMission = selectedCategory && TRANSPORT_CATEGORY_SLUGS.includes(selectedCategory.slug);
   const selectedService = selectedCategory?.services?.find((s) => s.id === form.serviceId);
   const detailFields = selectedService?.detailFields || [];
+  const vehicleOptions = selectedCategory && SIMPLE_VEHICLE_CATEGORY_SLUGS.includes(selectedCategory.slug)
+    ? VEHICLES.filter((v) => SIMPLE_VEHICLE_TYPES.includes(v.type))
+    : VEHICLES;
 
   function setDetail(key, value) {
     setForm((f) => ({ ...f, details: { ...f.details, [key]: value } }));
@@ -348,7 +357,7 @@ function NewMissionForm() {
           <span className="text-sm font-semibold text-ink">Le jobber doit-il être équipé d'un véhicule spécial ?</span>
           <p className="mt-1 text-sm text-slate-500">Cochez le ou les véhicules requis pour cette mission.</p>
           <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {VEHICLES.map((v) => {
+            {vehicleOptions.map((v) => {
               const active = form.requiredVehicleTypes.includes(v.type);
               return (
                 <button
