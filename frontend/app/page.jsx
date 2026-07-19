@@ -4,6 +4,7 @@ import CategoryGrid from '../components/CategoryGrid';
 import MissionCard from '../components/MissionCard';
 import { SEO_CATEGORIES } from '../lib/seoCategories';
 import { SEO_LESSON_CATEGORIES } from '../lib/seoLessonCategories';
+import Logo from '../components/Logo';
 
 async function getData() {
   try {
@@ -26,8 +27,11 @@ export default async function HomePage() {
     <div>
       <section className="grid items-center gap-10 py-6 md:grid-cols-2">
         <div>
-          <div className="font-display text-6xl font-bold tracking-tight text-moss md:text-7xl">
-            Job<span className="text-ochre">b</span>er
+          <div className="flex items-center gap-2">
+            <Logo className="h-14 w-14 md:h-16 md:w-16" />
+            <div className="font-display text-6xl font-bold tracking-tight text-moss md:text-7xl">
+              Job<span className="text-ochre">b</span>er
+            </div>
           </div>
           <span className="mt-4 block label-eyebrow text-moss">Service à domicile, pour tout, pour tous</span>
           <h1 className="mt-3 font-display text-5xl font-semibold leading-[1.05] text-ink">
