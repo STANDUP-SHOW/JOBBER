@@ -13,7 +13,8 @@
     "backfill:provider-profiles": "node scripts/backfillProviderProfiles.js",
     "backfill:mission-geocoding": "node scripts/backfillMissionGeocoding.js",
     "seed:diverse-missions": "node scripts/seedDiverseMissions.js",
-    "fix:seed-geocoding": "node scripts/fixMisgeocodedSeedAddresses.js"
+    "fix:seed-geocoding": "node scripts/fixMisgeocodedSeedAddresses.js",
+    "set:service-detail-fields": "node scripts/setServiceDetailFields.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.65.0",
