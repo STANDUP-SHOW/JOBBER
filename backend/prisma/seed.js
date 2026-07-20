@@ -133,6 +133,24 @@ const CATEGORIES = [
   ], equipment: [
     'Table de massage', 'Huiles et crèmes de massage', 'Tapis de sol', 'Matériel de fitness léger',
   ] },
+  { name: 'Beauté', slug: 'beaute', icon: '💅', services: [
+    'Épilation du sillon inter-fessier', 'Manucure', 'Pose de vernis semi-permanent mains',
+    'Épilation Maillot intégral', 'Épilation des sourcils', 'Épilation aisselles',
+    'Épilation des jambes entières', 'Vernis des pieds semi-permanent', 'Épilation 1/2 jambes',
+    'Beauté des pieds complète', 'Épilation homme',
+  ], equipment: [
+    'Kit d\'épilation à la cire', 'Bandes d\'épilation', 'Vernis et base semi-permanente', 'Lampe UV/LED',
+    'Instruments de manucure/pédicure stérilisés', 'Gants jetables', 'Crème apaisante post-épilation',
+  ] },
+  { name: 'Coiffure', slug: 'coiffure', icon: '💇', services: [
+    'Coupe cheveux courts et mi-longs', 'Coupe homme', 'Brushing (courts et mi-longs)', 'Couleur (racines)',
+    'Mèches', 'Balayage', 'Coiffure de soirée (chignon, tresses, attaches…)', 'Coiffure de mariée',
+    'Lissage brésilien', 'Coupe enfant',
+  ], equipment: [
+    'Ciseaux de coiffure professionnels', 'Tondeuse', 'Sèche-cheveux', 'Brosses et peignes',
+    'Kit de coloration', 'Papillotes pour mèches/balayage', 'Fer à lisser', 'Cape de coiffure',
+    'Pinces et épingles à cheveux',
+  ] },
 ];
 
 async function main() {
