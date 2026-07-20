@@ -143,9 +143,11 @@ const CATEGORIES = [
     'Instruments de manucure/pédicure stérilisés', 'Gants jetables', 'Crème apaisante post-épilation',
   ] },
   { name: 'Coiffure', slug: 'coiffure', icon: '💇', services: [
-    'Coupe cheveux courts et mi-longs', 'Coupe homme', 'Brushing (courts et mi-longs)', 'Couleur (racines)',
-    'Mèches', 'Balayage', 'Coiffure de soirée (chignon, tresses, attaches…)', 'Coiffure de mariée',
-    'Lissage brésilien', 'Coupe enfant',
+    'Coupe femme cheveux courts', 'Coupe homme', 'Brushing cheveux courts', 'Couleur racines',
+    'Mèches cheveux', 'Balayage cheveux', 'Coiffure de soirée', 'Coiffure mariée', 'Lissage brésilien',
+    'Coupe enfant', 'Couleur homme', 'Taille de barbe', 'Coiffure enfant', 'Brushing élaboré',
+    'Couleur complète', 'Soin profond', 'Ombré hair', 'Brushing cheveux longs', 'Coiffure mariée & essai',
+    'Coupe cheveux longs', 'Patine cheveux', 'Permanente', 'Shampoing femme', 'Shampoing homme',
   ], equipment: [
     'Ciseaux de coiffure professionnels', 'Tondeuse', 'Sèche-cheveux', 'Brosses et peignes',
     'Kit de coloration', 'Papillotes pour mèches/balayage', 'Fer à lisser', 'Cape de coiffure',
