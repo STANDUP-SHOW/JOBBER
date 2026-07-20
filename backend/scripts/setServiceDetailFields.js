@@ -15,6 +15,9 @@ const select = (key, label, options) => ({ key, label, type: 'select', options }
 // Same as select(), but appends an "Autre" option and flags the field so the
 // UI reveals a free-text "Précisez" input when the user picks it.
 const selectOther = (key, label, options) => ({ key, label, type: 'select', options: [...options, 'Autre'], other: true });
+// Checkbox group — several options can be picked at once (e.g. booking a
+// manicure and an eyebrow wax in the same beauty appointment).
+const multiselect = (key, label, options) => ({ key, label, type: 'multiselect', options });
 
 const SURFACE_M2 = (label = 'Surface') => num('surfaceM2', label, 'm²');
 const WALL_TYPES = ['Béton', 'Placo', 'Brique', 'Bois', 'Autre'];
@@ -165,6 +168,38 @@ const SERVICE_FIELDS = {
   'plomberie-installation-sanitaire': [text('installationType', "Type d'installation")],
   'plomberie-chauffe-eau-et-ballon': [num('capacityL', 'Capacité du ballon', 'L')],
   'plomberie-robinetterie': [num('tapsCount', 'Nombre de robinets')],
+
+  // --- Beauté ---
+  'beaute-prestations-beaute': [
+    multiselect('prestations', 'Prestations souhaitées', [
+      // Épilation femme
+      'Épilation sourcils', 'Épilation des lèvres', 'Épilation menton', 'Épilation aisselles',
+      'Épilation 1/2 bras', 'Épilation bras complets', 'Épilation maillot simple', 'Maillot semi-intégral',
+      'Maillot échancré', 'Maillot brésilien', 'Épilation maillot intégral', 'Épilation sillon i.f.',
+      'Épilation 1/2 jambes', 'Épilation 3/4 jambes', 'Épilation jambes', 'Épilation des cuisses', 'Épilation fesses',
+      // Épilation homme
+      'Épilation homme épaules', 'Épilation homme torse & ventre', 'Épilation homme dos',
+      'Épilation homme aisselles', 'Épilation homme Maillot intégral', 'Épilation homme bras',
+      'Épilation homme jambes', 'Épilation homme nez & oreilles',
+      // Onglerie mains/pieds
+      'Manucure', 'Manucure & semi-permanent', 'Manucure + pose de vernis', 'Vernis classique',
+      'Vernis semi-permanent', 'Dépose mains semi-permanent', 'Faux ongles gel & semi',
+      'Faux ongles remplissage au gel', 'Dépose mains faux ongles', 'Beauté pieds express',
+      'Beauté pieds complète', 'Beauté pieds & vernis classique', 'Beauté pieds & semi-permanent',
+      'Vernis des pieds', 'Vernis des pieds semi-permanent', 'Dépose pieds semi-permanent',
+      // Cils & sourcils
+      'Teinture sourcils', 'Teinture des cils', 'Extension cils', 'Extension cils cil à cil',
+      'Extension cils effet naturel', 'Remplissage cil à cil', 'Volume russe cil à cil',
+      'Remplissage cils volume russe',
+      // Maquillage
+      'Maquillage simple', 'Maquillage', 'Maquillage de soirée', 'Maquillage mariée', 'Maquillage mariée & essai',
+      // Soins visage & corps
+      'Soin hydratant', 'Soin anti-âge', 'Soin purifiant', 'Soin éclat', 'Soin coup d\'éclat',
+      'Soin contour yeux', 'Gommage Corps', 'Soin Dos',
+      // Bien-être associé
+      'Massage crânien', 'Réflexologie plantaire',
+    ]),
+  ],
 
   // --- Manutention ---
   'manutention-emballage': [num('boxesCount', 'Nombre de cartons estimé')],

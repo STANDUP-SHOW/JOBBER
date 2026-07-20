@@ -133,11 +133,12 @@ const CATEGORIES = [
   ], equipment: [
     'Table de massage', 'Huiles et crèmes de massage', 'Tapis de sol', 'Matériel de fitness léger',
   ] },
+  // A single service carries the full "Prestations souhaitées" checkbox
+  // list (see scripts/setServiceDetailFields.js) instead of one Service row
+  // per treatment, since a beauty appointment commonly bundles several
+  // treatments (e.g. manucure + épilation sourcils) in one booking.
   { name: 'Beauté', slug: 'beaute', icon: '💅', services: [
-    'Épilation du sillon inter-fessier', 'Manucure', 'Pose de vernis semi-permanent mains',
-    'Épilation Maillot intégral', 'Épilation des sourcils', 'Épilation aisselles',
-    'Épilation des jambes entières', 'Vernis des pieds semi-permanent', 'Épilation 1/2 jambes',
-    'Beauté des pieds complète', 'Épilation homme',
+    'Prestations beauté',
   ], equipment: [
     'Kit d\'épilation à la cire', 'Bandes d\'épilation', 'Vernis et base semi-permanente', 'Lampe UV/LED',
     'Instruments de manucure/pédicure stérilisés', 'Gants jetables', 'Crème apaisante post-épilation',
