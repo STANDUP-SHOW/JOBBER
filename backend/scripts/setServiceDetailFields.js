@@ -177,7 +177,7 @@ const SERVICE_FIELDS = {
       'Massage découverte', 'Massage relaxant', 'Massage deep tissue', 'Massage ayurvédique',
       'Massage lomi-lomi', 'Massage prénatal', 'Massage assis', 'Réflexologie plantaire',
       'Soin hydratant', 'Soin anti-âge', 'Massage du dos', 'Massage crânien', 'Massage suédois',
-      'Massage californien', 'Massage palper rouler', 'Massage shiatsu',
+      'Massage californien', 'Massage palper rouler', 'Massage shiatsu', 'Massage thaï',
     ]),
   ],
   'bien-etre-coach-sportif': [
