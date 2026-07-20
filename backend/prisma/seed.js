@@ -122,6 +122,17 @@ const CATEGORIES = [
     'Perche télescopique', 'Floculant et produits de traitement', 'Pompe de vidange', 'Peinture piscine (résine/époxy)',
     'Rouleaux et pinceaux', 'Ponceuse / décapeur', 'Gants et lunettes de protection',
   ] },
+  { name: 'Manutention', slug: 'manutention', icon: '🏗️', services: [
+    'Emballage', 'Rangement', 'Chargement-déchargement',
+  ], equipment: [
+    'Diable / chariot de transport', 'Sangles de manutention', 'Gants de manutention',
+    'Cartons et caisses', 'Film étirable', 'Chariot escamotable',
+  ] },
+  { name: 'Bien être', slug: 'bien-etre', icon: '💆', services: [
+    'Massage', 'Coach sportif',
+  ], equipment: [
+    'Table de massage', 'Huiles et crèmes de massage', 'Tapis de sol', 'Matériel de fitness léger',
+  ] },
 ];
 
 async function main() {

@@ -12,6 +12,9 @@ const num = (key, label, unit) => ({ key, label, type: 'number', unit });
 const text = (key, label, placeholder) => ({ key, label, type: 'text', placeholder });
 const bool = (key, label) => ({ key, label, type: 'boolean' });
 const select = (key, label, options) => ({ key, label, type: 'select', options });
+// Same as select(), but appends an "Autre" option and flags the field so the
+// UI reveals a free-text "Précisez" input when the user picks it.
+const selectOther = (key, label, options) => ({ key, label, type: 'select', options: [...options, 'Autre'], other: true });
 
 const SURFACE_M2 = (label = 'Surface') => num('surfaceM2', label, 'm²');
 const WALL_TYPES = ['Béton', 'Placo', 'Brique', 'Bois', 'Autre'];
@@ -162,6 +165,27 @@ const SERVICE_FIELDS = {
   'plomberie-installation-sanitaire': [text('installationType', "Type d'installation")],
   'plomberie-chauffe-eau-et-ballon': [num('capacityL', 'Capacité du ballon', 'L')],
   'plomberie-robinetterie': [num('tapsCount', 'Nombre de robinets')],
+
+  // --- Manutention ---
+  'manutention-emballage': [num('boxesCount', 'Nombre de cartons estimé')],
+  'manutention-rangement': [SURFACE_M2()],
+  'manutention-chargement-dechargement': [text('itemsList', 'Nature des objets à charger/décharger')],
+
+  // --- Bien être ---
+  'bien-etre-massage': [
+    selectOther('massageType', 'Type de massage', [
+      'Massage découverte', 'Massage relaxant', 'Massage deep tissue', 'Massage ayurvédique',
+      'Massage lomi-lomi', 'Massage prénatal', 'Massage assis', 'Réflexologie plantaire',
+      'Soin hydratant', 'Soin anti-âge',
+    ]),
+  ],
+  'bien-etre-coach-sportif': [
+    selectOther('sessionType', 'Type de séance', [
+      'Séance de sophrologie', 'Cours de pilates', 'Cours de stretching', 'Cours de HIIT',
+      'Cours de cardio-training', 'Cours de fitness enfant', 'Cours de cuisses-abdos-fessiers',
+      'Cours de yoga doux', 'Cours de yoga enfant', 'Cours de yoga dynamique',
+    ]),
+  ],
 
   // --- Transport ---
   'transport-transport-de-personnes': [num('passengersCount', 'Nombre de passagers')],

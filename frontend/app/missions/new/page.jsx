@@ -180,7 +180,14 @@ function NewMissionForm() {
             <span className="text-sm font-semibold text-ink">Précisions sur « {selectedService.name} »</span>
             <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {detailFields.map((field) => (
-                <DetailField key={field.key} field={field} value={form.details[field.key]} onChange={(v) => setDetail(field.key, v)} />
+                <DetailField
+                  key={field.key}
+                  field={field}
+                  value={form.details[field.key]}
+                  onChange={(v) => setDetail(field.key, v)}
+                  otherValue={form.details[`${field.key}Precision`]}
+                  onOtherChange={(v) => setDetail(`${field.key}Precision`, v)}
+                />
               ))}
             </div>
           </div>
@@ -410,7 +417,7 @@ function NewMissionForm() {
   );
 }
 
-function DetailField({ field, value, onChange }) {
+function DetailField({ field, value, onChange, otherValue, onOtherChange }) {
   if (field.type === 'boolean') {
     return (
       <label className="flex items-center gap-2.5 text-sm text-ink">
@@ -427,17 +434,30 @@ function DetailField({ field, value, onChange }) {
 
   if (field.type === 'select') {
     return (
-      <label className="block">
-        <span className="text-xs font-medium text-slate-500">{field.label}</span>
-        <select
-          value={value ?? ''}
-          onChange={(e) => onChange(e.target.value)}
-          className="mt-1 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-moss"
-        >
-          <option value="">Choisir…</option>
-          {field.options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-        </select>
-      </label>
+      <div>
+        <label className="block">
+          <span className="text-xs font-medium text-slate-500">{field.label}</span>
+          <select
+            value={value ?? ''}
+            onChange={(e) => onChange(e.target.value)}
+            className="mt-1 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-moss"
+          >
+            <option value="">Choisir…</option>
+            {field.options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+          </select>
+        </label>
+        {field.other && value === 'Autre' && (
+          <label className="mt-2 block">
+            <span className="text-xs font-medium text-slate-500">Précisez</span>
+            <input
+              type="text"
+              value={otherValue ?? ''}
+              onChange={(e) => onOtherChange(e.target.value)}
+              className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
+            />
+          </label>
+        )}
+      </div>
     );
   }
 
