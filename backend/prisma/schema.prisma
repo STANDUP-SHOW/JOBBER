@@ -77,6 +77,27 @@ enum SkillLevel {
 enum SubscriptionPlan {
   MANAGER_BOSS
   MANAGER_HOLDER
+  ENTERPRISE_20
+  ENTERPRISE_50
+  ENTERPRISE_UNLIMITED
+}
+
+// Every account is INDIVIDUAL by default (can both post missions and
+// candidater — see the User model). COMPANY accounts ("Recrutez vos
+// collaborateurs à la tâche") can only post/manage missions, never apply
+// to them — no providerProfile is created for them at signup.
+enum AccountKind {
+  INDIVIDUAL
+  COMPANY
+}
+
+// ENTREPRISE: recruits directly for its own operational needs (packing,
+// unloading trucks, site cleanup…). CORPORATE: a home-services company
+// subcontracting its own client-facing service delivery to Jobber. Purely
+// a self-declared badge — both have identical permissions/fees.
+enum CompanyType {
+  ENTREPRISE
+  CORPORATE
 }
 
 enum SubscriptionStatus {
@@ -118,6 +139,9 @@ model User {
   lastName          String
   phone             String?
   role              Role       @default(MANAGER)
+  accountKind       AccountKind @default(INDIVIDUAL)
+  companyType       CompanyType?
+  companyName       String?
   avatarUrl         String?
   address           String?
   lat               Float?

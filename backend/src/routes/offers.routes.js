@@ -14,6 +14,9 @@ const createOfferSchema = z.object({
 // the mission's own client (blocked below) if it happens to overlap.
 router.post('/', requireAuth, async (req, res, next) => {
   try {
+    if (req.user.accountKind === 'COMPANY') {
+      return res.status(403).json({ error: 'Un compte entreprise ne peut pas postuler aux missions' });
+    }
     const data = createOfferSchema.parse(req.body);
     const mission = await prisma.mission.findUnique({ where: { id: data.missionId } });
     if (!mission || mission.status !== 'OPEN') {
@@ -67,9 +70,18 @@ router.get('/mine', requireAuth, async (req, res, next) => {
 // receives. A manager subscription can waive the manager's 2€ share (up to
 // their plan's monthly mission quota) — the jobber's 2€ share is unaffected
 // either way, that's not what the subscription is for.
+//
+// Company accounts (ENTREPRISE/CORPORATE) use a different, simpler model:
+// a flat 10€ fee on the company's side only — the jobber pays nothing.
+// Their subscription tiers waive that 10€ the same way MANAGER_BOSS/HOLDER
+// waive the individual 2€, just with their own per-plan quota.
 const MANAGER_FEE = 2;
 const PROVIDER_FEE = 2;
-const PLAN_LIMITS = { MANAGER_BOSS: 10, MANAGER_HOLDER: Infinity };
+const ENTERPRISE_MANAGER_FEE = 10;
+const PLAN_LIMITS = {
+  MANAGER_BOSS: 10, MANAGER_HOLDER: Infinity,
+  ENTERPRISE_20: 20, ENTERPRISE_50: 50, ENTERPRISE_UNLIMITED: Infinity,
+};
 
 // Mission owner accepts an offer -> creates Booking, marks mission ASSIGNED, rejects other offers
 router.post('/:id/accept', requireAuth, async (req, res, next) => {
@@ -80,9 +92,11 @@ router.post('/:id/accept', requireAuth, async (req, res, next) => {
     if (offer.status !== 'PENDING') return res.status(400).json({ error: 'Cette offre n\'est plus disponible' });
 
     const totalAmount = round2(offer.hourlyRate * offer.mission.estimatedHours);
+    const isCompanyClient = req.user.accountKind === 'COMPANY';
+    const providerFee = isCompanyClient ? 0 : PROVIDER_FEE;
 
     const subscription = await prisma.subscription.findUnique({ where: { userId: req.user.id } });
-    let managerFee = MANAGER_FEE;
+    let managerFee = isCompanyClient ? ENTERPRISE_MANAGER_FEE : MANAGER_FEE;
     let feeWaived = false;
     let quotaExceeded = false;
     const subscriptionActive = subscription?.status === 'ACTIVE' && subscription.currentPeriodEnd > new Date();
@@ -96,7 +110,7 @@ router.post('/:id/accept', requireAuth, async (req, res, next) => {
     }
 
     const chargeAmount = round2(totalAmount + managerFee);
-    const providerPayout = round2(totalAmount - PROVIDER_FEE);
+    const providerPayout = round2(totalAmount - providerFee);
 
     const [booking] = await prisma.$transaction([
       prisma.booking.create({
@@ -112,9 +126,9 @@ router.post('/:id/accept', requireAuth, async (req, res, next) => {
           payment: {
             create: {
               amount: chargeAmount,
-              platformFee: round2(managerFee + PROVIDER_FEE),
+              platformFee: round2(managerFee + providerFee),
               managerFee,
-              providerFee: PROVIDER_FEE,
+              providerFee,
               feeWaived,
               providerPayout,
             },

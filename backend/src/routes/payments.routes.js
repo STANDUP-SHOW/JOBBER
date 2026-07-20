@@ -392,10 +392,15 @@ router.get('/subscription', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+const INDIVIDUAL_PLANS = ['MANAGER_BOSS', 'MANAGER_HOLDER'];
+const COMPANY_PLANS = ['ENTERPRISE_20', 'ENTERPRISE_50', 'ENTERPRISE_UNLIMITED'];
+
 router.post('/subscribe', requireAuth, async (req, res, next) => {
   try {
     const { plan } = req.body;
-    if (!['MANAGER_BOSS', 'MANAGER_HOLDER'].includes(plan)) {
+    const isCompany = req.user.accountKind === 'COMPANY';
+    const allowedPlans = isCompany ? COMPANY_PLANS : INDIVIDUAL_PLANS;
+    if (!allowedPlans.includes(plan)) {
       return res.status(400).json({ error: 'Offre invalide' });
     }
 

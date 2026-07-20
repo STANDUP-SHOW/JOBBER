@@ -18,7 +18,13 @@ const registerSchema = z.object({
   lastName: z.string().min(1),
   phone: z.string().optional(),
   referralCode: z.string().optional(),
-});
+  accountKind: z.enum(['INDIVIDUAL', 'COMPANY']).optional().default('INDIVIDUAL'),
+  companyType: z.enum(['ENTREPRISE', 'CORPORATE']).optional(),
+  companyName: z.string().optional(),
+}).refine(
+  (data) => data.accountKind !== 'COMPANY' || (data.companyType && data.companyName?.trim()),
+  { message: 'Le type et le nom de l\'entreprise sont requis pour un compte entreprise', path: ['companyName'] }
+);
 
 const SIGNUP_BONUS_EUR = 3;
 
@@ -44,9 +50,11 @@ router.post('/register', async (req, res, next) => {
       referrer = await prisma.user.findUnique({ where: { referralCode: data.referralCode.toUpperCase() } });
     }
 
-    // Every account can both post missions (manager) and apply to them
-    // (jobber) — a providerProfile is always created so nobody needs to
-    // "upgrade" before they can candidater.
+    // Individual accounts can both post missions (manager) and apply to
+    // them (jobber) — a providerProfile is always created so nobody needs
+    // to "upgrade" before they can candidater. Company accounts (ENTREPRISE
+    // / CORPORATE) only ever post missions, never apply — no providerProfile.
+    const isCompany = data.accountKind === 'COMPANY';
     const passwordHash = await bcrypt.hash(data.password, 10);
     const user = await prisma.user.create({
       data: {
@@ -58,7 +66,10 @@ router.post('/register', async (req, res, next) => {
         referralCode: await generateReferralCode(),
         referredById: referrer?.id,
         creditBalance: referrer ? SIGNUP_BONUS_EUR : 0,
-        providerProfile: { create: {} },
+        accountKind: data.accountKind,
+        companyType: isCompany ? data.companyType : undefined,
+        companyName: isCompany ? data.companyName.trim() : undefined,
+        providerProfile: isCompany ? undefined : { create: {} },
       },
     });
 

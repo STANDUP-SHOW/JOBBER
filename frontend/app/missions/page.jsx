@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
 import MissionCard from '../../components/MissionCard';
@@ -14,6 +15,7 @@ const MissionsMap = dynamic(() => import('../../components/MissionsMap'), {
 
 export default function MissionsPage() {
   const { user, token } = useAuth();
+  const router = useRouter();
   const [categories, setCategories] = useState([]);
   const [missions, setMissions] = useState([]);
   const [categoryId, setCategoryId] = useState('');
@@ -25,6 +27,10 @@ export default function MissionsPage() {
     user && user.lat != null && user.lng != null
       ? { lat: user.lat, lng: user.lng, radiusKm: user.providerProfile?.radiusKm ?? 15 }
       : null;
+
+  useEffect(() => {
+    if (user?.accountKind === 'COMPANY') router.push('/account');
+  }, [user]);
 
   useEffect(() => {
     api.categories().then(({ categories }) => setCategories(categories)).catch(() => {});

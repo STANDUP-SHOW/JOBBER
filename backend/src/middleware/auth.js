@@ -7,7 +7,7 @@ function requireAuth(req, res, next) {
 
   try {
     const payload = verifyToken(token);
-    req.user = { id: payload.sub, role: payload.role, email: payload.email };
+    req.user = { id: payload.sub, role: payload.role, email: payload.email, accountKind: payload.accountKind };
     next();
   } catch (err) {
     return res.status(401).json({ error: 'Token invalide ou expiré' });
@@ -31,7 +31,7 @@ function optionalAuth(req, res, next) {
   if (token) {
     try {
       const payload = verifyToken(token);
-      req.user = { id: payload.sub, role: payload.role, email: payload.email };
+      req.user = { id: payload.sub, role: payload.role, email: payload.email, accountKind: payload.accountKind };
     } catch (err) {
       // invalid/expired token on a public route — treat as anonymous
     }

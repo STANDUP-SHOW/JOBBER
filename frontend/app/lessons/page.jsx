@@ -2,17 +2,23 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
 import MissionCard from '../../components/MissionCard';
 
 export default function LessonsPage() {
   const { user, token } = useAuth();
+  const router = useRouter();
   const [categories, setCategories] = useState([]);
   const [lessons, setLessons] = useState([]);
   const [categoryId, setCategoryId] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (user?.accountKind === 'COMPANY') router.push('/account');
+  }, [user]);
 
   useEffect(() => {
     api.categories().then(({ categories }) => setCategories(categories)).catch(() => {});

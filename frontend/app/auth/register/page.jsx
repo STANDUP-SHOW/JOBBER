@@ -19,13 +19,20 @@ function RegisterForm() {
   const searchParams = useSearchParams();
   const { login } = useAuth();
   const referralCode = searchParams.get('ref');
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', phone: '' });
+  const [form, setForm] = useState({
+    firstName: '', lastName: '', email: '', password: '', phone: '',
+    accountKind: 'INDIVIDUAL', companyType: '', companyName: '',
+  });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e) {
     e.preventDefault();
     setError('');
+    if (form.accountKind === 'COMPANY' && !form.companyType) {
+      setError('Choisissez Entreprise ou Corporate.');
+      return;
+    }
     setLoading(true);
     try {
       const { token, user } = await api.register({ ...form, referralCode: referralCode || undefined });
@@ -50,6 +57,68 @@ function RegisterForm() {
       )}
 
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
+        <div>
+          <span className="text-xs font-medium text-slate-500">Type de compte</span>
+          <div className="mt-2 grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, accountKind: 'INDIVIDUAL' }))}
+              className={`rounded-lg border-2 p-3 text-left transition ${
+                form.accountKind === 'INDIVIDUAL' ? 'border-moss bg-moss-light' : 'border-slate-200 hover:border-moss'
+              }`}
+            >
+              <div className="font-display text-sm font-bold uppercase tracking-wide text-ink">Profil jobber</div>
+              <div className="mt-1 text-xs text-slate-500">Avoir un besoin, être prestataire, chercher ou donner des cours</div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, accountKind: 'COMPANY' }))}
+              className={`rounded-lg border-2 p-3 text-left transition ${
+                form.accountKind === 'COMPANY' ? 'border-moss bg-moss-light' : 'border-slate-200 hover:border-moss'
+              }`}
+            >
+              <div className="font-display text-sm font-bold uppercase tracking-wide text-ink">Profil entreprise</div>
+              <div className="mt-1 text-xs text-slate-500">Recrutement pour votre entreprise, ou sous-traitance de services à la personne</div>
+            </button>
+          </div>
+        </div>
+
+        {form.accountKind === 'COMPANY' && (
+          <div className="rounded-lg border border-slate-200 p-4">
+            <span className="text-xs font-medium text-slate-500">Votre entreprise est…</span>
+            <div className="mt-2 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, companyType: 'ENTREPRISE' }))}
+                className={`rounded-lg border-2 p-3 text-left transition ${
+                  form.companyType === 'ENTREPRISE' ? 'border-moss bg-moss-light' : 'border-slate-200 hover:border-moss'
+                }`}
+              >
+                <div className="text-sm font-semibold text-ink">Entreprise</div>
+                <div className="mt-0.5 text-xs text-slate-500">Vous recrutez pour vos propres besoins (emballage, manutention, nettoyage de chantier…)</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, companyType: 'CORPORATE' }))}
+                className={`rounded-lg border-2 p-3 text-left transition ${
+                  form.companyType === 'CORPORATE' ? 'border-moss bg-moss-light' : 'border-slate-200 hover:border-moss'
+                }`}
+              >
+                <div className="text-sm font-semibold text-ink">Corporate</div>
+                <div className="mt-0.5 text-xs text-slate-500">Vous sous-traitez une prestation de services à la personne à Jobber</div>
+              </button>
+            </div>
+            <div className="mt-3">
+              <Field
+                label="Nom de l'entreprise"
+                value={form.companyName}
+                onChange={(v) => setForm({ ...form, companyName: v })}
+                required
+              />
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-3">
           <Field label="Prénom" value={form.firstName} onChange={(v) => setForm({ ...form, firstName: v })} required />
           <Field label="Nom" value={form.lastName} onChange={(v) => setForm({ ...form, lastName: v })} required />

@@ -108,7 +108,7 @@ router.get('/', optionalAuth, async (req, res, next) => {
         type: MISSION_TYPES.includes(type) ? type : undefined,
       },
       include: {
-        category: true, service: true, client: { select: { id: true, firstName: true, avatarUrl: true } },
+        category: true, service: true, client: { select: { id: true, firstName: true, avatarUrl: true, accountKind: true, companyType: true, companyName: true } },
         _count: { select: { offers: true } }, requiredEquipment: { include: { equipment: true } },
       },
       orderBy: { createdAt: 'desc' },
@@ -149,7 +149,7 @@ router.get('/:id', async (req, res, next) => {
       include: {
         category: true,
         service: true,
-        client: { select: { id: true, firstName: true, avatarUrl: true } },
+        client: { select: { id: true, firstName: true, avatarUrl: true, accountKind: true, companyType: true, companyName: true } },
         offers: { include: { provider: { select: { id: true, firstName: true, lastName: true, avatarUrl: true, providerProfile: true } } } },
         booking: true,
         requiredEquipment: { include: { equipment: true } },
