@@ -84,6 +84,10 @@ function capitalize(s) {
   return s ? s[0].toUpperCase() + s.slice(1) : s;
 }
 
+function posterName(mission) {
+  return mission.client?.accountKind === 'COMPANY' ? mission.client.companyName : mission.client?.firstName;
+}
+
 const RECURRENCE_UNIT_LABELS = { JOUR: 'jour', SEMAINE: 'semaine', MOIS: 'mois', AN: 'an' };
 
 function recurrenceLabel(mission) {
@@ -259,11 +263,16 @@ export default function MissionDetailPage() {
             {mission.client?.avatarUrl ? (
               <img src={mission.client.avatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
             ) : (
-              mission.client?.firstName?.[0]
+              posterName(mission)?.[0]
             )}
           </span>
-          <span className="text-sm text-slate-500">
-            Publié par {mission.client?.firstName} · {timeAgo(mission.createdAt)}
+          <span className="flex items-center gap-1.5 text-sm text-slate-500">
+            Publié par {posterName(mission)} · {timeAgo(mission.createdAt)}
+            {mission.client?.accountKind === 'COMPANY' && (
+              <span className="rounded-full bg-moss px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                {mission.client.companyType === 'CORPORATE' ? 'Corporate' : 'Entreprise'}
+              </span>
+            )}
           </span>
         </div>
 

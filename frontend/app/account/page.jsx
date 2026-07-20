@@ -60,6 +60,8 @@ export default function AccountPage() {
 
   if (!user) return null;
 
+  const isCompany = user.accountKind === 'COMPANY';
+
   async function onAvatarUploaded(url) {
     const { user: updated } = await api.updateMe({ avatarUrl: url }, token);
     login(token, updated);
@@ -73,50 +75,70 @@ export default function AccountPage() {
         <AvatarUpload avatarUrl={user.avatarUrl} firstName={user.firstName} onUploaded={onAvatarUploaded} />
       </div>
 
-      <h1 className="mt-4 font-display text-3xl font-semibold text-ink">
-        Bonjour {user.firstName}
-      </h1>
+      <div className="mt-4 flex items-center gap-3">
+        <h1 className="font-display text-3xl font-semibold text-ink">
+          {isCompany ? user.companyName : `Bonjour ${user.firstName}`}
+        </h1>
+        {isCompany && (
+          <span className="rounded-full bg-moss px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
+            {user.companyType === 'CORPORATE' ? 'Corporate' : 'Entreprise'}
+          </span>
+        )}
+      </div>
       <p className="mt-1 text-sm text-slate-500">
-        Publiez des besoins et proposez vos services, le tout depuis un seul compte.
+        {isCompany
+          ? 'Recrutez vos collaborateurs à la tâche, légalement, sur devis et facture.'
+          : 'Publiez des besoins et proposez vos services, le tout depuis un seul compte.'}
       </p>
 
-      <Section title="Espace manager">
+      <Section title={isCompany ? 'Espace entreprise' : 'Espace manager'}>
         <Row href="/missions/new" icon="📝" label="Publier un besoin" sublabel="Décrire une mission à réaliser" />
-        <Row href="/dashboard" icon="📋" label="Mes réservations" sublabel="Suivre vos missions en cours" />
-        <Row href="/account/subscription" icon="⭐" label="Abonnement Manager" sublabel="Plus aucun frais sur vos missions" />
-      </Section>
-
-      <Section title="Espace jobber">
-        <Row href="/missions" icon="🔎" label="Missions disponibles" sublabel="Parcourir les besoins près de chez vous" />
-        <Row href="/dashboard/offers" icon="📨" label="Mes offres" sublabel="Missions auxquelles vous avez postulé" />
-        <Row href="/dashboard/profile" icon="🛠️" label="Mon profil jobber" sublabel="Zone d'intervention, tarif, catégories" />
+        <Row href="/dashboard" icon="📋" label={isCompany ? 'Mes missions' : 'Mes réservations'} sublabel="Suivre vos missions en cours" />
         <Row
-          href="/dashboard/wallet"
-          icon="💶"
-          label={`Portefeuille — ${(user.providerProfile?.walletBalance ?? 0).toFixed(2)} €`}
-          sublabel={user.providerProfile?.payoutsEnabled ? 'Paiements activés' : 'Paiements non configurés'}
+          href="/account/subscription"
+          icon="⭐"
+          label={isCompany ? 'Abonnement Entreprise' : 'Abonnement Manager'}
+          sublabel="Plus aucun frais sur vos missions"
         />
       </Section>
 
-      <Section title="Espace formation">
-        <Row
-          href="/account/teach-lessons"
-          icon="🎓"
-          label="Donner des cours"
-          sublabel={user.providerProfile?.offersLessons ? 'Activé' : 'Enseignez dans vos catégories'}
-        />
-        <Row href="/missions/new?type=lesson" icon="🙋" label="Demander des cours" sublabel="Un jobber vient vous apprendre chez vous" />
-        <Row href="/lessons" icon="📚" label="Consulter les cours proposés" sublabel="Par d'autres jobbers" />
-      </Section>
+      {!isCompany && (
+        <Section title="Espace jobber">
+          <Row href="/missions" icon="🔎" label="Missions disponibles" sublabel="Parcourir les besoins près de chez vous" />
+          <Row href="/dashboard/offers" icon="📨" label="Mes offres" sublabel="Missions auxquelles vous avez postulé" />
+          <Row href="/dashboard/profile" icon="🛠️" label="Mon profil jobber" sublabel="Zone d'intervention, tarif, catégories" />
+          <Row
+            href="/dashboard/wallet"
+            icon="💶"
+            label={`Portefeuille — ${(user.providerProfile?.walletBalance ?? 0).toFixed(2)} €`}
+            sublabel={user.providerProfile?.payoutsEnabled ? 'Paiements activés' : 'Paiements non configurés'}
+          />
+        </Section>
+      )}
 
-      <div className="mt-3">
-        <ZoneSummaryCard />
-      </div>
+      {!isCompany && (
+        <Section title="Espace formation">
+          <Row
+            href="/account/teach-lessons"
+            icon="🎓"
+            label="Donner des cours"
+            sublabel={user.providerProfile?.offersLessons ? 'Activé' : 'Enseignez dans vos catégories'}
+          />
+          <Row href="/missions/new?type=lesson" icon="🙋" label="Demander des cours" sublabel="Un jobber vient vous apprendre chez vous" />
+          <Row href="/lessons" icon="📚" label="Consulter les cours proposés" sublabel="Par d'autres jobbers" />
+        </Section>
+      )}
+
+      {!isCompany && (
+        <div className="mt-3">
+          <ZoneSummaryCard />
+        </div>
+      )}
 
       <Section title="Gérer mon compte">
         <Row href="/account/personal-info" icon="👤" label="Informations personnelles" />
         <Row href="/account/balance" icon="💰" label="Mon solde" value={`${(user.creditBalance ?? 0).toFixed(2)} €`} />
-        <Row href="/account/cesu" icon="🎫" label="Mes tickets CESU" />
+        {!isCompany && <Row href="/account/cesu" icon="🎫" label="Mes tickets CESU" />}
         <Row href="/account/payment-methods" icon="💳" label="Moyens de paiement" />
         <Row href="/account/tax-certificates" icon="📄" label="Attestations fiscales" />
         <Row href="/account/notifications" icon="🔔" label="Gérer mes notifications" />
@@ -124,7 +146,9 @@ export default function AccountPage() {
       </Section>
 
       <Section title="Produit">
-        <Row href="/account/tax-credit" icon="📋" label="Déclaratif et crédit d'impôt" sublabel="Gagnez du temps et baissez vos impôts." />
+        {!isCompany && (
+          <Row href="/account/tax-credit" icon="📋" label="Déclaratif et crédit d'impôt" sublabel="Gagnez du temps et baissez vos impôts." />
+        )}
         <Row href="/account/invite-friends" icon="🎁" label="Inviter des amis" sublabel="Gagnez 5 % du montant dépensé par vos amis" />
       </Section>
 

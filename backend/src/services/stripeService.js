@@ -142,6 +142,9 @@ async function setDefaultPaymentMethod(customerId, paymentMethodId) {
 const PLAN_CONFIG = {
   MANAGER_BOSS: { amount: 1000, lookupKey: 'manager_boss_monthly', name: 'Manager Boss' },
   MANAGER_HOLDER: { amount: 2000, lookupKey: 'manager_holder_monthly', name: 'Manager Holder' },
+  ENTERPRISE_20: { amount: 4990, lookupKey: 'enterprise_20_monthly', name: 'Entreprise — 20 missions' },
+  ENTERPRISE_50: { amount: 9990, lookupKey: 'enterprise_50_monthly', name: 'Entreprise — 50 missions' },
+  ENTERPRISE_UNLIMITED: { amount: 14990, lookupKey: 'enterprise_unlimited_monthly', name: 'Entreprise — Illimité' },
 };
 
 // Prices are created once (looked up by a stable lookup_key so repeat calls

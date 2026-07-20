@@ -139,8 +139,15 @@ export default function MissionsMap({ missions, providerZone }) {
               <MissionBadges mission={active} className="mt-1.5" />
               <p className="mt-1.5 line-clamp-2 text-sm text-slate-600">{active.description}</p>
               <div className="mt-2 truncate text-xs text-slate-400">{active.address}</div>
-              {active.client?.firstName && (
-                <div className="mt-0.5 truncate text-xs text-slate-400">Publié par {active.client.firstName}</div>
+              {(active.client?.accountKind === 'COMPANY' ? active.client.companyName : active.client?.firstName) && (
+                <div className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-slate-400">
+                  Publié par {active.client.accountKind === 'COMPANY' ? active.client.companyName : active.client.firstName}
+                  {active.client?.accountKind === 'COMPANY' && (
+                    <span className="rounded-full bg-moss px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                      {active.client.companyType === 'CORPORATE' ? 'Corporate' : 'Entreprise'}
+                    </span>
+                  )}
+                </div>
               )}
             </Link>
 

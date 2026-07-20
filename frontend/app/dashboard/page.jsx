@@ -42,16 +42,19 @@ export default function DashboardPage() {
   }
 
   if (!user) return null;
+  const isCompany = user.accountKind === 'COMPANY';
 
   return (
     <div>
       <span className="label-eyebrow text-moss">Tableau de bord</span>
-      <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Bonjour {user.firstName}</h1>
+      <h1 className="mt-2 font-display text-3xl font-semibold text-ink">
+        {isCompany ? `Bonjour ${user.companyName}` : `Bonjour ${user.firstName}`}
+      </h1>
 
       {error && <p className="mt-4 rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
 
       <div className="mt-8 space-y-4">
-        {bookings.length === 0 && <EmptyState />}
+        {bookings.length === 0 && <EmptyState isCompany={isCompany} />}
 
         {bookings.map((b) => {
           const isClient = b.clientId === user.id;
@@ -133,7 +136,7 @@ export default function DashboardPage() {
   );
 }
 
-function EmptyState() {
+function EmptyState({ isCompany }) {
   return (
     <div className="rounded-lg border border-dashed border-slate-200 bg-white p-6 text-center">
       <p className="text-slate-500">Vous n'avez pas encore de réservation.</p>
@@ -141,12 +144,16 @@ function EmptyState() {
         <Link href="/missions/new" className="rounded-md bg-moss px-4 py-2 text-sm font-medium text-paper hover:bg-moss-dark">
           Publier un besoin
         </Link>
-        <Link href="/missions" className="rounded-md border border-slate-200 px-4 py-2 text-sm font-medium text-ink hover:border-moss hover:text-moss">
-          Parcourir les missions
-        </Link>
-        <Link href="/dashboard/profile" className="rounded-md border border-slate-200 px-4 py-2 text-sm font-medium text-ink hover:border-moss hover:text-moss">
-          Compléter mon profil
-        </Link>
+        {!isCompany && (
+          <>
+            <Link href="/missions" className="rounded-md border border-slate-200 px-4 py-2 text-sm font-medium text-ink hover:border-moss hover:text-moss">
+              Parcourir les missions
+            </Link>
+            <Link href="/dashboard/profile" className="rounded-md border border-slate-200 px-4 py-2 text-sm font-medium text-ink hover:border-moss hover:text-moss">
+              Compléter mon profil
+            </Link>
+          </>
+        )}
       </div>
     </div>
   );

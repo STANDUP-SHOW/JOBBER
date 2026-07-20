@@ -23,6 +23,8 @@ function timeAgo(dateStr) {
 
 export default function MissionCard({ mission }) {
   const status = STATUS_LABEL[mission.status] || STATUS_LABEL.OPEN;
+  const isCompany = mission.client?.accountKind === 'COMPANY';
+  const posterName = isCompany ? mission.client.companyName : mission.client?.firstName;
 
   return (
     <Link
@@ -61,8 +63,15 @@ export default function MissionCard({ mission }) {
             {mission._count?.offers ?? 0} candidature{(mission._count?.offers ?? 0) > 1 ? 's' : ''}
           </span>
         </div>
-        {mission.client?.firstName && (
-          <div className="mt-1 truncate text-xs text-slate-400">Publié par {mission.client.firstName}</div>
+        {posterName && (
+          <div className="mt-1 flex items-center gap-1.5 truncate text-xs text-slate-400">
+            Publié par {posterName}
+            {isCompany && (
+              <span className="rounded-full bg-moss px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                {mission.client.companyType === 'CORPORATE' ? 'Corporate' : 'Entreprise'}
+              </span>
+            )}
+          </div>
         )}
       </div>
     </Link>
