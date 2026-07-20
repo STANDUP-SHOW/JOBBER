@@ -7,6 +7,8 @@ const prisma = require('../config/prisma');
 const { signToken } = require('../utils/jwt');
 const { requireAuth } = require('../middleware/auth');
 const { sendPasswordResetEmail } = require('../services/emailService');
+const { geocodeAddress } = require('../services/geocodingService');
+const { isValidSiret } = require('../utils/siret');
 
 const router = express.Router();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -21,9 +23,20 @@ const registerSchema = z.object({
   accountKind: z.enum(['INDIVIDUAL', 'COMPANY']).optional().default('INDIVIDUAL'),
   companyType: z.enum(['ENTREPRISE', 'CORPORATE']).optional(),
   companyName: z.string().optional(),
+  companySiret: z.string().optional(),
+  address: z.string().optional(),
 }).refine(
   (data) => data.accountKind !== 'COMPANY' || (data.companyType && data.companyName?.trim()),
   { message: 'Le type et le nom de l\'entreprise sont requis pour un compte entreprise', path: ['companyName'] }
+).refine(
+  (data) => data.accountKind !== 'COMPANY' || isValidSiret(data.companySiret),
+  { message: 'Un numéro SIRET valide (14 chiffres) est requis pour un compte entreprise', path: ['companySiret'] }
+).refine(
+  (data) => data.accountKind !== 'COMPANY' || data.address?.trim(),
+  { message: 'L\'adresse de l\'entreprise est requise', path: ['address'] }
+).refine(
+  (data) => data.accountKind !== 'COMPANY' || data.phone?.trim(),
+  { message: 'Le téléphone de l\'entreprise est requis', path: ['phone'] }
 );
 
 const SIGNUP_BONUS_EUR = 3;
@@ -55,6 +68,7 @@ router.post('/register', async (req, res, next) => {
     // to "upgrade" before they can candidater. Company accounts (ENTREPRISE
     // / CORPORATE) only ever post missions, never apply — no providerProfile.
     const isCompany = data.accountKind === 'COMPANY';
+    const geocoded = isCompany ? await geocodeAddress(data.address) : undefined;
     const passwordHash = await bcrypt.hash(data.password, 10);
     const user = await prisma.user.create({
       data: {
@@ -69,6 +83,10 @@ router.post('/register', async (req, res, next) => {
         accountKind: data.accountKind,
         companyType: isCompany ? data.companyType : undefined,
         companyName: isCompany ? data.companyName.trim() : undefined,
+        companySiret: isCompany ? data.companySiret : undefined,
+        address: isCompany ? data.address.trim() : undefined,
+        lat: geocoded?.lat,
+        lng: geocoded?.lng,
         providerProfile: isCompany ? undefined : { create: {} },
       },
     });
@@ -77,6 +95,9 @@ router.post('/register', async (req, res, next) => {
     res.status(201).json({ token, user: sanitize(user) });
   } catch (err) {
     if (err.name === 'ZodError') { err.status = 400; err.expose = true; err.message = err.errors[0].message; }
+    if (err.code === 'P2002' && err.meta?.target?.includes('companySiret')) {
+      err.status = 409; err.expose = true; err.message = 'Ce numéro SIRET est déjà utilisé par un autre compte';
+    }
     next(err);
   }
 });

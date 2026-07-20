@@ -82,8 +82,13 @@ router.patch('/me', requireAuth, async (req, res, next) => {
   try {
     const {
       avatarUrl, firstName, lastName, phone, email, address,
+      companyName, companySiret,
       notifyPushNews, notifyEmailNews, notifyEmailPartners, notifySmsOffers, notifySmsCancellation,
     } = req.body;
+
+    if (companySiret !== undefined && companySiret !== null && companySiret !== '' && !isValidSiret(companySiret)) {
+      return res.status(400).json({ error: 'Numéro SIRET invalide (14 chiffres)' });
+    }
 
     let geocoded;
     if (address) geocoded = await geocodeAddress(address);
@@ -94,6 +99,7 @@ router.patch('/me', requireAuth, async (req, res, next) => {
         avatarUrl, firstName, lastName, phone, email,
         address,
         lat: geocoded?.lat, lng: geocoded?.lng,
+        companyName: companyName?.trim(), companySiret,
         notifyPushNews, notifyEmailNews, notifyEmailPartners, notifySmsOffers, notifySmsCancellation,
       },
     });
@@ -102,6 +108,9 @@ router.patch('/me', requireAuth, async (req, res, next) => {
   } catch (err) {
     if (err.code === 'P2002' && err.meta?.target?.includes('email')) {
       err.status = 409; err.expose = true; err.message = 'Cet email est déjà utilisé par un autre compte';
+    }
+    if (err.code === 'P2002' && err.meta?.target?.includes('companySiret')) {
+      err.status = 409; err.expose = true; err.message = 'Ce numéro SIRET est déjà utilisé par un autre compte';
     }
     next(err);
   }

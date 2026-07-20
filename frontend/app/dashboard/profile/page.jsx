@@ -7,27 +7,13 @@ import { useAuth } from '../../../lib/auth-context';
 import StarRating from '../../../components/StarRating';
 import ZoneSummaryCard from '../../../components/ZoneSummaryCard';
 import VehicleIcon, { VEHICLES } from '../../../components/VehicleIcon';
+import { isValidSiret } from '../../../lib/siret';
 
 const LEVELS = [
   { value: 'PROFESSIONNEL', label: 'Professionnel', activeClass: 'bg-purple-600 text-white' },
   { value: 'EXPERT', label: 'Expert', activeClass: 'bg-green-600 text-white' },
   { value: 'PASSIONNE', label: 'Passionné', activeClass: 'bg-ochre text-ink' },
 ];
-
-// French SIRET: 14 digits, valid under the Luhn checksum.
-function isValidSiret(siret) {
-  if (typeof siret !== 'string' || !/^\d{14}$/.test(siret)) return false;
-  let sum = 0;
-  for (let i = 0; i < siret.length; i++) {
-    let digit = Number(siret[i]);
-    if (i % 2 === 0) {
-      digit *= 2;
-      if (digit > 9) digit -= 9;
-    }
-    sum += digit;
-  }
-  return sum % 10 === 0;
-}
 
 export default function ProviderProfilePage() {
   const { user, token, login, loading: authLoading } = useAuth();

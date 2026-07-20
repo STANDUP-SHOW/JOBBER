@@ -8,7 +8,12 @@ router.get('/mine', requireAuth, async (req, res, next) => {
   try {
     const bookings = await prisma.booking.findMany({
       where: { OR: [{ clientId: req.user.id }, { providerId: req.user.id }] },
-      include: { mission: true, payment: true, review: true },
+      include: {
+        mission: { include: { category: true } },
+        payment: true,
+        review: true,
+        provider: { select: { firstName: true, lastName: true } },
+      },
       orderBy: { scheduledDate: 'desc' },
     });
     res.json({ bookings });

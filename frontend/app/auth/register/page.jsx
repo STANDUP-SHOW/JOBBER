@@ -4,7 +4,9 @@ import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
+import { isValidSiret } from '../../../lib/siret';
 import GoogleSignInButton from '../../../components/GoogleSignInButton';
+import AddressAutocomplete from '../../../components/AddressAutocomplete';
 
 export default function RegisterPage() {
   return (
@@ -21,7 +23,7 @@ function RegisterForm() {
   const referralCode = searchParams.get('ref');
   const [form, setForm] = useState({
     firstName: '', lastName: '', email: '', password: '', phone: '',
-    accountKind: 'INDIVIDUAL', companyType: '', companyName: '',
+    accountKind: 'INDIVIDUAL', companyType: '', companyName: '', companySiret: '', address: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,9 +31,23 @@ function RegisterForm() {
   async function onSubmit(e) {
     e.preventDefault();
     setError('');
-    if (form.accountKind === 'COMPANY' && !form.companyType) {
-      setError('Choisissez Entreprise ou Corporate.');
-      return;
+    if (form.accountKind === 'COMPANY') {
+      if (!form.companyType) {
+        setError('Choisissez Entreprise ou Corporate.');
+        return;
+      }
+      if (!isValidSiret(form.companySiret)) {
+        setError('Numéro SIRET invalide (14 chiffres).');
+        return;
+      }
+      if (!form.address.trim()) {
+        setError("L'adresse de l'entreprise est requise.");
+        return;
+      }
+      if (!form.phone.trim()) {
+        setError("Le téléphone de l'entreprise est requis.");
+        return;
+      }
     }
     setLoading(true);
     try {
@@ -108,13 +124,37 @@ function RegisterForm() {
                 <div className="mt-0.5 text-xs text-slate-500">Vous sous-traitez une prestation de services à la personne à Jobber</div>
               </button>
             </div>
-            <div className="mt-3">
+            <div className="mt-3 space-y-3">
               <Field
-                label="Nom de l'entreprise"
+                label="Raison sociale"
                 value={form.companyName}
                 onChange={(v) => setForm({ ...form, companyName: v })}
                 required
               />
+              <label className="block">
+                <span className="text-xs font-medium text-slate-500">Numéro SIRET</span>
+                <input
+                  type="text"
+                  required
+                  inputMode="numeric"
+                  maxLength={14}
+                  placeholder="14 chiffres"
+                  value={form.companySiret}
+                  onChange={(e) => setForm({ ...form, companySiret: e.target.value.replace(/\D/g, '') })}
+                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
+                />
+                {form.companySiret && !isValidSiret(form.companySiret) && (
+                  <span className="mt-1 block text-xs text-clay">Numéro invalide.</span>
+                )}
+              </label>
+              <label className="block">
+                <span className="text-xs font-medium text-slate-500">Adresse de l'entreprise</span>
+                <AddressAutocomplete
+                  value={form.address}
+                  onChange={(v) => setForm({ ...form, address: v })}
+                  required
+                />
+              </label>
             </div>
           </div>
         )}
@@ -124,7 +164,12 @@ function RegisterForm() {
           <Field label="Nom" value={form.lastName} onChange={(v) => setForm({ ...form, lastName: v })} required />
         </div>
         <Field label="Email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} required />
-        <Field label="Téléphone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
+        <Field
+          label="Téléphone"
+          value={form.phone}
+          onChange={(v) => setForm({ ...form, phone: v })}
+          required={form.accountKind === 'COMPANY'}
+        />
         <Field label="Mot de passe" type="password" value={form.password} onChange={(v) => setForm({ ...form, password: v })} required />
 
         {error && <p className="rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
