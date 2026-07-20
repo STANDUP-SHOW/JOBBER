@@ -437,20 +437,32 @@ function DetailField({ field, value, onChange, otherValue, onOtherChange }) {
     function toggle(opt) {
       onChange(selected.includes(opt) ? selected.filter((o) => o !== opt) : [...selected, opt]);
     }
+    // Grouped fields carry `groups: [{ title, options }]`; ungrouped ones
+    // just carry a flat `options` list — normalize to one shape here.
+    const groups = field.groups || [{ title: null, options: field.options || [] }];
     return (
       <div className="sm:col-span-2">
         <span className="text-xs font-medium text-slate-500">{field.label}</span>
-        <div className="mt-2 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
-          {field.options.map((opt) => (
-            <label key={opt} className="flex items-center gap-2 text-sm text-ink">
-              <input
-                type="checkbox"
-                checked={selected.includes(opt)}
-                onChange={() => toggle(opt)}
-                className="h-4 w-4 shrink-0 rounded border-slate-300 accent-moss"
-              />
-              {opt}
-            </label>
+        <div className="mt-2 space-y-4">
+          {groups.map((group) => (
+            <div key={group.title || 'default'}>
+              {group.title && (
+                <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-moss">{group.title}</div>
+              )}
+              <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+                {group.options.map((opt) => (
+                  <label key={opt} className="flex items-center gap-2 text-sm text-ink">
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(opt)}
+                      onChange={() => toggle(opt)}
+                      className="h-4 w-4 shrink-0 rounded border-slate-300 accent-moss"
+                    />
+                    {opt}
+                  </label>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>
