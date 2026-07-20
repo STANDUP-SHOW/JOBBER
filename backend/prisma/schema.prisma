@@ -142,6 +142,7 @@ model User {
   accountKind       AccountKind @default(INDIVIDUAL)
   companyType       CompanyType?
   companyName       String?
+  companySiret      String?    @unique
   avatarUrl         String?
   address           String?
   lat               Float?

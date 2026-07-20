@@ -91,16 +91,47 @@ export default function AccountPage() {
           : 'Publiez des besoins et proposez vos services, le tout depuis un seul compte.'}
       </p>
 
-      <Section title={isCompany ? 'Espace entreprise' : 'Espace manager'}>
-        <Row href="/missions/new" icon="📝" label="Publier un besoin" sublabel="Décrire une mission à réaliser" />
-        <Row href="/dashboard" icon="📋" label={isCompany ? 'Mes missions' : 'Mes réservations'} sublabel="Suivre vos missions en cours" />
-        <Row
-          href="/account/subscription"
-          icon="⭐"
-          label={isCompany ? 'Abonnement Entreprise' : 'Abonnement Manager'}
-          sublabel="Plus aucun frais sur vos missions"
-        />
-      </Section>
+      {isCompany ? (
+        <>
+          <Section title="Espace ENTREPRISE">
+            <Row href="/missions/new" icon="📝" label="Publier un besoin" sublabel="Décrire une mission à réaliser" />
+            <Row href="/dashboard" icon="📋" label="Mes besoins en cours" sublabel="Suivre vos missions en cours" />
+            <Row href="/account/subscription" icon="⭐" label="Abonnements" sublabel="Plus aucun frais sur vos missions" />
+          </Section>
+
+          <Section title="Espace Gestion">
+            <Row href="/account/company-info" icon="🏢" label="Informations Entreprise" sublabel="Raison sociale, SIRET, adresse" />
+            <Row href="/account/invoices" icon="🧾" label="Mes factures" sublabel="Générées à chaque prestation payée" />
+            <Row href="/account/payment-methods" icon="💳" label="Moyens de paiement" />
+          </Section>
+
+          <div className="mt-6">
+            <h2 className="mb-2 text-sm font-semibold text-slate-500">Espace CORPORATE</h2>
+            <div className="rounded-lg border border-slate-200 bg-white p-4">
+              <p className="text-sm font-medium text-ink">
+                Vous avez une entreprise de services à la personne et vous avez besoin de personnel ?
+              </p>
+              <p className="mt-2 text-sm text-slate-500">
+                Vous souhaitez créer une entreprise de services ? Jobber vous accompagne et met à votre disposition{' '}
+                <strong className="text-ink">Jobber+</strong>, une plateforme intelligente de gestion de votre business
+                en ligne couplée à votre vitrine web Corporate.
+              </p>
+              <Link
+                href="/account/jobber-plus"
+                className="mt-3 inline-block rounded-md bg-moss px-4 py-2 text-sm font-medium text-paper hover:bg-moss-dark"
+              >
+                En savoir plus
+              </Link>
+            </div>
+          </div>
+        </>
+      ) : (
+        <Section title="Espace manager">
+          <Row href="/missions/new" icon="📝" label="Publier un besoin" sublabel="Décrire une mission à réaliser" />
+          <Row href="/dashboard" icon="📋" label="Mes réservations" sublabel="Suivre vos missions en cours" />
+          <Row href="/account/subscription" icon="⭐" label="Abonnement Manager" sublabel="Plus aucun frais sur vos missions" />
+        </Section>
+      )}
 
       {!isCompany && (
         <Section title="Espace jobber">
@@ -139,7 +170,7 @@ export default function AccountPage() {
         <Row href="/account/personal-info" icon="👤" label="Informations personnelles" />
         <Row href="/account/balance" icon="💰" label="Mon solde" value={`${(user.creditBalance ?? 0).toFixed(2)} €`} />
         {!isCompany && <Row href="/account/cesu" icon="🎫" label="Mes tickets CESU" />}
-        <Row href="/account/payment-methods" icon="💳" label="Moyens de paiement" />
+        {!isCompany && <Row href="/account/payment-methods" icon="💳" label="Moyens de paiement" />}
         <Row href="/account/tax-certificates" icon="📄" label="Attestations fiscales" />
         <Row href="/account/notifications" icon="🔔" label="Gérer mes notifications" />
         <Row href="/account/language" icon="🌐" label="Langage" value="Français" />
