@@ -176,7 +176,8 @@ const SERVICE_FIELDS = {
     selectOther('massageType', 'Type de massage', [
       'Massage découverte', 'Massage relaxant', 'Massage deep tissue', 'Massage ayurvédique',
       'Massage lomi-lomi', 'Massage prénatal', 'Massage assis', 'Réflexologie plantaire',
-      'Soin hydratant', 'Soin anti-âge',
+      'Soin hydratant', 'Soin anti-âge', 'Massage du dos', 'Massage crânien', 'Massage suédois',
+      'Massage californien', 'Massage palper rouler', 'Massage shiatsu',
     ]),
   ],
   'bien-etre-coach-sportif': [
