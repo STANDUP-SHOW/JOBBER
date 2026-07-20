@@ -1,24 +1,20 @@
-// Magnifying glass "searching for a jobber" — a yellow person glyph (head +
-// shoulders) inside the blue lens, shoulders cropped by the lens's own
-// bottom edge as if mid-scan. Sits right before the "Jobber" title.
-//
-// viewBox is 64x64 (not tight to the ring) so the stroke — which extends
-// past the circle's own radius — has room to breathe without getting
-// clipped by the SVG's own edge.
+// Traced from the user-provided reference icon (magnifying glass over a
+// person glyph), not hand-approximated: the full silhouette is filled blue,
+// then the person's exact two sub-paths (head + shoulders, same coordinates
+// as the source trace) are repainted yellow on top.
 export default function Logo({ className = 'h-14 w-14' }) {
   return (
-    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <defs>
-        <clipPath id="jobber-logo-lens">
-          <circle cx="27" cy="27" r="17" />
-        </clipPath>
-      </defs>
-      <g fill="#FFB020" clipPath="url(#jobber-logo-lens)">
-        <circle cx="27" cy="20" r="6.5" />
-        <rect x="14" y="26" width="26" height="24" rx="11" ry="11" />
-      </g>
-      <circle cx="27" cy="27" r="22" fill="none" stroke="#0B66FF" strokeWidth="7" />
-      <line x1="42.5" y1="42.5" x2="58" y2="58" stroke="#0B66FF" strokeWidth="9" strokeLinecap="round" />
+    <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" className={className}>
+      <path
+        fill="#0B66FF"
+        fillRule="evenodd"
+        d="M 208.03,0 c 69.34,0 138.69,0 208.03,0 c -0.13,0.31 -0.35,0.51 -0.68,0.61 c -110.42,7.01 -199.88,96.2 -206.7,206.72 c -0.1,0.35 -0.31,0.58 -0.65,0.69 c 0,-69.34 0,-138.68 0,-208.02 Z M 236.97,0.35 c 91.68,-0.12 183.35,-0.23 275.03,-0.35 c 0,148.68 0,297.35 0,446.03 c -0.3,-0.14 -0.49,-0.36 -0.58,-0.68 c -2.52,-23.09 -35.9,-44.12 -52.74,-57.66 c -16.03,-11.3 -32.27,-22.3 -48.72,-32.97 c -1.99,-1.22 -3.81,-2.62 -5.46,-4.21 c -0.12,-0.43 -0.03,-0.82 0.24,-1.17 c 56.62,-82.15 52.7,-189.05 -9.65,-266.87 c -38.52,-46.57 -87.83,-73.47 -147.76,-81.17 c -3.47,-0.15 -6.93,-0.46 -10.36,-0.95 Z M 57.98,221 c 0.47,-97.94 87.27,-173.84 184.52,-161.87 c 122.1,16.36 184.38,152.56 115.7,255.49 c -72.17,103.85 -224.74,93.45 -282.79,-18.59 c -11.76,-23.63 -17.57,-48.64 -17.43,-75.03 Z M 157.03,178 c 0.69,52.51 59.02,82.84 102.55,53.11 c 51.89,-37.94 27.02,-117.08 -37.08,-118.87 c -36.82,0.46 -65.23,28.91 -65.47,65.76 Z M 0,236.97 c 0.32,0.13 0.51,0.36 0.59,0.7 c 3.19,43.7 17.88,83.14 44.09,118.31 c 68.15,89.74 190.63,115 288.71,58.9 c 5.72,-3.4 11.39,-6.89 16.98,-10.46 c 2.08,2.53 4.03,5.19 5.83,7.97 c 19.49,29.12 38.39,59.72 63.35,84.56 c 8.21,8.62 13.91,12.06 25.53,14.85 c -148.36,0.06 -296.72,0.13 -445.08,0.2 c 0,-91.68 0,-183.35 0,-275.03 Z M 114.04,304 c 0.26,3.67 14.69,17.42 18.03,20.44 c 60.07,51.99 148.37,43.84 197.73,-18.33 c 1.22,-2.8 -0.27,-12.12 -1.11,-15.44 c -6.46,-19.96 -19.66,-28.88 -40.19,-30.52 c -44,-2.15 -88,-2.16 -132,-0.02 c -26.13,1.59 -41.92,17.42 -42.46,43.87 Z M 512,458.97 c 0,17.68 0,35.35 0,53.03 c -17.72,-0.11 -35.44,-0.22 -53.15,-0.34 c 23.31,-4.27 48.64,-28.36 52.58,-52.04 c 0.11,-0.29 0.3,-0.5 0.57,-0.65 Z"
+      />
+      <path
+        fill="#FFB020"
+        fillRule="evenodd"
+        d="M 157.03,178 c 0.69,52.51 59.02,82.84 102.55,53.11 c 51.89,-37.94 27.02,-117.08 -37.08,-118.87 c -36.82,0.46 -65.23,28.91 -65.47,65.76 Z M 114.04,304 c 0.26,3.67 14.69,17.42 18.03,20.44 c 60.07,51.99 148.37,43.84 197.73,-18.33 c 1.22,-2.8 -0.27,-12.12 -1.11,-15.44 c -6.46,-19.96 -19.66,-28.88 -40.19,-30.52 c -44,-2.15 -88,-2.16 -132,-0.02 c -26.13,1.59 -41.92,17.42 -42.46,43.87 Z"
+      />
     </svg>
   );
 }
