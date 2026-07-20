@@ -15,7 +15,8 @@
     "seed:diverse-missions": "node scripts/seedDiverseMissions.js",
     "fix:seed-geocoding": "node scripts/fixMisgeocodedSeedAddresses.js",
     "set:service-detail-fields": "node scripts/setServiceDetailFields.js",
-    "cleanup:coiffure-services": "node scripts/removeStaleCoiffureServices.js"
+    "cleanup:coiffure-services": "node scripts/removeStaleCoiffureServices.js",
+    "cleanup:beaute-services": "node scripts/removeStaleBeauteServices.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.65.0",

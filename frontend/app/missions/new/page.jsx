@@ -432,6 +432,31 @@ function DetailField({ field, value, onChange, otherValue, onOtherChange }) {
     );
   }
 
+  if (field.type === 'multiselect') {
+    const selected = Array.isArray(value) ? value : [];
+    function toggle(opt) {
+      onChange(selected.includes(opt) ? selected.filter((o) => o !== opt) : [...selected, opt]);
+    }
+    return (
+      <div className="sm:col-span-2">
+        <span className="text-xs font-medium text-slate-500">{field.label}</span>
+        <div className="mt-2 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+          {field.options.map((opt) => (
+            <label key={opt} className="flex items-center gap-2 text-sm text-ink">
+              <input
+                type="checkbox"
+                checked={selected.includes(opt)}
+                onChange={() => toggle(opt)}
+                className="h-4 w-4 shrink-0 rounded border-slate-300 accent-moss"
+              />
+              {opt}
+            </label>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   if (field.type === 'select') {
     return (
       <div>
