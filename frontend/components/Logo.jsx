@@ -14,8 +14,8 @@ export default function Logo({ className = 'h-14 w-14' }) {
         </clipPath>
       </defs>
       <g fill="#FFB020" clipPath="url(#jobber-logo-lens)">
-        <circle cx="27" cy="19.5" r="6.5" />
-        <circle cx="27" cy="39" r="13" />
+        <circle cx="27" cy="20" r="6.5" />
+        <rect x="14" y="26" width="26" height="24" rx="11" ry="11" />
       </g>
       <circle cx="27" cy="27" r="22" fill="none" stroke="#0B66FF" strokeWidth="7" />
       <line x1="42.5" y1="42.5" x2="58" y2="58" stroke="#0B66FF" strokeWidth="9" strokeLinecap="round" />
