@@ -154,6 +154,14 @@ const CATEGORIES = [
     'Kit de coloration', 'Papillotes pour mèches/balayage', 'Fer à lisser', 'Cape de coiffure',
     'Pinces et épingles à cheveux',
   ] },
+  { name: 'Maçonnerie', slug: 'maconnerie', icon: '🧱', services: [
+    'Monter un mur', 'Crépi extérieur', 'Terrassement', 'Dalle béton', 'Construction extension ou garage',
+    'Pose de carrelage extérieur', 'Pose de pavés et dallage', 'Muret et clôture', 'Réparation de fissures', 'Démolition',
+  ], equipment: [
+    'Bétonnière', 'Truelle et taloche', 'Niveau à bulle / laser', 'Fil à plomb', 'Auge de maçon',
+    'Brouette de chantier', 'Règle de maçon', 'Coffrage bois', 'Pelle et pioche', 'Marteau-piqueur',
+    'Meuleuse', 'Casque et gants de chantier',
+  ] },
 ];
 
 async function main() {

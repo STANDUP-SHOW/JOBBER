@@ -23,6 +23,7 @@ const multiselectGroups = (key, label, groups) => ({ key, label, type: 'multisel
 
 const SURFACE_M2 = (label = 'Surface') => num('surfaceM2', label, 'm²');
 const WALL_TYPES = ['Béton', 'Placo', 'Brique', 'Bois', 'Autre'];
+const MASONRY_WALL_TYPES = ['Parpaing', 'Brique', 'Pierre', 'Béton banché', 'Autre'];
 
 const CAR_BRANDS = [
   'Alfa Romeo', 'Audi', 'BMW', 'Citroën', 'Cupra', 'Dacia', 'DS', 'Fiat', 'Ford', 'Honda',
@@ -206,6 +207,18 @@ const SERVICE_FIELDS = {
       ] },
     ]),
   ],
+
+  // --- Maçonnerie ---
+  'maconnerie-monter-un-mur': [SURFACE_M2(), select('wallType', 'Type de mur', MASONRY_WALL_TYPES)],
+  'maconnerie-crepi-exterieur': [SURFACE_M2()],
+  'maconnerie-terrassement': [SURFACE_M2()],
+  'maconnerie-dalle-beton': [SURFACE_M2(), num('thicknessCm', 'Épaisseur', 'cm')],
+  'maconnerie-construction-extension-ou-garage': [SURFACE_M2()],
+  'maconnerie-pose-de-carrelage-exterieur': [SURFACE_M2()],
+  'maconnerie-pose-de-paves-et-dallage': [SURFACE_M2()],
+  'maconnerie-muret-et-cloture': [num('lengthM', 'Longueur', 'm'), num('heightM', 'Hauteur', 'm')],
+  'maconnerie-reparation-de-fissures': [num('crackCount', 'Nombre de fissures')],
+  'maconnerie-demolition': [SURFACE_M2()],
 
   // --- Manutention ---
   'manutention-emballage': [num('boxesCount', 'Nombre de cartons estimé')],
