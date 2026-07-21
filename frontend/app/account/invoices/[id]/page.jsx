@@ -20,7 +20,6 @@ export default function InvoiceDetailPage() {
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/auth/login');
-    else if (!authLoading && user?.accountKind !== 'COMPANY') router.push('/account');
   }, [authLoading, user]);
 
   useEffect(() => {
@@ -84,8 +83,12 @@ export default function InvoiceDetailPage() {
         <div className="mt-8 grid grid-cols-2 gap-6">
           <div>
             <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Facturé à</div>
-            <div className="mt-1 text-sm font-medium text-ink">{user.companyName}</div>
-            {user.companySiret && <div className="text-sm text-slate-500">SIRET {user.companySiret}</div>}
+            <div className="mt-1 text-sm font-medium text-ink">
+              {user.accountKind === 'COMPANY' ? user.companyName : `${user.firstName} ${user.lastName}`}
+            </div>
+            {user.accountKind === 'COMPANY' && user.companySiret && (
+              <div className="text-sm text-slate-500">SIRET {user.companySiret}</div>
+            )}
             {user.address && <div className="text-sm text-slate-500">{user.address}</div>}
           </div>
           <div>

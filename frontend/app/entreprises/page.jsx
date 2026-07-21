@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { SITE_URL, SITE_NAME } from '../../lib/seo';
+import { SEO_CITIES } from '../../lib/seoCities';
 
 const title = 'Recrutez à la tâche, pas à durée déterminée — Jobber Entreprise';
 const description =
@@ -106,6 +107,27 @@ export default function EntreprisesPage() {
         </div>
       </section>
 
+      <section className="mt-16 grid gap-6 sm:grid-cols-2">
+        <div className="rounded-lg border border-slate-200 bg-white p-6">
+          <span className="label-eyebrow text-moss">Zéro submersion</span>
+          <h2 className="mt-2 font-display text-xl font-semibold text-ink">Jobber+ sélectionne pour vous les meilleures offres</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Lorsque vous publiez une mission, Jobber+ sélectionne automatiquement pour vous les 10 meilleures offres
+            reçues parmi celles qui répondent à tous vos critères — matériel, véhicule, durée, ponctualité. Elles
+            vous sont transmises et vous n'avez plus qu'à choisir.
+          </p>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-6">
+          <span className="label-eyebrow text-moss">Fidélisez vos jobbers</span>
+          <h2 className="mt-2 font-display text-xl font-semibold text-ink">Constituez-vous une horde d'employés</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Gardez vos jobbers de confiance et proposez-leur des plannings : missions à la journée, à la semaine,
+            sur des heures récurrentes ou pour des tâches ponctuelles. Mission après mission, ils deviennent votre
+            équipe.
+          </p>
+        </div>
+      </section>
+
       <section className="mt-16">
         <h2 className="text-center font-display text-2xl font-semibold text-ink">Intérim / CDD, ou Jobber Entreprise ?</h2>
         <div className="mt-8 overflow-x-auto rounded-lg border border-slate-200">
@@ -148,6 +170,30 @@ export default function EntreprisesPage() {
               )}
               <p className="mt-2 text-sm text-slate-500">{plan.detail}</p>
             </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto mt-16 max-w-2xl text-center">
+        <h2 className="font-display text-2xl font-semibold text-ink">Facturé directement par Jobber</h2>
+        <p className="mt-3 text-slate-600">
+          Chaque prestation payée génère automatiquement une facture, émise par Jobber, récapitulant le détail de la
+          mission réalisée — prestataire, date, durée et montant. Toutes vos factures sont centralisées dans votre
+          espace « Mes factures », prêtes pour votre comptabilité.
+        </p>
+      </section>
+
+      <section className="mt-16">
+        <h2 className="text-center font-display text-2xl font-semibold text-ink">Recruter dans votre ville</h2>
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          {SEO_CITIES.map((c) => (
+            <Link
+              key={c.slug}
+              href={`/recruter/${c.slug}`}
+              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-ink hover:border-moss hover:text-moss-dark"
+            >
+              {c.name}
+            </Link>
           ))}
         </div>
       </section>

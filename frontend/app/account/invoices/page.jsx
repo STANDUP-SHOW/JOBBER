@@ -14,7 +14,6 @@ export default function InvoicesPage() {
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/auth/login');
-    else if (!authLoading && user?.accountKind !== 'COMPANY') router.push('/account');
   }, [authLoading, user]);
 
   useEffect(() => {
