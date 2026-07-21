@@ -6,7 +6,7 @@ import { SEO_CITIES } from '../lib/seoCities';
 export default function sitemap() {
   const now = new Date();
 
-  const staticRoutes = ['', '/missions', '/lessons', '/entreprises'].map((path) => ({
+  const staticRoutes = ['', '/missions', '/lessons', '/entreprises', '/devenir-jobber'].map((path) => ({
     url: `${SITE_URL}${path}`,
     lastModified: now,
     changeFrequency: 'daily',

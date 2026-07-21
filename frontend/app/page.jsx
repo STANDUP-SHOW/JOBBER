@@ -80,9 +80,12 @@ export default async function HomePage() {
             Jobbez à plein temps ou sur votre temps libre. Que vous soyez particulier ou travailleur indépendant,
             Jobber c'est des centaines de missions par semaine, près de chez vous.
           </p>
-          <div className="mt-6">
+          <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/auth/register" className="inline-block rounded-md bg-ink px-5 py-3 font-medium text-white hover:bg-ink/90">
               Devenir Jobber
+            </Link>
+            <Link href="/devenir-jobber" className="inline-block rounded-md border border-ink/20 bg-white px-5 py-3 font-medium text-ink hover:border-ink">
+              En savoir plus
             </Link>
           </div>
         </div>
