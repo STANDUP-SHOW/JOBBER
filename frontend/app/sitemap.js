@@ -6,11 +6,18 @@ import { SEO_CITIES } from '../lib/seoCities';
 export default function sitemap() {
   const now = new Date();
 
-  const staticRoutes = ['', '/missions', '/lessons'].map((path) => ({
+  const staticRoutes = ['', '/missions', '/lessons', '/entreprises'].map((path) => ({
     url: `${SITE_URL}${path}`,
     lastModified: now,
     changeFrequency: 'daily',
     priority: path === '' ? 1 : 0.7,
+  }));
+
+  const recruterRoutes = SEO_CITIES.map((city) => ({
+    url: `${SITE_URL}/recruter/${city.slug}`,
+    lastModified: now,
+    changeFrequency: 'weekly',
+    priority: 0.6,
   }));
 
   const categoryRoutes = Object.keys(SEO_CATEGORIES).map((slug) => ({
@@ -45,5 +52,5 @@ export default function sitemap() {
     }))
   );
 
-  return [...staticRoutes, ...categoryRoutes, ...cityRoutes, ...lessonCategoryRoutes, ...lessonCityRoutes];
+  return [...staticRoutes, ...categoryRoutes, ...cityRoutes, ...lessonCategoryRoutes, ...lessonCityRoutes, ...recruterRoutes];
 }

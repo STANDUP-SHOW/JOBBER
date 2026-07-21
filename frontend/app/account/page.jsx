@@ -171,6 +171,7 @@ export default function AccountPage() {
         <Row href="/account/balance" icon="💰" label="Mon solde" value={`${(user.creditBalance ?? 0).toFixed(2)} €`} />
         {!isCompany && <Row href="/account/cesu" icon="🎫" label="Mes tickets CESU" />}
         {!isCompany && <Row href="/account/payment-methods" icon="💳" label="Moyens de paiement" />}
+        {!isCompany && <Row href="/account/invoices" icon="🧾" label="Mes factures" />}
         <Row href="/account/tax-certificates" icon="📄" label="Attestations fiscales" />
         <Row href="/account/notifications" icon="🔔" label="Gérer mes notifications" />
         <Row href="/account/language" icon="🌐" label="Langage" value="Français" />

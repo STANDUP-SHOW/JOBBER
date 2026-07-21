@@ -70,6 +70,42 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <section className="mt-16 grid items-center gap-10 rounded-lg border border-ochre/30 bg-ochre-light p-6 md:grid-cols-2 md:p-10">
+        <div>
+          <span className="label-eyebrow text-ochre-dark">Vous voulez jobber ?</span>
+          <h2 className="mt-3 font-display text-3xl font-semibold leading-[1.1] text-ink md:text-4xl">
+            Arrondissez vos fins de mois. Augmentez vos revenus.
+          </h2>
+          <p className="mt-3 max-w-md text-slate-700">
+            Jobbez à plein temps ou sur votre temps libre. Que vous soyez particulier ou travailleur indépendant,
+            Jobber c'est des centaines de missions par semaine, près de chez vous.
+          </p>
+          <div className="mt-6">
+            <Link href="/auth/register" className="inline-block rounded-md bg-ink px-5 py-3 font-medium text-white hover:bg-ink/90">
+              Devenir Jobber
+            </Link>
+          </div>
+        </div>
+        <div className="rounded-lg bg-white p-6">
+          <span className="label-eyebrow text-ochre-dark">Pourquoi jobber</span>
+          <ul className="mt-4 space-y-4">
+            {[
+              ['💶', 'Fixez votre tarif', 'Vous répondez aux missions au prix que vous choisissez.'],
+              ['📅', 'Travaillez quand vous voulez', 'À plein temps ou entre deux missions, selon votre disponibilité.'],
+              ['📍', 'Près de chez vous', "Choisissez votre zone d'intervention et vos catégories de compétence."],
+            ].map(([icon, title, desc]) => (
+              <li key={title} className="flex gap-3">
+                <span className="text-2xl">{icon}</span>
+                <div>
+                  <div className="font-medium text-ink">{title}</div>
+                  <div className="text-sm text-slate-500">{desc}</div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
       <section className="mt-16 overflow-hidden rounded-lg border border-purple-200 bg-purple-50">
         <div className="grid items-center gap-6 p-6 md:grid-cols-[1fr_auto] md:p-8">
           <div>
