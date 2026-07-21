@@ -59,6 +59,14 @@ const createMissionSchema = z.object({
   // Answers to the selected service's detailFields — loosely validated here
   // (the form only ever sends primitives), shape is defined per-service.
   details: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
+  // Company-only options — stripped server-side below for individual
+  // accounts regardless of what the client sends.
+  missionEndDate: z.string().optional(), // ISO date
+  equipmentProvidedByCompany: z.boolean().optional(),
+  ppeProvidedByCompany: z.boolean().optional(),
+  requiredPpe: z.array(z.string()).optional().default([]),
+  requiresMachine: z.boolean().optional(),
+  requiredMachines: z.array(z.string()).optional().default([]),
 });
 
 // Create a mission — any authenticated account can post a job request
@@ -66,6 +74,16 @@ router.post('/', requireAuth, async (req, res, next) => {
   try {
     const { requiredEquipmentIds, ...data } = createMissionSchema.parse(req.body);
     if (!data.isRecurring) { data.recurrenceCount = undefined; data.recurrenceUnit = undefined; }
+    // Multi-day range, "who provides the gear", PPE and machine questions
+    // are reserved to company accounts — ignore them from anyone else.
+    if (req.user.accountKind !== 'COMPANY') {
+      data.missionEndDate = undefined;
+      data.equipmentProvidedByCompany = undefined;
+      data.ppeProvidedByCompany = undefined;
+      data.requiredPpe = [];
+      data.requiresMachine = undefined;
+      data.requiredMachines = [];
+    }
     const [geocoded, dropoffGeocoded] = await Promise.all([
       geocodeAddress(data.address),
       data.dropoffAddress ? geocodeAddress(data.dropoffAddress) : null,
@@ -78,6 +96,7 @@ router.post('/', requireAuth, async (req, res, next) => {
         dropoffLat: dropoffGeocoded?.lat,
         dropoffLng: dropoffGeocoded?.lng,
         desiredDate: new Date(data.desiredDate),
+        missionEndDate: data.missionEndDate ? new Date(data.missionEndDate) : undefined,
         clientId: req.user.id,
         requiredEquipment: requiredEquipmentIds.length
           ? { create: requiredEquipmentIds.map((equipmentId) => ({ equipmentId })) }

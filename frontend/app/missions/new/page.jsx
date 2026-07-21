@@ -16,6 +16,27 @@ const TRANSPORT_CATEGORY_SLUGS = ['convoi', 'demenagement', 'transport'];
 const SIMPLE_VEHICLE_CATEGORY_SLUGS = ['aide-personne'];
 const SIMPLE_VEHICLE_TYPES = ['VOITURE_TOURISME', 'MINIBUS'];
 
+// Company-only mission options.
+const PPE_LIST = [
+  'Casque de protection', 'Gants de protection', 'Chaussures de sécurité', 'Lunettes de protection',
+  'Gilet haute visibilité', 'Protection auditive', 'Masque de protection respiratoire',
+  'Genouillères', 'Harnais de sécurité (travail en hauteur)', 'Combinaison de protection',
+];
+// Only categories where on-site machinery is plausible get the "machine"
+// question — no point asking it for, say, garde d'enfants.
+const MACHINES_BY_CATEGORY_SLUG = {
+  menage: ['Autolaveuse', 'Monobrosse électrique', 'Nettoyeur vapeur professionnel', 'Aspirateur industriel', 'Nettoyeur haute pression'],
+  bricolage: ['Perceuse à colonne', 'Scie circulaire', "Compresseur d'air", 'Ponceuse électrique', 'Groupe électrogène'],
+  jardinage: ['Tondeuse autoportée', 'Débroussailleuse thermique', 'Broyeur de végétaux', 'Souffleur thermique', 'Motoculteur'],
+  demenagement: ['Monte-meuble électrique', 'Diable motorisé', 'Chariot élévateur'],
+  manutention: ['Chariot élévateur', 'Transpalette électrique', 'Gerbeur'],
+  mecanique: ['Pont élévateur', "Compresseur d'air", 'Poste à souder', 'Valise de diagnostic électronique'],
+  peinture: ['Pistolet à peinture électrique', 'Compresseur', 'Nacelle élévatrice', 'Ponceuse girafe'],
+  plomberie: ['Furet électrique', 'Détecteur de fuite', 'Pompe de relevage'],
+  electricite: ['Groupe électrogène', "Testeur d'installation électrique"],
+  piscine: ['Robot de piscine professionnel', 'Pompe de vidange'],
+};
+
 export default function NewMissionPage() {
   return (
     <Suspense fallback={<p className="text-slate-400">Chargement…</p>}>
@@ -54,6 +75,13 @@ function NewMissionForm() {
     requiredVehicleTypes: [],
     otherVehicleChecked: false,
     otherVehicleNote: '',
+    isMultiDay: false,
+    missionEndDate: '',
+    equipmentProvidedByCompany: false,
+    providesPpe: false,
+    requiredPpe: [],
+    requiresMachine: false,
+    requiredMachines: [],
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -62,6 +90,7 @@ function NewMissionForm() {
     api.categories().then(({ categories }) => setCategories(categories)).catch(() => {});
   }, []);
 
+  const isCompany = user?.accountKind === 'COMPANY';
   const selectedCategory = categories.find((c) => c.id === form.categoryId);
   const isTransportMission = selectedCategory && TRANSPORT_CATEGORY_SLUGS.includes(selectedCategory.slug);
   const selectedService = selectedCategory?.services?.find((s) => s.id === form.serviceId);
@@ -69,6 +98,7 @@ function NewMissionForm() {
   const vehicleOptions = selectedCategory && SIMPLE_VEHICLE_CATEGORY_SLUGS.includes(selectedCategory.slug)
     ? VEHICLES.filter((v) => SIMPLE_VEHICLE_TYPES.includes(v.type))
     : VEHICLES;
+  const machineOptions = selectedCategory ? MACHINES_BY_CATEGORY_SLUG[selectedCategory.slug] : null;
 
   function setDetail(key, value) {
     setForm((f) => ({ ...f, details: { ...f.details, [key]: value } }));
@@ -92,13 +122,29 @@ function NewMissionForm() {
     }));
   }
 
+  function toggleRequiredPpe(item) {
+    setForm((f) => ({
+      ...f,
+      requiredPpe: f.requiredPpe.includes(item) ? f.requiredPpe.filter((p) => p !== item) : [...f.requiredPpe, item],
+    }));
+  }
+
+  function toggleRequiredMachine(item) {
+    setForm((f) => ({
+      ...f,
+      requiredMachines: f.requiredMachines.includes(item)
+        ? f.requiredMachines.filter((m) => m !== item)
+        : [...f.requiredMachines, item],
+    }));
+  }
+
   async function onSubmit(e) {
     e.preventDefault();
     if (!user) { router.push('/auth/login'); return; }
     setError('');
     setLoading(true);
     try {
-      const { desiredTime, otherEquipmentChecked, otherVehicleChecked, recurrenceType, ...rest } = form;
+      const { desiredTime, otherEquipmentChecked, otherVehicleChecked, recurrenceType, isMultiDay, ...rest } = form;
       const isRecurring = recurrenceType === 'RECURRENT';
       // Combine as local wall-clock time before converting to an
       // unambiguous ISO string, so the stored instant matches what the
@@ -106,11 +152,15 @@ function NewMissionForm() {
       const [year, month, day] = form.desiredDate.split('-').map(Number);
       const [hour, minute] = desiredTime.split(':').map(Number);
       const desiredDateTime = new Date(year, month - 1, day, hour, minute).toISOString();
+      const missionEndDateTime = isMultiDay && form.missionEndDate
+        ? new Date(`${form.missionEndDate}T12:00:00`).toISOString()
+        : undefined;
 
       const { mission } = await api.createMission(
         {
           ...rest,
           desiredDate: desiredDateTime,
+          missionEndDate: missionEndDateTime,
           estimatedHours: Number(form.estimatedHours),
           otherEquipmentNote: otherEquipmentChecked ? form.otherEquipmentNote.trim() : '',
           otherVehicleNote: otherVehicleChecked ? form.otherVehicleNote.trim() : '',
@@ -119,6 +169,8 @@ function NewMissionForm() {
           isRecurring,
           recurrenceCount: isRecurring ? Number(form.recurrenceCount) : undefined,
           recurrenceUnit: isRecurring ? form.recurrenceUnit : undefined,
+          requiredPpe: form.providesPpe ? form.requiredPpe : [],
+          requiredMachines: form.requiresMachine ? form.requiredMachines : [],
         },
         token
       );
@@ -244,6 +296,32 @@ function NewMissionForm() {
         </div>
         <Field label="Durée estimée (heures)" type="number" min="0.5" step="0.5" value={form.estimatedHours} onChange={(v) => setForm({ ...form, estimatedHours: v })} required />
 
+        {isCompany && (
+          <div>
+            <label className="flex items-center gap-2.5 text-sm text-ink">
+              <input
+                type="checkbox"
+                checked={form.isMultiDay}
+                onChange={(e) => setForm((f) => ({ ...f, isMultiDay: e.target.checked }))}
+                className="h-4 w-4 shrink-0 rounded border-slate-300 accent-moss"
+              />
+              Cette mission dure-t-elle plusieurs jours ?
+            </label>
+            {form.isMultiDay && (
+              <div className="mt-3">
+                <Field
+                  label="Date de fin"
+                  type="date"
+                  min={form.desiredDate || new Date().toISOString().slice(0, 10)}
+                  value={form.missionEndDate}
+                  onChange={(v) => setForm({ ...form, missionEndDate: v })}
+                  required
+                />
+              </div>
+            )}
+          </div>
+        )}
+
         <div>
           <span className="text-xs font-medium text-slate-500">Options (cumulables)</span>
           <div className="mt-2 grid grid-cols-2 gap-3">
@@ -321,6 +399,17 @@ function NewMissionForm() {
           <div>
             <span className="text-sm font-semibold text-ink">Le jobber doit-il apporter du matériel ?</span>
             <p className="mt-1 text-sm text-slate-500">Cochez le matériel que le prestataire doit avoir avec lui.</p>
+            {isCompany && (
+              <label className="mt-2 flex items-center gap-2.5 text-sm text-ink">
+                <input
+                  type="checkbox"
+                  checked={form.equipmentProvidedByCompany}
+                  onChange={(e) => setForm((f) => ({ ...f, equipmentProvidedByCompany: e.target.checked }))}
+                  className="h-4 w-4 shrink-0 rounded border-slate-300 accent-moss"
+                />
+                Ce matériel est fourni par l'entreprise (sinon, le jobber doit être équipé)
+              </label>
+            )}
             <div className="mt-3 grid grid-cols-1 gap-x-4 gap-y-2.5 sm:grid-cols-2">
               {selectedCategory.equipment.map((eq) => (
                 <label key={eq.id} className="flex items-center gap-2.5 text-base text-ink">
@@ -405,6 +494,64 @@ function NewMissionForm() {
             </div>
           )}
         </div>
+        )}
+
+        {isCompany && !isLessonMode && (
+          <div>
+            <label className="flex items-center gap-2.5 text-sm font-semibold text-ink">
+              <input
+                type="checkbox"
+                checked={form.providesPpe}
+                onChange={(e) => setForm((f) => ({ ...f, providesPpe: e.target.checked }))}
+                className="h-4 w-4 shrink-0 rounded border-slate-300 accent-moss"
+              />
+              Fournissez-vous les équipements de protection individuelle (EPI) nécessaires ?
+            </label>
+            {form.providesPpe && (
+              <div className="mt-3 grid grid-cols-1 gap-x-4 gap-y-2.5 sm:grid-cols-2">
+                {PPE_LIST.map((item) => (
+                  <label key={item} className="flex items-center gap-2.5 text-base text-ink">
+                    <input
+                      type="checkbox"
+                      checked={form.requiredPpe.includes(item)}
+                      onChange={() => toggleRequiredPpe(item)}
+                      className="h-4 w-4 shrink-0 rounded border-slate-300 accent-moss"
+                    />
+                    {item}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {isCompany && !isLessonMode && machineOptions && (
+          <div>
+            <label className="flex items-center gap-2.5 text-sm font-semibold text-ink">
+              <input
+                type="checkbox"
+                checked={form.requiresMachine}
+                onChange={(e) => setForm((f) => ({ ...f, requiresMachine: e.target.checked }))}
+                className="h-4 w-4 shrink-0 rounded border-slate-300 accent-moss"
+              />
+              Le jobber devra-t-il utiliser une machine sur le lieu de la mission ?
+            </label>
+            {form.requiresMachine && (
+              <div className="mt-3 grid grid-cols-1 gap-x-4 gap-y-2.5 sm:grid-cols-2">
+                {machineOptions.map((item) => (
+                  <label key={item} className="flex items-center gap-2.5 text-base text-ink">
+                    <input
+                      type="checkbox"
+                      checked={form.requiredMachines.includes(item)}
+                      onChange={() => toggleRequiredMachine(item)}
+                      className="h-4 w-4 shrink-0 rounded border-slate-300 accent-moss"
+                    />
+                    {item}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
         {error && <p className="rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}

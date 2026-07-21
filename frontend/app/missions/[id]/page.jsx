@@ -149,7 +149,9 @@ function MissionRequirements({ mission }) {
   const vehicleLabels = (mission.requiredVehicleTypes || []).map((t) => VEHICLES.find((v) => v.type === t)?.label || t);
   const hasEquipment = equipmentNames.length > 0 || mission.otherEquipmentNote;
   const hasVehicle = vehicleLabels.length > 0 || mission.otherVehicleNote;
-  if (!hasEquipment && !hasVehicle) return null;
+  const hasPpe = (mission.requiredPpe || []).length > 0;
+  const hasMachine = (mission.requiredMachines || []).length > 0;
+  if (!hasEquipment && !hasVehicle && !hasPpe && !hasMachine) return null;
 
   return (
     <div className="mt-6 border-t border-slate-100 pt-5">
@@ -157,7 +159,9 @@ function MissionRequirements({ mission }) {
       <div className="mt-3 space-y-3">
         {hasEquipment && (
           <div>
-            <span className="text-sm font-semibold text-slate-600">Matériel à apporter</span>
+            <span className="text-sm font-semibold text-slate-600">
+              Matériel à apporter {mission.equipmentProvidedByCompany && '— fourni par l\'entreprise'}
+            </span>
             <div className="mt-1.5 flex flex-wrap gap-2">
               {equipmentNames.map((name) => (
                 <span key={name} className="rounded-full bg-moss-light px-3 py-1 text-sm text-moss-dark">{name}</span>
@@ -178,6 +182,28 @@ function MissionRequirements({ mission }) {
               {mission.otherVehicleNote && (
                 <span className="rounded-full bg-ochre-light px-3 py-1 text-sm text-ochre-dark">{mission.otherVehicleNote}</span>
               )}
+            </div>
+          </div>
+        )}
+        {hasPpe && (
+          <div>
+            <span className="text-sm font-semibold text-slate-600">
+              EPI {mission.ppeProvidedByCompany ? '— fournis par l\'entreprise' : 'requis'}
+            </span>
+            <div className="mt-1.5 flex flex-wrap gap-2">
+              {mission.requiredPpe.map((name) => (
+                <span key={name} className="rounded-full bg-ochre-light px-3 py-1 text-sm text-ochre-dark">{name}</span>
+              ))}
+            </div>
+          </div>
+        )}
+        {hasMachine && (
+          <div>
+            <span className="text-sm font-semibold text-slate-600">Machine à utiliser sur place</span>
+            <div className="mt-1.5 flex flex-wrap gap-2">
+              {mission.requiredMachines.map((name) => (
+                <span key={name} className="rounded-full bg-moss-light px-3 py-1 text-sm text-moss-dark">{name}</span>
+              ))}
             </div>
           </div>
         )}
@@ -244,6 +270,9 @@ export default function MissionDetailPage() {
     const end = new Date(start.getTime() + mission.estimatedHours * 3600 * 1000);
     const fmtTime = (d) => d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     const dateLabel = capitalize(start.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }));
+    const endDateLabel = mission.missionEndDate
+      ? new Date(mission.missionEndDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
+      : null;
     const indicativeRate = user?.providerProfile?.categories?.find((c) => c.categoryId === mission.categoryId)?.hourlyRate ?? 15;
     const indicativePrice = Math.round(indicativeRate * mission.estimatedHours);
     const applicantCount = mission.offers?.length ?? 0;
@@ -295,7 +324,7 @@ export default function MissionDetailPage() {
         </div>
 
         <div className="mt-5 space-y-3">
-          <InfoRow icon={CalendarIcon}>{dateLabel}</InfoRow>
+          <InfoRow icon={CalendarIcon}>{endDateLabel ? `Du ${dateLabel} au ${endDateLabel}` : dateLabel}</InfoRow>
           <InfoRow icon={ClockIcon}>{fmtTime(start)} à {fmtTime(end)} ({mission.estimatedHours}h)</InfoRow>
           {recurrenceLabel(mission) && <InfoRow icon={RepeatIcon}>Mission à réaliser {recurrenceLabel(mission)}</InfoRow>}
           {isTransportMission ? (
@@ -396,7 +425,8 @@ export default function MissionDetailPage() {
       <dl className="mt-5 grid grid-cols-2 gap-4 rounded-lg border border-slate-200 bg-white p-4 text-sm sm:grid-cols-4">
         <Item label={mission.dropoffAddress ? 'Adresse de départ' : 'Adresse'} value={mission.address} />
         {mission.dropoffAddress && <Item label="Adresse d'arrivée" value={mission.dropoffAddress} />}
-        <Item label="Date souhaitée" value={new Date(mission.desiredDate).toLocaleDateString('fr-FR')} />
+        <Item label={mission.missionEndDate ? 'Date de début' : 'Date souhaitée'} value={new Date(mission.desiredDate).toLocaleDateString('fr-FR')} />
+        {mission.missionEndDate && <Item label="Date de fin" value={new Date(mission.missionEndDate).toLocaleDateString('fr-FR')} />}
         <Item label="Durée estimée" value={`${mission.estimatedHours} h`} />
         {recurrenceLabel(mission) && <Item label="Fréquence" value={recurrenceLabel(mission)} />}
         <Item label="Statut" value={mission.status} />

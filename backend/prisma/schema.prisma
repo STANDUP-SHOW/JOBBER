@@ -360,6 +360,14 @@ model Mission {
   requiredVehicleTypes VehicleType[] @default([])
   otherVehicleNote     String?
   otherEquipmentNote   String?
+  // Company-only options (silently ignored server-side for individual
+  // accounts). Multi-day: desiredDate is the start, missionEndDate the end.
+  missionEndDate             DateTime?
+  equipmentProvidedByCompany Boolean?
+  ppeProvidedByCompany       Boolean?
+  requiredPpe                String[]  @default([])
+  requiresMachine            Boolean?
+  requiredMachines           String[]  @default([])
   // Answers to the selected service's detailFields (e.g. { hedgeHeightM: 1.5,
   // hedgeLengthM: 12 }) — keyed by field key, shape defined per-service.
   details        Json?
