@@ -9,6 +9,7 @@ import StarRating from '../../../components/StarRating';
 import MissionRouteMap from '../../../components/MissionRouteMap';
 import MissionBadges from '../../../components/MissionBadges';
 import { VEHICLES } from '../../../components/VehicleIcon';
+import MechanicVehicleIcon, { MECHANIC_VEHICLE_TYPES } from '../../../components/MechanicVehicleIcon';
 
 function CalendarIcon(props) {
   return (
@@ -110,6 +111,23 @@ function MissionDetails({ mission }) {
     .map((field) => ({ field, display: formatDetailValue(field, details[field.key]) }))
     .filter((e) => e.display != null);
   if (entries.length === 0) return null;
+
+  const isMechanicVehicle = mission.category?.slug === 'mecanique' && MECHANIC_VEHICLE_TYPES.includes(mission.service?.name);
+  if (isMechanicVehicle) {
+    return (
+      <div className="mt-6 rounded-lg border-2 border-moss bg-moss-light p-4">
+        <div className="flex items-center gap-2">
+          <MechanicVehicleIcon type={mission.service.name} className="h-8 w-12 shrink-0" />
+          <span className="font-display text-sm font-bold uppercase tracking-wide text-moss-dark">
+            {mission.service.name}
+          </span>
+        </div>
+        <p className="mt-2.5 text-sm font-medium text-ink">
+          {entries.map((e) => e.display).join('  —  ')}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-6 border-t border-slate-100 pt-5">
