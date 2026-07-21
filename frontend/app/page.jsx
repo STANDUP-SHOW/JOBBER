@@ -94,6 +94,27 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <section className="mt-16 overflow-hidden rounded-lg border border-moss/20 bg-moss-light">
+        <div className="grid items-center gap-6 p-6 md:grid-cols-[1fr_auto] md:p-8">
+          <div>
+            <span className="rounded-full bg-moss px-3 py-1 text-xs font-bold uppercase tracking-wide text-paper">Nouveau !</span>
+            <h2 className="mt-3 font-display text-2xl font-semibold text-ink">
+              Vous dirigez une entreprise ? Recrutez à la tâche.
+            </h2>
+            <p className="mt-2 max-w-2xl text-slate-600">
+              Oubliez l'intérim, oubliez le CDD. Constituez-vous une horde de collaborateurs dans des domaines bien
+              précis et gérez-les comme vos salariés grâce à Jobber+ : plannings, missions, employés, factures, tout
+              est simplifié. Vous ne payez qu'une fois le travail effectué.
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-3 md:flex-col">
+            <Link href="/entreprises" className="rounded-md bg-moss px-5 py-3 text-center font-medium text-paper hover:bg-moss-dark">
+              En savoir plus
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <section className="mt-16">
         <h2 className="font-display text-2xl font-semibold text-ink">Toutes les catégories</h2>
         <div className="mt-5">
