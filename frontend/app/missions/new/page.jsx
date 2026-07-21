@@ -78,7 +78,7 @@ function NewMissionForm() {
     isMultiDay: false,
     missionEndDate: '',
     equipmentProvidedByCompany: false,
-    providesPpe: false,
+    ppeProvidedByCompany: false,
     requiredPpe: [],
     requiresMachine: false,
     requiredMachines: [],
@@ -169,7 +169,7 @@ function NewMissionForm() {
           isRecurring,
           recurrenceCount: isRecurring ? Number(form.recurrenceCount) : undefined,
           recurrenceUnit: isRecurring ? form.recurrenceUnit : undefined,
-          requiredPpe: form.providesPpe ? form.requiredPpe : [],
+          requiredPpe: form.ppeProvidedByCompany ? form.requiredPpe : [],
           requiredMachines: form.requiresMachine ? form.requiredMachines : [],
         },
         token
@@ -501,13 +501,13 @@ function NewMissionForm() {
             <label className="flex items-center gap-2.5 text-sm font-semibold text-ink">
               <input
                 type="checkbox"
-                checked={form.providesPpe}
-                onChange={(e) => setForm((f) => ({ ...f, providesPpe: e.target.checked }))}
+                checked={form.ppeProvidedByCompany}
+                onChange={(e) => setForm((f) => ({ ...f, ppeProvidedByCompany: e.target.checked }))}
                 className="h-4 w-4 shrink-0 rounded border-slate-300 accent-moss"
               />
               Fournissez-vous les équipements de protection individuelle (EPI) nécessaires ?
             </label>
-            {form.providesPpe && (
+            {form.ppeProvidedByCompany && (
               <div className="mt-3 grid grid-cols-1 gap-x-4 gap-y-2.5 sm:grid-cols-2">
                 {PPE_LIST.map((item) => (
                   <label key={item} className="flex items-center gap-2.5 text-base text-ink">
