@@ -1,4 +1,5 @@
 import VehicleIcon, { VEHICLES } from './VehicleIcon';
+import MechanicVehicleIcon, { MECHANIC_VEHICLE_TYPES } from './MechanicVehicleIcon';
 
 function ToolboxIcon(props) {
   return (
@@ -20,6 +21,9 @@ export default function MissionBadges({ mission, className = '' }) {
   if (mission.otherEquipmentNote) equipmentNames.push(mission.otherEquipmentNote);
   const hasEquipment = equipmentNames.length > 0;
   const vehicleTypes = mission.requiredVehicleTypes || [];
+  const mechanicVehicle = mission.category?.slug === 'mecanique' && MECHANIC_VEHICLE_TYPES.includes(mission.service?.name)
+    ? mission.service.name
+    : null;
 
   return (
     <div className={`flex flex-wrap items-center gap-1.5 ${className}`}>
@@ -45,6 +49,14 @@ export default function MissionBadges({ mission, className = '' }) {
       ) : (
         <span className="rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-slate-600">
           Ponctuel
+        </span>
+      )}
+      {mechanicVehicle && (
+        <span
+          title={`Véhicule à réparer : ${mechanicVehicle}`}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ochre-light text-ochre-dark"
+        >
+          <MechanicVehicleIcon type={mechanicVehicle} className="h-7 w-9" />
         </span>
       )}
       {hasEquipment && (
