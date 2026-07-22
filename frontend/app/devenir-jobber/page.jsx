@@ -44,6 +44,44 @@ export default function DevenirJobberPage() {
         </div>
       </section>
 
+      <section className="mx-auto mt-16 max-w-2xl">
+        <h2 className="text-center font-display text-2xl font-semibold text-ink">C'est quoi le jobbing ?</h2>
+        <p className="mt-4 text-slate-600">
+          Le jobbing, c'est travailler à la mission plutôt qu'à travers un contrat classique. Au lieu d'occuper un
+          poste fixe, le jobber répond à des besoins ponctuels — monter un meuble, changer une prise, entretenir un
+          jardin — et choisit librement les missions qui correspondent à ses compétences et à son emploi du temps.
+        </p>
+        <p className="mt-4 text-slate-600">
+          Ce mode de fonctionnement répond à un besoin concret : pour une petite intervention, il est souvent
+          difficile de trouver un artisan disponible, le montant de la prestation étant trop faible pour justifier
+          un déplacement classique. Le jobbing comble ce vide en mettant directement en relation particuliers et
+          jobbers, pour des services de toutes tailles.
+        </p>
+        <p className="mt-4 text-slate-600">
+          Côté particuliers, c'est une manière simple de déléguer les tâches du quotidien sans passer par une agence
+          ou un artisan traditionnel. Côté jobbers, c'est la liberté de travailler quand on veut, sur les missions
+          de son choix.
+        </p>
+      </section>
+
+      <section className="mx-auto mt-16 max-w-2xl">
+        <h2 className="text-center font-display text-2xl font-semibold text-ink">Qui peut devenir jobber ?</h2>
+        <p className="mt-4 text-slate-600">
+          Le jobbing s'adresse à toute personne disposant des compétences nécessaires pour réaliser une mission —
+          aucun statut particulier n'est exigé au départ. Sur Jobber, on retrouve aussi bien :
+        </p>
+        <ul className="mt-4 space-y-2 text-slate-600">
+          <li>• des particuliers qui veulent se constituer un revenu d'appoint ou tester une nouvelle activité,</li>
+          <li>• des professionnels et auto-entrepreneurs qui développent leur clientèle en plus de leur activité principale,</li>
+          <li>• des étudiants à la recherche de missions flexibles, compatibles avec les études,</li>
+          <li>• des retraités qui souhaitent rester actifs et compléter leur pension.</li>
+        </ul>
+        <p className="mt-4 text-slate-600">
+          Chaque jobber choisit ses catégories de compétences et sa zone d'intervention à l'inscription — libre à
+          lui de candidater uniquement aux missions qui l'intéressent.
+        </p>
+      </section>
+
       <section className="mx-auto mt-16 max-w-2xl text-center">
         <h2 className="font-display text-2xl font-semibold text-ink">Votre expérience parle pour vous</h2>
         <p className="mt-3 text-slate-600">
