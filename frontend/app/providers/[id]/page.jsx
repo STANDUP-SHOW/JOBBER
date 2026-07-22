@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { api } from '../../../lib/api';
+import { useAuth } from '../../../lib/auth-context';
 import StarRating from '../../../components/StarRating';
 import VehicleIcon, { VEHICLES } from '../../../components/VehicleIcon';
 
@@ -15,12 +16,29 @@ const LEVEL_STYLE = {
 
 export default function ProviderProfilePage() {
   const { id } = useParams();
+  const { user, token } = useAuth();
   const [provider, setProvider] = useState(null);
   const [error, setError] = useState('');
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favBusy, setFavBusy] = useState(false);
 
   useEffect(() => {
     api.provider(id).then(({ provider }) => setProvider(provider)).catch((e) => setError(e.message));
   }, [id]);
+
+  useEffect(() => {
+    if (!token || !user || user.id === id) return;
+    api.myFavorites(token).then(({ favorites }) => setIsFavorite(favorites.some((f) => f.providerId === id))).catch(() => {});
+  }, [token, user, id]);
+
+  async function toggleFavorite() {
+    setFavBusy(true);
+    try {
+      if (isFavorite) { await api.removeFavorite(id, token); setIsFavorite(false); }
+      else { await api.addFavorite(id, token); setIsFavorite(true); }
+    } catch (err) { setError(err.message); }
+    finally { setFavBusy(false); }
+  }
 
   if (error) return <p className="text-clay">{error}</p>;
   if (!provider) return <p className="text-slate-400">Chargement…</p>;
@@ -46,6 +64,15 @@ export default function ProviderProfilePage() {
           )}
           {profile.offersLessons && (
             <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-700">📚 Propose des cours</span>
+          )}
+          {user && user.id !== id && (
+            <button
+              disabled={favBusy}
+              onClick={toggleFavorite}
+              className={`rounded-full px-3 py-1 text-xs font-medium disabled:opacity-60 ${isFavorite ? 'bg-ochre text-ink' : 'border border-slate-200 text-slate-500 hover:border-ochre hover:text-ochre-dark'}`}
+            >
+              {isFavorite ? '★ Favori' : '☆ Ajouter aux favoris'}
+            </button>
           )}
         </div>
       </div>

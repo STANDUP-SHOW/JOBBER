@@ -39,6 +39,7 @@ export const api = {
   createOffer: (payload, token) => request('/offers', { method: 'POST', body: payload, token }),
   acceptOffer: (offerId, token) => request(`/offers/${offerId}/accept`, { method: 'POST', token }),
   myOffers: (token) => request('/offers/mine', { token }),
+  receivedOffers: (token) => request('/offers/received', { token }),
 
   myBookings: (token) => request('/bookings/mine', { token }),
   startBooking: (id, token) => request(`/bookings/${id}/start`, { method: 'PATCH', token }),
@@ -69,6 +70,11 @@ export const api = {
   myReferral: (token) => request('/users/me/referral', { token }),
   updateProviderProfile: (payload, token) => request('/users/me/provider-profile', { method: 'PATCH', body: payload, token }),
   generateCategoryBio: (payload, token) => request('/users/me/provider-profile/generate-bio', { method: 'POST', body: payload, token }),
+  myBadges: (token) => request('/users/me/badges', { token }),
+
+  myFavorites: (token) => request('/favorites/mine', { token }),
+  addFavorite: (providerId, token) => request(`/favorites/${providerId}`, { method: 'POST', token }),
+  removeFavorite: (providerId, token) => request(`/favorites/${providerId}`, { method: 'DELETE', token }),
 
   conversations: (token) => request('/messages/conversations', { token }),
   conversation: (id, token) => request(`/messages/conversations/${id}`, { token }),
@@ -78,7 +84,7 @@ export const api = {
   userReviews: (userId) => request(`/reviews/user/${userId}`),
 
   uploadVerificationDoc: (payload, token) => request('/verification', { method: 'POST', body: payload, token }),
-  myVerificationDocs: (token) => request('/verification/mine', { token }),
+  myVerificationDocs: (token, type) => request(`/verification/mine${type ? `?type=${type}` : ''}`, { token }),
   verificationQueue: (token) => request('/verification/queue', { token }),
   verificationDecision: (id, approve, token) => request(`/verification/${id}/decision`, { method: 'PATCH', body: { approve }, token }),
 
