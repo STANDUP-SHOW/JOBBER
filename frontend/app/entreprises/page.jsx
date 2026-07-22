@@ -56,7 +56,7 @@ export default function EntreprisesPage() {
           Oubliez l'intérim, oubliez le CDD. <strong>Recrutez à la tâche, ni plus ni moins.</strong>
         </p>
         <div className="mt-7 flex flex-wrap justify-center gap-3">
-          <Link href="/auth/register" className="rounded-md bg-moss px-6 py-3 font-medium text-paper hover:bg-moss-dark">
+          <Link href="/auth/register-entreprise" className="rounded-md bg-moss px-6 py-3 font-medium text-paper hover:bg-moss-dark">
             Créer un compte entreprise
           </Link>
           <Link href="/missions/new" className="rounded-md border border-moss/30 bg-white px-6 py-3 font-medium text-moss hover:border-moss">
@@ -204,7 +204,7 @@ export default function EntreprisesPage() {
           Créez votre compte entreprise en quelques minutes et publiez votre première mission dès aujourd'hui.
         </p>
         <div className="mt-6">
-          <Link href="/auth/register" className="rounded-md bg-white px-6 py-3 font-medium text-moss hover:bg-slate-100">
+          <Link href="/auth/register-entreprise" className="rounded-md bg-white px-6 py-3 font-medium text-moss hover:bg-slate-100">
             Créer un compte entreprise
           </Link>
         </div>

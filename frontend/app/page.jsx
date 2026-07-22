@@ -5,6 +5,7 @@ import MissionCard from '../components/MissionCard';
 import { SEO_CATEGORIES } from '../lib/seoCategories';
 import { SEO_LESSON_CATEGORIES } from '../lib/seoLessonCategories';
 import Logo from '../components/Logo';
+import AudienceBlock from '../components/AudienceBlock';
 
 async function getData() {
   try {
@@ -25,131 +26,88 @@ export default async function HomePage() {
 
   return (
     <div>
-      <section className="grid items-center gap-10 py-6 md:grid-cols-2">
-        <div>
-          <div className="flex items-center gap-2">
-            <Logo className="h-14 w-14 md:h-16 md:w-16" />
-            <div className="font-display text-6xl font-bold tracking-tight text-moss md:text-7xl">
-              Job<span className="text-ochre">b</span>er
-            </div>
-          </div>
-          <span className="mt-4 block label-eyebrow text-moss">Service à domicile, pour tout, pour tous</span>
-          <h1 className="mt-3 font-display text-5xl font-semibold leading-[1.05] text-ink">
-            Un coup de main de confiance, <span className="text-moss">à deux clics</span>.
-          </h1>
-          <p className="mt-4 max-w-md text-slate-600">
-            Décrivez votre besoin, recevez des propositions de prestataires vérifiés près de chez vous, et payez en
-            toute sécurité une fois la mission terminée.
-          </p>
-          <div className="mt-7 flex flex-wrap gap-3">
-            <Link href="/missions/new" className="rounded-md bg-moss px-5 py-3 font-medium text-paper hover:bg-moss-dark">
-              Publier un besoin
-            </Link>
+      <section className="py-6 text-center">
+        <div className="flex items-center justify-center gap-2">
+          <Logo className="h-14 w-14 md:h-16 md:w-16" />
+          <div className="font-display text-6xl font-bold tracking-tight text-moss md:text-7xl">
+            Job<span className="text-ochre">b</span>er
           </div>
         </div>
-        <div className="rounded-lg border border-slate-200 bg-white p-6">
-          <span className="label-eyebrow text-ochre-dark">Comment ça marche</span>
-          <ol className="mt-4 space-y-4">
-            {[
-              ['01', 'Décrivez votre mission', 'Catégorie, adresse, date souhaitée, durée estimée.'],
-              ['02', 'Comparez les offres', 'Les prestataires postulent avec leur tarif horaire.'],
-              ['03', 'Payez en sécurité', "L'argent est bloqué en séquestre puis versé une fois le travail validé."],
-            ].map(([n, title, desc]) => (
-              <li key={n} className="flex gap-4">
-                <span className="font-display text-2xl text-moss">{n}</span>
-                <div>
-                  <div className="font-medium text-ink">{title}</div>
-                  <div className="text-sm text-slate-500">{desc}</div>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
+        <span className="mt-4 block label-eyebrow text-moss">Service à domicile, pour tout, pour tous</span>
+        <h1 className="mx-auto mt-3 max-w-2xl font-display text-4xl font-semibold leading-[1.1] text-ink md:text-5xl">
+          Un coup de main de confiance, <span className="text-moss">à deux clics</span>.
+        </h1>
       </section>
 
-      <section className="mt-16 grid items-center gap-10 rounded-lg border border-ochre/30 bg-ochre-light p-6 md:grid-cols-2 md:p-10">
-        <div>
-          <span className="label-eyebrow text-ochre-dark">Vous voulez jobber ?</span>
-          <h2 className="mt-3 font-display text-3xl font-semibold leading-[1.1] text-ink md:text-4xl">
-            Arrondissez vos fins de mois. Augmentez vos revenus.
-          </h2>
-          <p className="mt-3 max-w-md text-slate-700">
-            Jobbez à plein temps ou sur votre temps libre. Que vous soyez particulier ou travailleur indépendant,
-            Jobber c'est des centaines de missions par semaine, près de chez vous.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/auth/register" className="inline-block rounded-md bg-ink px-5 py-3 font-medium text-white hover:bg-ink/90">
-              Devenir Jobber
-            </Link>
-            <Link href="/devenir-jobber" className="inline-block rounded-md border border-ink/20 bg-white px-5 py-3 font-medium text-ink hover:border-ink">
-              En savoir plus
-            </Link>
-          </div>
-        </div>
-        <div className="rounded-lg bg-white p-6">
-          <span className="label-eyebrow text-ochre-dark">Pourquoi jobber</span>
-          <ul className="mt-4 space-y-4">
-            {[
-              ['💶', 'Fixez votre tarif', 'Vous répondez aux missions au prix que vous choisissez.'],
-              ['📅', 'Travaillez quand vous voulez', 'À plein temps ou entre deux missions, selon votre disponibilité.'],
-              ['📍', 'Près de chez vous', "Choisissez votre zone d'intervention et vos catégories de compétence."],
-            ].map(([icon, title, desc]) => (
-              <li key={title} className="flex gap-3">
-                <span className="text-2xl">{icon}</span>
-                <div>
-                  <div className="font-medium text-ink">{title}</div>
-                  <div className="text-sm text-slate-500">{desc}</div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
+      <AudienceBlock
+        eyebrow="Vous avez un besoin ?"
+        title="Décrivez votre besoin. Recevez des propositions."
+        description="Ménage, bricolage, jardinage, déménagement… Publiez votre mission et recevez des propositions de prestataires vérifiés près de chez vous."
+        sectionClass="border border-slate-200 bg-white"
+        eyebrowClass="text-moss"
+        points={[
+          { icon: '📝', title: 'Votre mission', desc: 'Catégorie, adresse, date souhaitée, durée estimée.' },
+          { icon: '📊', title: 'Comparez les offres', desc: "En moins de 10 minutes : nulle part ailleurs vous n'aurez un devis aussi vite." },
+          { icon: '🔒', title: 'Payez en sécurité', desc: "L'argent est bloqué en séquestre puis versé une fois le travail validé." },
+        ]}
+        buttons={[
+          { href: '/missions/new', label: 'Publier un besoin', variant: 'moss' },
+          { href: '/frais', label: 'Voir les tarifs', variant: 'outline' },
+        ]}
+      />
 
-      <section className="mt-16 overflow-hidden rounded-lg border border-purple-200 bg-purple-50">
-        <div className="grid items-center gap-6 p-6 md:grid-cols-[1fr_auto] md:p-8">
-          <div>
-            <span className="rounded-full bg-purple-600 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">Nouveau !</span>
-            <h2 className="mt-3 font-display text-2xl font-semibold text-ink">
-              Vous voulez jobber mais vous n'avez pas d'expérience ?
-            </h2>
-            <p className="mt-2 max-w-2xl text-slate-600">
-              Vous souhaitez apprendre ? Bonne nouvelle ! Sur Jobber, vous apprenez avec un pro — on passe direct à la
-              pratique. Demandez des cours de jardinage, de ménage, d'électricité, de plomberie… nos jobbers viennent
-              chez vous vous apprendre !
-            </p>
-          </div>
-          <div className="flex shrink-0 flex-wrap gap-3 md:flex-col">
-            <Link href="/lessons" className="rounded-md bg-purple-600 px-5 py-3 text-center font-medium text-white hover:bg-purple-700">
-              Voir les leçons proposées
-            </Link>
-            <Link href="/missions/new?type=lesson" className="rounded-md border border-purple-300 bg-white px-5 py-3 text-center font-medium text-purple-700 hover:border-purple-500">
-              Demander un cours
-            </Link>
-          </div>
-        </div>
-      </section>
+      <AudienceBlock
+        reverse
+        eyebrow="Vous voulez jobber ?"
+        title="Arrondissez vos fins de mois. Augmentez vos revenus."
+        description="Jobbez à plein temps ou sur votre temps libre. Que vous soyez particulier ou travailleur indépendant, Jobber c'est des centaines de missions par semaine, près de chez vous."
+        sectionClass="border border-ochre/30 bg-ochre-light"
+        eyebrowClass="text-ochre-dark"
+        points={[
+          { icon: '💶', title: 'Fixez votre tarif', desc: 'Vous répondez aux missions au prix que vous choisissez.' },
+          { icon: '📅', title: 'Travaillez quand vous voulez', desc: 'À plein temps ou entre deux missions, selon votre disponibilité.' },
+          { icon: '📍', title: 'Près de chez vous', desc: "Choisissez votre zone d'intervention et vos catégories de compétence." },
+        ]}
+        buttons={[
+          { href: '/auth/register', label: 'Devenir Jobber', variant: 'primary' },
+          { href: '/devenir-jobber', label: 'En savoir plus', variant: 'outline' },
+        ]}
+      />
 
-      <section className="mt-16 overflow-hidden rounded-lg border border-moss/20 bg-moss-light">
-        <div className="grid items-center gap-6 p-6 md:grid-cols-[1fr_auto] md:p-8">
-          <div>
-            <span className="rounded-full bg-moss px-3 py-1 text-xs font-bold uppercase tracking-wide text-paper">Nouveau !</span>
-            <h2 className="mt-3 font-display text-2xl font-semibold text-ink">
-              Vous dirigez une entreprise ? Recrutez à la tâche.
-            </h2>
-            <p className="mt-2 max-w-2xl text-slate-600">
-              Oubliez l'intérim, oubliez le CDD. Constituez-vous une horde de collaborateurs dans des domaines bien
-              précis et gérez-les comme vos salariés grâce à Jobber+ : plannings, missions, employés, factures, tout
-              est simplifié. Vous ne payez qu'une fois le travail effectué.
-            </p>
-          </div>
-          <div className="flex shrink-0 flex-wrap gap-3 md:flex-col">
-            <Link href="/entreprises" className="rounded-md bg-moss px-5 py-3 text-center font-medium text-paper hover:bg-moss-dark">
-              En savoir plus
-            </Link>
-          </div>
-        </div>
-      </section>
+      <AudienceBlock
+        eyebrow="Vous voulez apprendre un métier ?"
+        title="Apprenez avec un pro, on passe direct à la pratique."
+        description="Vous souhaitez apprendre ? Bonne nouvelle ! Sur Jobber, vous apprenez avec un pro. Demandez des cours de jardinage, de ménage, d'électricité, de plomberie… nos jobbers viennent chez vous vous apprendre !"
+        sectionClass="border border-purple-200 bg-purple-50"
+        eyebrowClass="text-purple-700"
+        points={[
+          { icon: '🎓', title: 'Formation accessible à tous', desc: 'Accès à la formation professionnelle pour tous, sans démarches administratives.' },
+          { icon: '⏰', title: 'À votre rythme', desc: 'Vous apprenez un métier à votre rythme, sur votre temps libre.' },
+          { icon: '🤝', title: 'Partagez votre expérience', desc: 'Vous partagez votre expérience et transmettez vos valeurs.' },
+        ]}
+        buttons={[
+          { href: '/lessons', label: 'Voir les leçons proposées', variant: 'purple' },
+          { href: '/missions/new?type=lesson', label: 'Demander un cours', variant: 'purple-outline' },
+        ]}
+      />
+
+      <AudienceBlock
+        reverse
+        eyebrow="Vous dirigez une entreprise ?"
+        title="Recrutez à la tâche. Oubliez l'intérim."
+        description="Oubliez l'intérim, oubliez le CDD. Constituez-vous une horde de collaborateurs dans des domaines bien précis et gérez-les comme vos salariés grâce à Jobber+ : plannings, missions, employés, factures, tout est simplifié. Vous ne payez qu'une fois le travail effectué."
+        sectionClass="border border-moss/20 bg-moss-light"
+        eyebrowClass="text-moss-dark"
+        points={[
+          { icon: '📋', title: 'Recruter sans démarches administratives', desc: "Jobber s'occupe de tout." },
+          { icon: '💶', title: 'Facturé à la prestation', desc: 'À l\'heure de travail effectif, sans perte.' },
+          { icon: '🧘', title: 'Oubliez vos soucis de personnel', desc: 'Plus besoin de contrat, de congés payés, de pauses, d\'absences…' },
+        ]}
+        buttons={[
+          { href: '/auth/register-entreprise', label: 'Ouvrir un compte entreprise', variant: 'moss' },
+          { href: '/entreprises', label: 'En savoir plus', variant: 'outline' },
+        ]}
+      />
 
       <section className="mt-16">
         <h2 className="font-display text-2xl font-semibold text-ink">Toutes les catégories</h2>
