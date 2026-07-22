@@ -69,7 +69,7 @@ export default function FraisPage() {
       </section>
 
       <section className="mt-16 rounded-lg border border-slate-200 bg-white p-6 text-center md:p-10">
-        <span className="label-eyebrow text-moss">Sans aucun abonnement</span>
+        <h2 className="font-display text-2xl font-semibold text-ink">Sans aucun abonnement</h2>
         <p className="mx-auto mt-3 max-w-xl text-lg text-ink">
           Pour une mission réalisée, Jobber prélève <strong>2,50 €</strong> au demandeur et <strong>2,50 €</strong>{' '}
           au jobber. Le manager et le jobber peuvent s'abonner pour ne plus avoir aucun frais à payer sur leurs
