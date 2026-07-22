@@ -33,7 +33,7 @@ export default async function HomePage() {
             Job<span className="text-ochre">b</span>er
           </div>
         </div>
-        <span className="mt-4 block font-display text-base font-bold uppercase tracking-wide text-moss">Service à domicile, pour tout, pour tous</span>
+        <span className="mt-4 block font-display text-base font-bold uppercase tracking-wide text-moss">L'humain au service de l'humain</span>
         <h1 className="mx-auto mt-3 max-w-2xl font-display text-4xl font-semibold leading-[1.1] text-ink md:text-5xl">
           Un coup de main de confiance, <span className="text-moss">à deux clics</span>.
         </h1>
