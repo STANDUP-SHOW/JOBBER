@@ -140,7 +140,7 @@ function NewMissionForm() {
 
   async function onSubmit(e) {
     e.preventDefault();
-    if (!user) { router.push('/auth/login'); return; }
+    if (!user) { router.push('/auth/register'); return; }
     setError('');
     setLoading(true);
     try {
@@ -196,7 +196,7 @@ function NewMissionForm() {
 
       {!authLoading && !user && (
         <p className="mt-4 rounded-md bg-ochre-light px-4 py-3 text-sm text-ochre-dark">
-          Vous devrez vous <a href="/auth/login" className="font-medium underline">connecter</a> pour publier — vous ne perdrez pas votre saisie.
+          Vous devrez <a href="/auth/register" className="font-medium underline">créer votre compte</a> pour publier — vous ne perdrez pas votre saisie.
         </p>
       )}
 

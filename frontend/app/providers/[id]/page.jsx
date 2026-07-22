@@ -59,6 +59,9 @@ export default function ProviderProfilePage() {
           </div>
         </div>
         <div className="ml-auto flex flex-col items-end gap-1.5">
+          {provider.isProfessional && (
+            <span className="rounded-full bg-ochre px-3 py-1 text-xs font-bold uppercase tracking-wide text-ink">PRO</span>
+          )}
           {profile.verificationStatus === 'APPROVED' && (
             <span className="rounded-full bg-moss-light px-3 py-1 text-xs font-medium text-moss-dark">✓ Vérifié</span>
           )}
