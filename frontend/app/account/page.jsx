@@ -132,37 +132,46 @@ export default function AccountPage() {
           </div>
         </>
       ) : (
-        <Section title="Espace manager">
+        <Section title="Espace Manager">
           <Row href="/missions/new" icon="📝" label="Publier un besoin" sublabel="Décrire une mission à réaliser" />
-          <Row href="/dashboard" icon="📋" label="Mes réservations" sublabel="Suivre vos missions en cours" />
-          <Row href="/account/subscription" icon="⭐" label="Abonnement Manager" sublabel="Plus aucun frais sur vos missions" />
+          <Row href="/dashboard/manager-missions" icon="📋" label="Suivi de missions" sublabel="Missions en cours et offres reçues" />
+          <Row href="/dashboard/manager-completed" icon="✅" label="Missions terminées" />
+          <Row href="/account/invoices" icon="🧾" label="Mes factures" />
+          <Row href="/account/favorites" icon="⭐" label="Mes jobbers favoris" sublabel="Vos prestataires à recontacter" />
+          <Row href="/account/subscription" icon="💼" label="Abonnements Manager" sublabel="Plus aucun frais sur vos missions" />
         </Section>
       )}
 
       {!isCompany && (
-        <Section title="Espace jobber">
+        <Section title="Espace Jobber">
+          <Row href="/dashboard/profile" icon="🛠️" label="Mon profil Jobber" sublabel="Zone d'intervention, tarif, catégories" />
           <Row href="/missions" icon="🔎" label="Missions disponibles" sublabel="Parcourir les besoins près de chez vous" />
           <Row href="/dashboard/offers" icon="📨" label="Mes offres" sublabel="Missions auxquelles vous avez postulé" />
-          <Row href="/dashboard/profile" icon="🛠️" label="Mon profil jobber" sublabel="Zone d'intervention, tarif, catégories" />
+          <Row href="/dashboard/jobber-history" icon="🗂️" label="Historique de missions" />
+          <Row href="/account/reviews" icon="🌟" label="Mes évaluations" sublabel="Vos avis reçus" />
+          <Row href="/account/badges" icon="🏅" label="Mes Badges et récompenses" />
           <Row
             href="/dashboard/wallet"
             icon="💶"
-            label={`Portefeuille — ${(user.providerProfile?.walletBalance ?? 0).toFixed(2)} €`}
+            label={`Mon Portefeuille — ${(user.providerProfile?.walletBalance ?? 0).toFixed(2)} €`}
             sublabel={user.providerProfile?.payoutsEnabled ? 'Paiements activés' : 'Paiements non configurés'}
           />
+          <Row href="/account/subscription" icon="💼" label="Abonnements jobber" sublabel="Plus aucun frais sur vos missions" />
         </Section>
       )}
 
       {!isCompany && (
-        <Section title="Espace formation">
+        <Section title="Espace Formation">
+          <Row href="/account/diplomas" icon="🎓" label="Mes diplômes et titres professionnels" />
           <Row
             href="/account/teach-lessons"
-            icon="🎓"
+            icon="📖"
             label="Donner des cours"
             sublabel={user.providerProfile?.offersLessons ? 'Activé' : 'Enseignez dans vos catégories'}
           />
           <Row href="/missions/new?type=lesson" icon="🙋" label="Demander des cours" sublabel="Un jobber vient vous apprendre chez vous" />
           <Row href="/lessons" icon="📚" label="Consulter les cours proposés" sublabel="Par d'autres jobbers" />
+          <Row href="/account/lesson-history" icon="🕓" label="Historique formation jobber" />
         </Section>
       )}
 
