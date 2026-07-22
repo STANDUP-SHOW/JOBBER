@@ -27,6 +27,8 @@ const registerSchema = z.object({
   companyName: z.string().optional(),
   companySiret: z.string().optional(),
   address: z.string().optional(),
+  isProfessional: z.boolean().optional().default(false),
+  professionalSiret: z.string().optional(),
 }).refine(
   (data) => data.accountKind !== 'COMPANY' || (data.companyType && data.companyName?.trim()),
   { message: 'Le type et le nom de l\'entreprise sont requis pour un compte entreprise', path: ['companyName'] }
@@ -39,6 +41,9 @@ const registerSchema = z.object({
 ).refine(
   (data) => data.accountKind !== 'COMPANY' || data.phone?.trim(),
   { message: 'Le téléphone de l\'entreprise est requis', path: ['phone'] }
+).refine(
+  (data) => data.accountKind !== 'INDIVIDUAL' || !data.isProfessional || isValidSiret(data.professionalSiret),
+  { message: 'Un numéro KBIS/SIRET valide (14 chiffres) est requis', path: ['professionalSiret'] }
 );
 
 const SIGNUP_BONUS_EUR = 3;
@@ -89,6 +94,8 @@ router.post('/register', async (req, res, next) => {
         address: isCompany ? data.address.trim() : undefined,
         lat: geocoded?.lat,
         lng: geocoded?.lng,
+        isProfessional: !isCompany && data.isProfessional,
+        professionalSiret: !isCompany && data.isProfessional ? data.professionalSiret : undefined,
         providerProfile: isCompany ? undefined : { create: {} },
       },
     });
@@ -99,6 +106,9 @@ router.post('/register', async (req, res, next) => {
     if (err.name === 'ZodError') { err.status = 400; err.expose = true; err.message = err.errors[0].message; }
     if (err.code === 'P2002' && err.meta?.target?.includes('companySiret')) {
       err.status = 409; err.expose = true; err.message = 'Ce numéro SIRET est déjà utilisé par un autre compte';
+    }
+    if (err.code === 'P2002' && err.meta?.target?.includes('professionalSiret')) {
+      err.status = 409; err.expose = true; err.message = 'Ce numéro KBIS/SIRET est déjà utilisé par un autre compte';
     }
     next(err);
   }
