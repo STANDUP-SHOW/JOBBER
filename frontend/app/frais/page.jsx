@@ -56,7 +56,7 @@ export default function FraisPage() {
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-lg text-ink">
           Qu'on veuille en gagner ou en économiser, Jobber est devenu notre plateforme d'échange. Alors parlons
-          argent, monnaie, dinero — sans surprise.
+          argent — sans surprise.
         </p>
       </section>
 
