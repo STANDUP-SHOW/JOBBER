@@ -59,9 +59,14 @@ export default async function HomePage() {
         reverse
         eyebrow="Vous voulez jobber ?"
         title="Arrondissez vos fins de mois. Augmentez vos revenus."
-        description="Jobbez à plein temps ou sur votre temps libre. Que vous soyez particulier ou travailleur indépendant, Jobber c'est des centaines de missions par semaine, près de chez vous."
+        description={
+          <>
+            Jobbez à plein temps ou sur votre temps libre. Que vous soyez <strong>particulier ou travailleur indépendant</strong>,
+            Jobber c'est des centaines de missions par semaine, près de chez vous.
+          </>
+        }
         sectionClass="bg-ochre"
-        eyebrowClass="text-ink/70"
+        eyebrowClass="text-white"
         points={[
           { icon: '💶', title: 'Fixez votre tarif', desc: 'Vous répondez aux missions au prix que vous choisissez.' },
           { icon: '📅', title: 'Travaillez quand vous voulez', desc: 'À plein temps ou entre deux missions, selon votre disponibilité.' },
