@@ -109,7 +109,7 @@ const CATEGORIES = [
   ] },
   { name: 'Peinture', slug: 'peinture', icon: '🎨', services: [
     'Peinture intérieure', 'Peinture extérieure', 'Ravalement de façade', 'Enduit et lissage des murs',
-    'Pose de papier peint', 'Peinture décorative', 'Vernis et lasure',
+    'Pose de papier peint', 'Peinture décorative', 'Vernis et lasure', 'Peinture de portail ou portillon métal',
   ], equipment: [
     'Rouleaux et pinceaux', 'Bâches de protection', 'Ruban de masquage', 'Escabeau / échelle',
     'Échafaudage léger', 'Pistolet à peinture', 'Ponceuse', 'Enduit et spatules',
@@ -161,6 +161,20 @@ const CATEGORIES = [
     'Bétonnière', 'Truelle et taloche', 'Niveau à bulle / laser', 'Fil à plomb', 'Auge de maçon',
     'Brouette de chantier', 'Règle de maçon', 'Coffrage bois', 'Pelle et pioche', 'Marteau-piqueur',
     'Meuleuse', 'Casque et gants de chantier',
+  ] },
+  { name: 'Smartphone', slug: 'smartphone', icon: '📱', services: [
+    'Remplacement écran Android', 'Remplacement écran Apple', 'Réinitialiser et tout supprimer', 'Débug',
+  ], equipment: [
+    'Kit de tournevis de précision', 'Ventouse d\'ouverture', 'Spatules en plastique', 'Pistolet à air chaud',
+    'Pince à épiler', 'Loupe / lampe d\'établi', 'Multimètre',
+  ] },
+  { name: 'Web', slug: 'web', icon: '🌐', services: [
+    'Intervention sur site web', 'Création graphique', 'Générer du contenu', 'Réseaux sociaux',
+    'Développer un site web', 'Développer une application', 'Référencement naturel SEO', 'Publicité Ads',
+    'Référencement marketplace', 'Me faire connaître',
+  ], equipment: [
+    'Ordinateur portable', 'Accès aux identifiants (hébergeur, CMS)', 'Charte graphique existante (si disponible)',
+    'Accès aux comptes réseaux sociaux',
   ] },
 ];
 
