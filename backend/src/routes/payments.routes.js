@@ -381,28 +381,42 @@ router.delete('/payment-methods/:id', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// "Plus aucun frais" manager plans — Manager Boss (10€/mo, up to 10 missions)
-// and Manager Holder (20€/mo, unlimited). Requires a saved card first; the
-// subscription's default payment method is whichever card is currently set
-// as the customer's default.
+// "Plus aucun frais" plans. MANAGER-family (Manager Boss/Holder for
+// individuals, Entreprise 20/50/Illimité for companies) waives the
+// poster-side fee; JOBBER-family (Silver/Gold/Platine, individuals only)
+// independently waives the provider-side fee. An individual account can
+// hold one of each at once. Requires a saved card first; the subscription's
+// default payment method is whichever card is currently set as the
+// customer's default.
 router.get('/subscription', requireAuth, async (req, res, next) => {
   try {
-    const subscription = await prisma.subscription.findUnique({ where: { userId: req.user.id } });
-    res.json({ subscription });
+    const subscriptions = await prisma.subscription.findMany({ where: { userId: req.user.id } });
+    res.json({
+      subscription: subscriptions.find((s) => s.family === 'MANAGER') || null,
+      jobberSubscription: subscriptions.find((s) => s.family === 'JOBBER') || null,
+    });
   } catch (err) { next(err); }
 });
 
-const INDIVIDUAL_PLANS = ['MANAGER_BOSS', 'MANAGER_HOLDER'];
+const MANAGER_PLANS = ['MANAGER_BOSS', 'MANAGER_HOLDER'];
 const COMPANY_PLANS = ['ENTERPRISE_20', 'ENTERPRISE_50', 'ENTERPRISE_UNLIMITED'];
+const JOBBER_PLANS = ['JOBBER_SILVER', 'JOBBER_GOLD', 'JOBBER_PLATINUM'];
+
+function planFamily(plan) {
+  if (JOBBER_PLANS.includes(plan)) return 'JOBBER';
+  if (MANAGER_PLANS.includes(plan) || COMPANY_PLANS.includes(plan)) return 'MANAGER';
+  return null;
+}
 
 router.post('/subscribe', requireAuth, async (req, res, next) => {
   try {
     const { plan } = req.body;
     const isCompany = req.user.accountKind === 'COMPANY';
-    const allowedPlans = isCompany ? COMPANY_PLANS : INDIVIDUAL_PLANS;
+    const allowedPlans = isCompany ? COMPANY_PLANS : [...MANAGER_PLANS, ...JOBBER_PLANS];
     if (!allowedPlans.includes(plan)) {
       return res.status(400).json({ error: 'Offre invalide' });
     }
+    const family = planFamily(plan);
 
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
     if (!user.stripeCustomerId) {
@@ -414,7 +428,7 @@ router.post('/subscribe', requireAuth, async (req, res, next) => {
       return res.status(400).json({ error: 'Ajoutez d\'abord un moyen de paiement' });
     }
 
-    const existing = await prisma.subscription.findUnique({ where: { userId: req.user.id } });
+    const existing = await prisma.subscription.findFirst({ where: { userId: req.user.id, family } });
     if (existing?.stripeSubscriptionId && existing.status === 'ACTIVE') {
       await cancelSubscription(existing.stripeSubscriptionId).catch(() => {});
     }
@@ -423,6 +437,7 @@ router.post('/subscribe', requireAuth, async (req, res, next) => {
 
     const data = {
       plan,
+      family,
       status: 'ACTIVE',
       stripeSubscriptionId: stripeSub.id,
       currentPeriodStart: new Date(stripeSub.current_period_start * 1000),
@@ -430,7 +445,7 @@ router.post('/subscribe', requireAuth, async (req, res, next) => {
       missionsUsedInPeriod: 0,
     };
     const subscription = await prisma.subscription.upsert({
-      where: { userId: req.user.id },
+      where: { userId_family: { userId: req.user.id, family } },
       create: { userId: req.user.id, ...data },
       update: data,
     });
@@ -447,12 +462,13 @@ router.post('/subscribe', requireAuth, async (req, res, next) => {
 
 router.post('/subscribe/cancel', requireAuth, async (req, res, next) => {
   try {
-    const subscription = await prisma.subscription.findUnique({ where: { userId: req.user.id } });
+    const family = req.body.family === 'JOBBER' ? 'JOBBER' : 'MANAGER';
+    const subscription = await prisma.subscription.findFirst({ where: { userId: req.user.id, family } });
     if (!subscription) return res.status(404).json({ error: 'Aucun abonnement actif' });
     if (subscription.stripeSubscriptionId) {
       await cancelSubscription(subscription.stripeSubscriptionId).catch(() => {});
     }
-    const updated = await prisma.subscription.update({ where: { userId: req.user.id }, data: { status: 'CANCELED' } });
+    const updated = await prisma.subscription.update({ where: { id: subscription.id }, data: { status: 'CANCELED' } });
     res.json({ subscription: updated });
   } catch (err) { next(err); }
 });
