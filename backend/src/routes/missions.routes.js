@@ -57,9 +57,10 @@ const createMissionSchema = z.object({
   requiredVehicleTypes: z.array(z.enum(VEHICLE_TYPES)).optional().default([]),
   otherEquipmentNote: z.string().max(200).optional().transform((v) => (v ? v : undefined)),
   otherVehicleNote: z.string().max(200).optional().transform((v) => (v ? v : undefined)),
-  // Answers to the selected service's detailFields — loosely validated here
-  // (the form only ever sends primitives), shape is defined per-service.
-  details: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
+  // Answers to the selected service's detailFields — loosely validated here,
+  // shape is defined per-service. Arrays cover multiselect fields (e.g. a
+  // service's "prestations" checkbox list).
+  details: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.array(z.string())])).optional(),
   // Company-only options — stripped server-side below for individual
   // accounts regardless of what the client sends.
   missionEndDate: z.string().optional(), // ISO date
