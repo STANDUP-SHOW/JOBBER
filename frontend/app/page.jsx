@@ -55,6 +55,19 @@ export default async function HomePage() {
         ]}
       />
 
+      <section className="mt-6 flex flex-col items-center gap-4 rounded-lg border-2 border-moss bg-moss-light px-6 py-6 text-center md:flex-row md:justify-between md:text-left">
+        <div>
+          <div className="font-display text-xl font-bold text-ink">Crédit d'impôt !</div>
+          <p className="mt-1 text-sm text-ink">
+            50 % de la prestation réalisée sur Jobber est remboursée par l'État.
+          </p>
+          <p className="mt-0.5 text-sm text-moss-dark">Voir les services éligibles au crédit d'impôt →</p>
+        </div>
+        <Link href="/credit-impot" className="shrink-0 rounded-md bg-moss px-5 py-3 font-medium text-paper hover:bg-moss-dark">
+          En savoir plus
+        </Link>
+      </section>
+
       <AudienceBlock
         reverse
         eyebrow="Vous voulez jobber ?"
