@@ -92,7 +92,7 @@ export default function DevenirJobberPage() {
           {[
             ['💰', 'Crédité aussitôt', 'Dès que votre mission est validée et payée, l\'argent est crédité sur votre porte-monnaie Jobber.'],
             ['⚡', 'Virement à volonté', 'Déclenchez le virement vers votre compte bancaire en un clic, ou activez le virement automatique.'],
-            ['🌙', 'Le soir même', 'Vous trouvez une mission, vous travaillez aujourd\'hui, vous avez l\'argent ce soir sur votre compte.'],
+            ['🌙', 'Le jour même', "Trouvez une mission aujourd'hui, travaillez aujourd'hui, recevez l'argent sur votre compte aujourd'hui !"],
           ].map(([icon, title, desc]) => (
             <div key={title} className="rounded-lg border border-slate-200 bg-white p-5">
               <span className="text-2xl">{icon}</span>

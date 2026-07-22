@@ -45,9 +45,6 @@ export default async function HomePage() {
             <Link href="/missions/new" className="rounded-md bg-moss px-5 py-3 font-medium text-paper hover:bg-moss-dark">
               Publier un besoin
             </Link>
-            <Link href="/auth/register" className="rounded-md border border-slate-200 px-5 py-3 font-medium text-ink hover:border-moss hover:text-moss-dark">
-              Devenir prestataire
-            </Link>
           </div>
         </div>
         <div className="rounded-lg border border-slate-200 bg-white p-6">
