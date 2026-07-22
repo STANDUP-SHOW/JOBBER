@@ -16,14 +16,40 @@ const select = (key, label, options) => ({ key, label, type: 'select', options }
 // UI reveals a free-text "Précisez" input when the user picks it.
 const selectOther = (key, label, options) => ({ key, label, type: 'select', options: [...options, 'Autre'], other: true });
 // Checkbox group — several options can be picked at once (e.g. booking a
-// manicure and an eyebrow wax in the same beauty appointment). Options are
-// split into titled sub-blocks so a long list (e.g. 64 beauty treatments)
-// reads as sections instead of one undifferentiated wall of checkboxes.
+// manicure and an eyebrow wax in the same beauty appointment).
+const multiselect = (key, label, options) => ({ key, label, type: 'multiselect', options });
+// Same as multiselect(), but options are split into titled sub-blocks so a
+// long list (e.g. 64 beauty treatments) reads as sections instead of one
+// undifferentiated wall of checkboxes.
 const multiselectGroups = (key, label, groups) => ({ key, label, type: 'multiselect', groups });
 
 const SURFACE_M2 = (label = 'Surface') => num('surfaceM2', label, 'm²');
 const WALL_TYPES = ['Béton', 'Placo', 'Brique', 'Bois', 'Autre'];
 const MASONRY_WALL_TYPES = ['Parpaing', 'Brique', 'Pierre', 'Béton banché', 'Autre'];
+const wasteDisposal = (label) => bool('wasteDisposal', label);
+
+// "Décrivez la mission" room-by-room instead of a flat m² figure — booleans
+// for rooms that are typically singular, counts for rooms that repeat.
+const roomFields = () => [
+  bool('roomKitchen', 'Cuisine'),
+  num('roomBathroomCount', 'Nombre de salles de bain'),
+  bool('roomLivingRoom', 'Salon'),
+  num('roomBedroomCount', 'Nombre de chambres'),
+  bool('roomCellar', 'Cellier'),
+  num('roomToiletCount', 'Nombre de toilettes'),
+];
+const APPLIANCES = ['Four', 'Réfrigérateur', 'Micro-ondes', 'Lave-vaisselle', 'Plaques de cuisson', 'Hotte', 'Sèche-linge', 'Lave-linge'];
+
+const poolDimensions = () => [
+  num('poolLengthM', 'Longueur du bassin', 'm'),
+  num('poolWidthM', 'Largeur du bassin', 'm'),
+  num('poolDepthM', 'Profondeur du bassin', 'm'),
+];
+
+const PHONE_BRANDS_ANDROID = ['Samsung', 'Xiaomi', 'Google', 'OnePlus', 'Huawei', 'Oppo', 'Sony', 'Motorola', 'Autre'];
+const IPHONE_MODELS = [
+  'iPhone 7', 'iPhone 8', 'iPhone X', 'iPhone 11', 'iPhone 12', 'iPhone 13', 'iPhone 14', 'iPhone 15', 'iPhone 16', 'Autre',
+];
 
 const CAR_BRANDS = [
   'Alfa Romeo', 'Audi', 'BMW', 'Citroën', 'Cupra', 'Dacia', 'DS', 'Fiat', 'Ford', 'Honda',
@@ -86,7 +112,10 @@ const SERVICE_FIELDS = {
   'demenagement-deballage-et-rangement': [num('boxesCount', 'Nombre de cartons estimé')],
   'demenagement-montage-et-demontage-de-meubles': [num('furnitureCount', 'Nombre de meubles')],
   'demenagement-location-et-transport-de-camion': [num('volumeM3', 'Volume nécessaire', 'm³')],
-  'demenagement-debarras-d-encombrants': [text('itemsList', 'Liste des encombrants')],
+  'demenagement-debarras-d-encombrants': [
+    text('itemsList', 'Liste des encombrants'),
+    wasteDisposal('Le jobber devra-t-il évacuer les encombrants en déchèterie ?'),
+  ],
 
   // --- Électricité ---
   'electricite-installation-electrique': [num('pointsCount', 'Nombre de points électriques')],
@@ -122,17 +151,21 @@ const SERVICE_FIELDS = {
   'informatique-initiation-informatique': [select('level', 'Niveau', ['Débutant', 'Intermédiaire'])],
 
   // --- Jardinage --- (l'exemple donné explicitement)
-  'jardinage-tonte-de-pelouse': [SURFACE_M2()],
+  'jardinage-tonte-de-pelouse': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les déchets verts en déchèterie ?')],
   'jardinage-taille-de-haie': [
     num('hedgeCurrentHeightM', 'Hauteur actuelle de la haie', 'm'),
     num('hedgeTargetHeightM', 'Hauteur de coupe souhaitée', 'm'),
     num('hedgeLengthM', 'Longueur de la haie', 'm'),
+    wasteDisposal('Le jobber devra-t-il évacuer les déchets verts en déchèterie ?'),
   ],
-  'jardinage-entretien-de-jardin': [SURFACE_M2()],
-  'jardinage-desherbage': [SURFACE_M2()],
+  'jardinage-entretien-de-jardin': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les déchets verts en déchèterie ?')],
+  'jardinage-desherbage': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les déchets verts en déchèterie ?')],
   'jardinage-plantation': [num('plantsCount', 'Nombre de plants'), text('plantingType', 'Type de plantation')],
-  'jardinage-ramassage-de-feuilles': [SURFACE_M2()],
-  'jardinage-elagage': [num('treeHeightM', "Hauteur de l'arbre", 'm'), num('treesCount', "Nombre d'arbres")],
+  'jardinage-ramassage-de-feuilles': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les déchets verts en déchèterie ?')],
+  'jardinage-elagage': [
+    num('treeHeightM', "Hauteur de l'arbre", 'm'), num('treesCount', "Nombre d'arbres"),
+    wasteDisposal('Le jobber devra-t-il évacuer les déchets verts en déchèterie ?'),
+  ],
   'jardinage-arrosage-pendant-l-absence': [num('absenceDays', "Durée d'absence", 'jours')],
   'jardinage-creation-de-potager': [SURFACE_M2()],
 
@@ -144,9 +177,9 @@ const SERVICE_FIELDS = {
   'mecanique-autre-vehicule': [text('vehicleType', 'Type de véhicule'), text('brand', 'Marque'), text('model', 'Modèle'), num('year', 'Année'), num('mileageKm', 'Kilométrage', 'km')],
 
   // --- Ménage ---
-  'menage-menage-a-domicile': [SURFACE_M2()],
+  'menage-menage-a-domicile': [...roomFields(), multiselect('appliances', 'Électroménager à nettoyer', APPLIANCES)],
   'menage-repassage': [num('itemsCount', 'Nombre de pièces de linge estimé')],
-  'menage-nettoyage-de-vitres': [num('windowsCount', 'Nombre de fenêtres')],
+  'menage-nettoyage-de-vitres': [...roomFields(), num('windowsCount', 'Nombre de fenêtres')],
   'menage-aide-au-rangement': [SURFACE_M2()],
   'menage-menage-de-printemps': [SURFACE_M2()],
   'menage-nettoyage-apres-travaux': [SURFACE_M2()],
@@ -154,18 +187,33 @@ const SERVICE_FIELDS = {
   'menage-nettoyage-de-fin-de-bail': [SURFACE_M2()],
 
   // --- Peinture ---
-  'peinture-peinture-interieure': [SURFACE_M2(), num('coatsCount', 'Nombre de couches souhaité')],
+  'peinture-peinture-interieure': [SURFACE_M2(), num('coatsCount', 'Nombre de couches souhaité'), ...roomFields()],
   'peinture-peinture-exterieure': [SURFACE_M2()],
   'peinture-ravalement-de-facade': [SURFACE_M2()],
   'peinture-enduit-et-lissage-des-murs': [SURFACE_M2()],
-  'peinture-pose-de-papier-peint': [SURFACE_M2()],
+  'peinture-pose-de-papier-peint': [SURFACE_M2(), ...roomFields()],
   'peinture-peinture-decorative': [SURFACE_M2()],
   'peinture-vernis-et-lasure': [SURFACE_M2()],
+  'peinture-peinture-de-portail-ou-portillon-metal': [
+    select('condition', 'État actuel', ['Bon état — simple couche', 'Rouille légère — traitement nécessaire', 'Rouille importante — décapage complet']),
+    num('surfaceM2', 'Surface approximative', 'm²'),
+  ],
 
   // --- Piscine ---
-  'piscine-entretien': [num('volumeM3', 'Volume de la piscine', 'm³')],
-  'piscine-remise-en-etat': [num('volumeM3', 'Volume de la piscine', 'm³')],
-  'piscine-peinture': [num('surfaceM2', 'Surface à peindre', 'm²')],
+  'piscine-entretien': [
+    ...poolDimensions(),
+    bool('tileGluing', 'Collage de carreaux nécessaire'),
+    num('skimmersCount', 'Nombre de skimmers'),
+    bool('robotOnSite', 'Présence d\'un robot sur place'),
+    bool('cleaningEquipmentProvided', 'Matériel de balayage et épuisette fournis'),
+    bool('productsProvided', 'Produits d\'entretien fournis'),
+  ],
+  'piscine-remise-en-etat': [...poolDimensions()],
+  'piscine-peinture': [
+    ...poolDimensions(),
+    multiselect('extraOperations', 'Autres opérations à prévoir', ['Ponçage', 'Réparation résine', 'Réparation enduit', 'Démontage des buses et bondes']),
+    select('paintType', 'Type de peinture souhaitée', ['Gel coat', 'Acrylique', 'Résine époxy', 'Autre']),
+  ],
 
   // --- Plomberie ---
   'plomberie-installation-sanitaire': [text('installationType', "Type d'installation")],
@@ -209,16 +257,25 @@ const SERVICE_FIELDS = {
   ],
 
   // --- Maçonnerie ---
-  'maconnerie-monter-un-mur': [SURFACE_M2(), select('wallType', 'Type de mur', MASONRY_WALL_TYPES)],
-  'maconnerie-crepi-exterieur': [SURFACE_M2()],
-  'maconnerie-terrassement': [SURFACE_M2()],
-  'maconnerie-dalle-beton': [SURFACE_M2(), num('thicknessCm', 'Épaisseur', 'cm')],
-  'maconnerie-construction-extension-ou-garage': [SURFACE_M2()],
-  'maconnerie-pose-de-carrelage-exterieur': [SURFACE_M2()],
-  'maconnerie-pose-de-paves-et-dallage': [SURFACE_M2()],
-  'maconnerie-muret-et-cloture': [num('lengthM', 'Longueur', 'm'), num('heightM', 'Hauteur', 'm')],
+  'maconnerie-monter-un-mur': [
+    SURFACE_M2(), select('wallType', 'Type de mur', MASONRY_WALL_TYPES),
+    wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?'),
+  ],
+  'maconnerie-crepi-exterieur': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?')],
+  'maconnerie-terrassement': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?')],
+  'maconnerie-dalle-beton': [
+    SURFACE_M2(), num('thicknessCm', 'Épaisseur', 'cm'),
+    wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?'),
+  ],
+  'maconnerie-construction-extension-ou-garage': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?')],
+  'maconnerie-pose-de-carrelage-exterieur': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?')],
+  'maconnerie-pose-de-paves-et-dallage': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?')],
+  'maconnerie-muret-et-cloture': [
+    num('lengthM', 'Longueur', 'm'), num('heightM', 'Hauteur', 'm'),
+    wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?'),
+  ],
   'maconnerie-reparation-de-fissures': [num('crackCount', 'Nombre de fissures')],
-  'maconnerie-demolition': [SURFACE_M2()],
+  'maconnerie-demolition': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les gravats et déchets de chantier en déchèterie ?')],
 
   // --- Manutention ---
   'manutention-emballage': [num('boxesCount', 'Nombre de cartons estimé')],
@@ -240,6 +297,61 @@ const SERVICE_FIELDS = {
       'Cours de cardio-training', 'Cours de fitness enfant', 'Cours de cuisses-abdos-fessiers',
       'Cours de yoga doux', 'Cours de yoga enfant', 'Cours de yoga dynamique',
     ]),
+  ],
+
+  // --- Smartphone ---
+  'smartphone-remplacement-ecran-android': [
+    select('brand', 'Marque', PHONE_BRANDS_ANDROID), text('model', 'Modèle'), num('year', 'Année'),
+  ],
+  'smartphone-remplacement-ecran-apple': [
+    select('model', 'Modèle iPhone', IPHONE_MODELS), num('year', 'Année'),
+  ],
+  'smartphone-reinitialiser-et-tout-supprimer': [
+    select('os', 'Système', ['Android', 'Apple / iOS']), text('model', 'Modèle'),
+  ],
+  'smartphone-debug': [
+    select('os', 'Système', ['Android', 'Apple / iOS']), text('model', 'Modèle'), text('issue', 'Nature du problème'),
+  ],
+
+  // --- Web ---
+  'web-intervention-sur-site-web': [
+    select('cms', 'CMS / plateforme', ['WordPress', 'Shopify', 'Wix', 'Squarespace', 'Prestashop', 'Autre']),
+    text('issue', "Nature de l'intervention"),
+  ],
+  'web-creation-graphique': [
+    select('type', 'Type de création', ['Logo', 'Charte graphique', 'Bannières', 'Flyer / affiche', 'Autre']),
+    text('style', 'Style souhaité (optionnel)'),
+  ],
+  'web-generer-du-contenu': [
+    select('contentType', 'Type de contenu', ['Articles de blog', 'Fiches produits', 'Descriptions', 'Scripts vidéo', 'Autre']),
+    num('quantity', 'Quantité (nombre de contenus)'),
+  ],
+  'web-reseaux-sociaux': [
+    multiselect('platforms', 'Réseaux concernés', ['Instagram', 'Facebook', 'TikTok', 'LinkedIn', 'Twitter / X', 'Pinterest', 'YouTube']),
+    text('goal', 'Objectif (visibilité, ventes, communauté…)'),
+  ],
+  'web-developper-un-site-web': [
+    select('siteType', 'Type de site', ['Vitrine', 'E-commerce', 'Blog', 'Application web', 'Autre']),
+    num('pagesCount', 'Nombre de pages estimé'),
+  ],
+  'web-developper-une-application': [
+    select('platform', 'Plateforme', ['iOS', 'Android', 'iOS et Android', 'Web app']),
+    text('appType', "Type d'application"),
+  ],
+  'web-referencement-naturel-seo': [
+    text('targetKeywords', 'Mots-clés visés'),
+    select('scope', 'Périmètre', ['Audit SEO', 'Optimisation on-page', 'Netlinking', 'Suivi mensuel']),
+  ],
+  'web-publicite-ads': [
+    select('platform', 'Plateforme publicitaire', ['Google Ads', 'Meta Ads (Facebook/Instagram)', 'TikTok Ads', 'LinkedIn Ads', 'Autre']),
+    num('budgetEur', 'Budget mensuel envisagé', '€'),
+  ],
+  'web-referencement-marketplace': [
+    multiselect('marketplaces', 'Marketplaces visées', ['Amazon', 'Cdiscount', 'Etsy', 'ManoMano', 'Google Shopping', 'Autre']),
+    num('productsCount', 'Nombre de produits à référencer'),
+  ],
+  'web-me-faire-connaitre': [
+    text('goal', 'Objectif de visibilité'), text('audience', 'Cible / audience visée'),
   ],
 
   // --- Transport ---
