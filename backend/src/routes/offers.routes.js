@@ -65,6 +65,33 @@ router.get('/mine', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// "Offres reçues" — every candidature received across all of my own posted
+// missions, consolidated in one list instead of having to open each mission
+// individually to compare offers.
+router.get('/received', requireAuth, async (req, res, next) => {
+  try {
+    const offers = await prisma.offer.findMany({
+      where: { mission: { clientId: req.user.id }, status: 'PENDING' },
+      include: {
+        mission: {
+          select: {
+            id: true, title: true, address: true, status: true, desiredDate: true, estimatedHours: true,
+            category: { select: { name: true, icon: true } },
+          },
+        },
+        provider: {
+          select: {
+            id: true, firstName: true, lastName: true, avatarUrl: true,
+            providerProfile: { select: { ratingAverage: true, ratingCount: true, completedMissions: true, verificationStatus: true } },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json({ offers });
+  } catch (err) { next(err); }
+});
+
 // Standard fee: Jobber (the platform) keeps a flat 5€ per mission, split
 // 2,50€ added to what the manager pays and 2,50€ held back from what the
 // jobber receives. A MANAGER-family subscription can waive the manager's

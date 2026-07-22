@@ -60,6 +60,7 @@ enum DocumentType {
   ID_CARD
   PROOF_OF_ADDRESS
   BANK_ACCOUNT
+  DIPLOMA
 }
 
 enum PayoutStatus {
@@ -193,6 +194,22 @@ model User {
   documents         VerificationDocument[]
   conversationsAsClient   Conversation[] @relation("ConvClient")
   conversationsAsProvider Conversation[] @relation("ConvProvider")
+  favoritesAsManager  Favorite[] @relation("FavoritesByManager")
+  favoritedAsProvider Favorite[] @relation("FavoritedProvider")
+}
+
+// A manager bookmarking a jobber they'd like to work with again ("Mes
+// jobbers favoris") — independent of whether a booking ever happened, so
+// it also works for providers found via /providers browsing.
+model Favorite {
+  id         String   @id @default(cuid())
+  managerId  String
+  manager    User     @relation("FavoritesByManager", fields: [managerId], references: [id])
+  providerId String
+  provider   User     @relation("FavoritedProvider", fields: [providerId], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@unique([managerId, providerId])
 }
 
 // "Plus aucun frais" for the manager (MANAGER_BOSS/HOLDER, ENTERPRISE_*)

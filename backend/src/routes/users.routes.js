@@ -8,6 +8,36 @@ const { generateCategoryBio } = require('../services/aiService');
 
 const router = express.Router();
 
+// "Mes Badges et récompenses" — computed live from real provider stats
+// (no separate awarded-badges table to keep in sync): a badge is earned the
+// moment the underlying stat crosses its threshold, and lost if it ever
+// drops back below (e.g. rating average slipping under 4.5).
+const BADGE_DEFINITIONS = [
+  { id: 'first-mission', icon: '🥉', name: 'Première mission', description: 'Terminez votre première mission', check: (s) => s.completedMissions >= 1 },
+  { id: 'confirmed', icon: '🥈', name: 'Jobber confirmé', description: '10 missions terminées', check: (s) => s.completedMissions >= 10 },
+  { id: 'expert', icon: '🥇', name: 'Jobber expert', description: '50 missions terminées', check: (s) => s.completedMissions >= 50 },
+  { id: 'trusted', icon: '⭐', name: 'Jobber de confiance', description: 'Note moyenne d\'au moins 4,5 sur au moins 5 avis', check: (s) => s.ratingAverage >= 4.5 && s.ratingCount >= 5 },
+  { id: 'versatile', icon: '🎯', name: 'Multi-compétences', description: 'Actif dans au moins 3 catégories', check: (s) => s.categoriesCount >= 3 },
+];
+
+router.get('/me/badges', requireAuth, async (req, res, next) => {
+  try {
+    const profile = await prisma.providerProfile.findUnique({
+      where: { userId: req.user.id },
+      include: { categories: true },
+    });
+    if (!profile) return res.status(404).json({ error: 'Profil prestataire introuvable' });
+    const stats = {
+      completedMissions: profile.completedMissions,
+      ratingAverage: profile.ratingAverage,
+      ratingCount: profile.ratingCount,
+      categoriesCount: profile.categories.length,
+    };
+    const badges = BADGE_DEFINITIONS.map(({ check, ...b }) => ({ ...b, earned: check(stats) }));
+    res.json({ badges, stats });
+  } catch (err) { next(err); }
+});
+
 async function generateReferralCode() {
   for (let i = 0; i < 5; i++) {
     const code = crypto.randomBytes(4).toString('hex').toUpperCase();

@@ -5,8 +5,10 @@ const { requireAuth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
+const IDENTITY_DOC_TYPES = ['ID_CARD', 'PROOF_OF_ADDRESS', 'BANK_ACCOUNT'];
+
 const uploadSchema = z.object({
-  type: z.enum(['ID_CARD', 'PROOF_OF_ADDRESS', 'BANK_ACCOUNT']),
+  type: z.enum([...IDENTITY_DOC_TYPES, 'DIPLOMA']),
   fileUrl: z.string().url(), // in production this comes back from your S3/Cloudinary upload step
 });
 
@@ -18,10 +20,14 @@ router.post('/', requireAuth, async (req, res, next) => {
     const doc = await prisma.verificationDocument.create({
       data: { userId: req.user.id, type: data.type, fileUrl: data.fileUrl },
     });
-    await prisma.providerProfile.update({
-      where: { userId: req.user.id },
-      data: { verificationStatus: 'PENDING' },
-    });
+    // Diplomas are their own thing ("Mes diplômes et titres professionnels")
+    // — only identity/address/bank docs drive the provider verification badge.
+    if (IDENTITY_DOC_TYPES.includes(data.type)) {
+      await prisma.providerProfile.update({
+        where: { userId: req.user.id },
+        data: { verificationStatus: 'PENDING' },
+      });
+    }
     res.status(201).json({ document: doc });
   } catch (err) {
     if (err.name === 'ZodError') { err.status = 400; err.expose = true; err.message = err.errors[0].message; }
@@ -31,7 +37,10 @@ router.post('/', requireAuth, async (req, res, next) => {
 
 router.get('/mine', requireAuth, async (req, res, next) => {
   try {
-    const documents = await prisma.verificationDocument.findMany({ where: { userId: req.user.id } });
+    const documents = await prisma.verificationDocument.findMany({
+      where: { userId: req.user.id, type: req.query.type || undefined },
+      orderBy: { createdAt: 'desc' },
+    });
     res.json({ documents });
   } catch (err) { next(err); }
 });
@@ -56,16 +65,19 @@ router.patch('/:id/decision', requireAuth, requireRole('ADMIN'), async (req, res
       data: { status: approve ? 'APPROVED' : 'REJECTED', reviewedAt: new Date() },
     });
 
-    // Once all of a provider's required docs are approved, mark the profile verified
-    if (approve) {
-      const remainingPending = await prisma.verificationDocument.count({
-        where: { userId: doc.userId, status: 'PENDING' },
-      });
-      if (remainingPending === 0) {
-        await prisma.providerProfile.update({ where: { userId: doc.userId }, data: { verificationStatus: 'APPROVED' } });
+    // Diplomas don't affect the identity-verification badge — only
+    // ID_CARD/PROOF_OF_ADDRESS/BANK_ACCOUNT decisions do.
+    if (IDENTITY_DOC_TYPES.includes(doc.type)) {
+      if (approve) {
+        const remainingPending = await prisma.verificationDocument.count({
+          where: { userId: doc.userId, type: { in: IDENTITY_DOC_TYPES }, status: 'PENDING' },
+        });
+        if (remainingPending === 0) {
+          await prisma.providerProfile.update({ where: { userId: doc.userId }, data: { verificationStatus: 'APPROVED' } });
+        }
+      } else {
+        await prisma.providerProfile.update({ where: { userId: doc.userId }, data: { verificationStatus: 'REJECTED' } });
       }
-    } else {
-      await prisma.providerProfile.update({ where: { userId: doc.userId }, data: { verificationStatus: 'REJECTED' } });
     }
 
     res.json({ document: doc });
