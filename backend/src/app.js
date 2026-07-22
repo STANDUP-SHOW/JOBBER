@@ -14,6 +14,7 @@ const messagesRoutes = require('./routes/messages.routes');
 const reviewsRoutes = require('./routes/reviews.routes');
 const verificationRoutes = require('./routes/verification.routes');
 const adminRoutes = require('./routes/admin.routes');
+const favoritesRoutes = require('./routes/favorites.routes');
 
 const app = express();// Vercel assigns a fresh URL to every deployment (previews included), so a
 // single exact CLIENT_ORIGIN would break on each redeploy. We allow the
@@ -58,6 +59,7 @@ app.use('/api/messages', messagesRoutes);
 app.use('/api/reviews', reviewsRoutes);
 app.use('/api/verification', verificationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/favorites', favoritesRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
