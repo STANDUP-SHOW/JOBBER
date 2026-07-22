@@ -79,7 +79,7 @@ export default async function HomePage() {
       />
 
       <AudienceBlock
-        eyebrow="Vous voulez apprendre un métier ?"
+        eyebrow="Vous voulez apprendre un métier pour Jobber ?"
         title="Apprenez avec un pro, on passe direct à la pratique."
         description="Vous souhaitez apprendre ? Bonne nouvelle ! Sur Jobber, vous apprenez avec un pro. Demandez des cours de jardinage, de ménage, d'électricité, de plomberie… nos jobbers viennent chez vous vous apprendre !"
         sectionClass="border border-purple-200 bg-purple-50"
