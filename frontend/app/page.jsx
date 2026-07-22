@@ -41,7 +41,7 @@ export default async function HomePage() {
 
       <AudienceBlock
         eyebrow="Vous avez un besoin ?"
-        title="Décrivez votre besoin. Recevez des propositions."
+        title="Décrivez votre besoin, recevez des propositions en quelques minutes."
         description="Ménage, bricolage, jardinage, déménagement… Publiez votre mission et recevez des propositions de prestataires vérifiés près de chez vous."
         sectionClass="border border-slate-200 bg-white"
         eyebrowClass="text-moss"
@@ -52,7 +52,6 @@ export default async function HomePage() {
         ]}
         buttons={[
           { href: '/missions/new', label: 'Publier un besoin', variant: 'moss' },
-          { href: '/frais', label: 'Voir les tarifs', variant: 'outline' },
         ]}
       />
 
@@ -61,8 +60,8 @@ export default async function HomePage() {
         eyebrow="Vous voulez jobber ?"
         title="Arrondissez vos fins de mois. Augmentez vos revenus."
         description="Jobbez à plein temps ou sur votre temps libre. Que vous soyez particulier ou travailleur indépendant, Jobber c'est des centaines de missions par semaine, près de chez vous."
-        sectionClass="border border-ochre/30 bg-ochre-light"
-        eyebrowClass="text-ochre-dark"
+        sectionClass="bg-ochre"
+        eyebrowClass="text-ink/70"
         points={[
           { icon: '💶', title: 'Fixez votre tarif', desc: 'Vous répondez aux missions au prix que vous choisissez.' },
           { icon: '📅', title: 'Travaillez quand vous voulez', desc: 'À plein temps ou entre deux missions, selon votre disponibilité.' },
@@ -90,6 +89,16 @@ export default async function HomePage() {
           { href: '/missions/new?type=lesson', label: 'Demander un cours', variant: 'purple-outline' },
         ]}
       />
+
+      <section className="mt-16 rounded-lg border border-ink/10 bg-ink px-6 py-10 text-center md:px-10">
+        <p className="mx-auto max-w-2xl font-display text-2xl font-semibold leading-snug text-white md:text-3xl">
+          Avec Jobber, les tarifs sont transparents et identiques à toutes les missions. Jobber est la plateforme la
+          moins chère en France pour les prestations de service.
+        </p>
+        <Link href="/frais" className="mt-6 inline-block rounded-md bg-white px-6 py-3 font-medium text-ink hover:bg-slate-100">
+          Voir les tarifs
+        </Link>
+      </section>
 
       <AudienceBlock
         reverse
