@@ -33,7 +33,7 @@ export default async function HomePage() {
             Job<span className="text-ochre">b</span>er
           </div>
         </div>
-        <span className="mt-4 block label-eyebrow text-moss">Service à domicile, pour tout, pour tous</span>
+        <span className="mt-4 block font-display text-base font-bold uppercase tracking-wide text-moss">Service à domicile, pour tout, pour tous</span>
         <h1 className="mx-auto mt-3 max-w-2xl font-display text-4xl font-semibold leading-[1.1] text-ink md:text-5xl">
           Un coup de main de confiance, <span className="text-moss">à deux clics</span>.
         </h1>
@@ -107,7 +107,7 @@ export default async function HomePage() {
 
       <AudienceBlock
         reverse
-        eyebrow="Vous dirigez une entreprise ?"
+        eyebrow="Votre entreprise a des besoins de collaborateurs ?"
         title="Recrutez à la tâche. Oubliez l'intérim."
         description="Oubliez l'intérim, oubliez le CDD. Constituez-vous une horde de collaborateurs dans des domaines bien précis et gérez-les comme vos salariés grâce à Jobber+ : plannings, missions, employés, factures, tout est simplifié. Vous ne payez qu'une fois le travail effectué."
         sectionClass="border border-moss/20 bg-moss-light"
