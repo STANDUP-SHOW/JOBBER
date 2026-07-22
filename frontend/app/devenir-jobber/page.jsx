@@ -82,6 +82,39 @@ export default function DevenirJobberPage() {
         </p>
       </section>
 
+      <section className="mt-16">
+        <h2 className="text-center font-display text-2xl font-semibold text-ink">Quel type de jobber êtes-vous ?</h2>
+        <div className="mx-auto mt-8 grid max-w-3xl gap-4 sm:grid-cols-3">
+          {[
+            ['Particulier', 'Vous répondez à des missions ponctuelles pour arrondir vos fins de mois, sans aucune démarche administrative.'],
+            ['Professionnel indépendant', "Renseignez votre numéro SIRET à l'inscription pour afficher le badge « PRO » et développer votre clientèle en plus de votre activité."],
+            ['Agence ou entreprise de services', "Vous dirigez une structure de services à la personne ? Le compte Corporate vous permet de sous-traiter des prestations via Jobber."],
+          ].map(([title, desc]) => (
+            <div key={title} className="rounded-lg border border-slate-200 bg-white p-5">
+              <div className="font-display text-base font-semibold text-ink">{title}</div>
+              <p className="mt-1 text-sm text-slate-500">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-16">
+        <h2 className="text-center font-display text-2xl font-semibold text-ink">Pourquoi choisir Jobber</h2>
+        <div className="mx-auto mt-8 grid max-w-3xl gap-4 sm:grid-cols-3">
+          {[
+            ['🎯', 'Les missions viennent à vous', "Les demandeurs vous trouvent directement grâce à vos catégories de compétences — pas besoin de démarcher."],
+            ['📈', 'Un profil qui travaille pour vous', "Avis, notes et badges de confiance mettent en avant les jobbers les plus fiables auprès des demandeurs."],
+            ['⚡', 'Candidature automatique', "Activez cette option depuis votre profil pour postuler automatiquement aux missions qui correspondent à vos critères."],
+          ].map(([icon, title, desc]) => (
+            <div key={title} className="rounded-lg border border-slate-200 bg-white p-5">
+              <span className="text-2xl">{icon}</span>
+              <div className="mt-2 font-display text-base font-semibold text-ink">{title}</div>
+              <p className="mt-1 text-sm text-slate-500">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="mx-auto mt-16 max-w-2xl text-center">
         <h2 className="font-display text-2xl font-semibold text-ink">Votre expérience parle pour vous</h2>
         <p className="mt-3 text-slate-600">
