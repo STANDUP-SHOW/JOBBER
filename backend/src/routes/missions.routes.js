@@ -71,11 +71,23 @@ const createMissionSchema = z.object({
   requiredMachines: z.array(z.string()).optional().default([]),
 });
 
+// Categories where a mission moves something/someone from A to B — the form
+// collects both a departure and an arrival address for these (see
+// TRANSPORT_CATEGORY_SLUGS in missions/new/page.jsx); enforced here too so a
+// mission can never end up with only one address regardless of caller.
+const TRANSPORT_CATEGORY_SLUGS = ['demenagement', 'convoi', 'transport'];
+
 // Create a mission — any authenticated account can post a job request
 router.post('/', requireAuth, async (req, res, next) => {
   try {
     const { requiredEquipmentIds, ...data } = createMissionSchema.parse(req.body);
     if (!data.isRecurring) { data.recurrenceCount = undefined; data.recurrenceUnit = undefined; }
+
+    const category = await prisma.category.findUnique({ where: { id: data.categoryId }, select: { slug: true } });
+    if (!category) return res.status(400).json({ error: 'Catégorie introuvable' });
+    if (TRANSPORT_CATEGORY_SLUGS.includes(category.slug) && !data.dropoffAddress?.trim()) {
+      return res.status(400).json({ error: "L'adresse d'arrivée est requise pour ce type de mission" });
+    }
     // Multi-day range, "who provides the gear", PPE and machine questions
     // are reserved to company accounts — ignore them from anyone else.
     if (req.user.accountKind !== 'COMPANY') {
