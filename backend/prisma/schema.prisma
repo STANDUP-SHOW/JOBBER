@@ -159,6 +159,11 @@ model User {
   companyType       CompanyType?
   companyName       String?
   companySiret      String?    @unique
+  // Self-declared professional status (auto-entrepreneur/EI), asked once at
+  // signup — distinct from the per-category "Professionnel" skill level set
+  // later in the provider profile. Drives the "PRO" badge on public profiles.
+  isProfessional    Boolean    @default(false)
+  professionalSiret String?    @unique
   avatarUrl         String?
   address           String?
   lat               Float?

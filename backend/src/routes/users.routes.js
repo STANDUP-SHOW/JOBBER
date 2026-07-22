@@ -85,7 +85,7 @@ router.get('/providers', async (req, res, next) => {
         providerProfile: { categories: { some: categoryId ? { categoryId } : {} } },
       },
       select: {
-        id: true, firstName: true, lastName: true, avatarUrl: true, address: true,
+        id: true, firstName: true, lastName: true, avatarUrl: true, address: true, isProfessional: true,
         providerProfile: { include: { categories: { include: { category: true } }, services: { include: { service: true } }, equipment: { include: { equipment: true } }, vehicles: true } },
       },
     });
@@ -98,7 +98,7 @@ router.get('/providers/:id', async (req, res, next) => {
     const provider = await prisma.user.findUnique({
       where: { id: req.params.id },
       select: {
-        id: true, firstName: true, lastName: true, avatarUrl: true, address: true, createdAt: true,
+        id: true, firstName: true, lastName: true, avatarUrl: true, address: true, createdAt: true, isProfessional: true,
         providerProfile: { include: { categories: { include: { category: true } }, services: { include: { service: true } }, equipment: { include: { equipment: true } }, vehicles: true } },
         reviewsReceived: { include: { author: { select: { firstName: true, avatarUrl: true } } }, orderBy: { createdAt: 'desc' } },
       },
