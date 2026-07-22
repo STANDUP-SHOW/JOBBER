@@ -91,6 +91,12 @@ export default function AccountPage() {
           : 'Publiez des besoins et proposez vos services, le tout depuis un seul compte.'}
       </p>
 
+      {!isCompany && (
+        <div className="mt-4">
+          <ZoneSummaryCard />
+        </div>
+      )}
+
       {isCompany ? (
         <>
           <Section title="Espace ENTREPRISE">
@@ -158,12 +164,6 @@ export default function AccountPage() {
           <Row href="/missions/new?type=lesson" icon="🙋" label="Demander des cours" sublabel="Un jobber vient vous apprendre chez vous" />
           <Row href="/lessons" icon="📚" label="Consulter les cours proposés" sublabel="Par d'autres jobbers" />
         </Section>
-      )}
-
-      {!isCompany && (
-        <div className="mt-3">
-          <ZoneSummaryCard />
-        </div>
       )}
 
       <Section title="Gérer mon compte">
