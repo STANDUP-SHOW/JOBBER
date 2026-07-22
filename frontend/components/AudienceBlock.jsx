@@ -21,7 +21,7 @@ export default function AudienceBlock({
   return (
     <section className={`mt-16 grid items-center gap-10 rounded-lg p-6 md:grid-cols-2 md:p-10 ${sectionClass}`}>
       <div className={reverse ? 'md:order-2' : ''}>
-        <span className={`label-eyebrow ${eyebrowClass}`}>{eyebrow}</span>
+        <span className={`block font-display text-base font-bold uppercase tracking-wide ${eyebrowClass}`}>{eyebrow}</span>
         <h2 className="mt-3 font-display text-3xl font-semibold leading-[1.1] text-ink md:text-4xl">{title}</h2>
         <p className="mt-3 max-w-md text-slate-700">{description}</p>
         <div className="mt-6 flex flex-wrap gap-3">
