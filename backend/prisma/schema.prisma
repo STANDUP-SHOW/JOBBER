@@ -80,6 +80,19 @@ enum SubscriptionPlan {
   ENTERPRISE_20
   ENTERPRISE_50
   ENTERPRISE_UNLIMITED
+  JOBBER_SILVER
+  JOBBER_GOLD
+  JOBBER_PLATINUM
+}
+
+// An individual account can be both a manager (posting missions) and a
+// jobber (applying to them) at once, so it may hold one active MANAGER-side
+// subscription (waives the poster's fee) AND one active JOBBER-side
+// subscription (waives the provider's fee) simultaneously — family is what
+// the @@unique([userId, family]) below is keyed on.
+enum SubscriptionFamily {
+  MANAGER
+  JOBBER
 }
 
 // Every account is INDIVIDUAL by default (can both post missions and
@@ -117,6 +130,8 @@ enum VehicleType {
   CAMION_15M3
   GRAND_CAMION_20M3
   POIDS_LOURD
+  CAMION_PLATEAU
+  REMORQUE_BATEAU
 }
 
 enum RecurrenceUnit {
@@ -167,7 +182,7 @@ model User {
   updatedAt         DateTime   @updatedAt
 
   providerProfile   ProviderProfile?
-  subscription      Subscription?
+  subscriptions     Subscription[]
   missions          Mission[]        @relation("ClientMissions")
   offers            Offer[]          @relation("ProviderOffers")
   bookingsAsClient  Booking[]        @relation("ClientBookings")
@@ -180,14 +195,16 @@ model User {
   conversationsAsProvider Conversation[] @relation("ConvProvider")
 }
 
-// "Plus aucun frais" for the manager: MANAGER_BOSS waives the manager-side
-// 2€ booking fee for up to 10 missions per billing period, MANAGER_HOLDER
-// for unlimited missions. The jobber's own 2€ share is unaffected either
-// way — see offers.routes.js acceptOffer for where this is actually spent.
+// "Plus aucun frais" for the manager (MANAGER_BOSS/HOLDER, ENTERPRISE_*)
+// waives the poster-side booking fee up to the plan's monthly mission
+// quota; the JOBBER_* family does the same for the provider-side fee. One
+// user can hold at most one ACTIVE subscription per family at a time (see
+// @@unique below) — see offers.routes.js acceptOffer for where this is spent.
 model Subscription {
   id                   String             @id @default(cuid())
-  userId               String             @unique
+  userId               String
   user                 User               @relation(fields: [userId], references: [id])
+  family               SubscriptionFamily @default(MANAGER)
   plan                 SubscriptionPlan
   status               SubscriptionStatus @default(ACTIVE)
   stripeSubscriptionId String?            @unique
@@ -196,6 +213,8 @@ model Subscription {
   missionsUsedInPeriod Int                @default(0)
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
+
+  @@unique([userId, family])
 }
 
 model ProviderProfile {

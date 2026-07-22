@@ -11,6 +11,8 @@ export const VEHICLES = [
   { type: 'CAMION_15M3', label: 'Camion', capacity: 'Jusqu\'à 15 m³' },
   { type: 'GRAND_CAMION_20M3', label: 'Grand camion', capacity: 'Jusqu\'à 20 m³' },
   { type: 'POIDS_LOURD', label: 'Poids lourd' },
+  { type: 'CAMION_PLATEAU', label: 'Camion plateau porteur' },
+  { type: 'REMORQUE_BATEAU', label: 'Remorque bateau', capacity: 'Convoi nautique' },
 ];
 
 // Bold flat-style side-view icons — thick dark outline, brand blue for the
@@ -141,6 +143,30 @@ const ICONS = {
       <path d="M17 30 H61 V23 H17 Z" fill={YELLOW} {...S} />
       <Ribs xs={[24, 33, 42, 51]} y1={8} y2={26} />
       <Wheels positions={[10, 31, 51]} />
+    </svg>
+  ),
+  // Same cab as POIDS_LOURD, but an open flatbed instead of an enclosed
+  // cargo box — no walls, no ribs, just a low flat platform.
+  CAMION_PLATEAU: (
+    <svg viewBox="0 0 64 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 30 L2 17 Q2 12 8 12 H15 V30 Z" fill={BLUE} {...S} />
+      <path d="M2 30 H15 V23 H2 Z" fill={YELLOW} {...S} />
+      <Glass x="6" y="15" w="6" h="6" />
+      <rect x="9" y="6" width="2.4" height="7" rx="1" fill={INK} />
+      <path d="M17 24 H61 V30 H17 Z" fill={YELLOW} {...S} />
+      <path d="M17 22 H61" stroke={INK} strokeWidth="2" strokeLinecap="round" />
+      <Wheels positions={[10, 31, 51]} />
+    </svg>
+  ),
+  // A boat trailer — the flatbed-trailer base from REMORQUE, but carrying a
+  // boat hull instead of cargo.
+  REMORQUE_BATEAU: (
+    <svg viewBox="0 0 64 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 34 L8 34 L11 26 H44 V34 Z" fill={YELLOW} {...S} strokeWidth="1.5" />
+      <path d="M2 31 H8" stroke={INK} strokeWidth="3" strokeLinecap="round" />
+      <path d="M10 26 Q10 14 27 14 Q44 14 44 26 Z" fill={BLUE} {...S} />
+      <path d="M14 20 H40" stroke="#FFFFFF" strokeWidth="1.5" opacity="0.6" />
+      <Wheels positions={[36]} />
     </svg>
   ),
 };
