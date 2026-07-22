@@ -21,7 +21,9 @@ const registerSchema = z.object({
   phone: z.string().optional(),
   referralCode: z.string().optional(),
   accountKind: z.enum(['INDIVIDUAL', 'COMPANY']).optional().default('INDIVIDUAL'),
-  companyType: z.enum(['ENTREPRISE', 'CORPORATE']).optional(),
+  // The register form always sends this key (empty string for individual
+  // accounts) rather than omitting it, so '' must validate here too.
+  companyType: z.union([z.enum(['ENTREPRISE', 'CORPORATE']), z.literal('')]).optional(),
   companyName: z.string().optional(),
   companySiret: z.string().optional(),
   address: z.string().optional(),
