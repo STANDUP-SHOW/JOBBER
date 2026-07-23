@@ -41,6 +41,26 @@ const GUARANTEES = [
     title: "Un crédit d'impôt de 50 % sur les services éligibles",
     desc: "Les prestations réalisées dans une catégorie de services à la personne (ménage, jardinage, garde d'enfants, bricolage, aide à domicile…) ouvrent droit à un crédit d'impôt. Consultez notre page dédiée pour simuler votre économie.",
   },
+  {
+    icon: '🎓',
+    title: 'Des prestataires qualifiés',
+    desc: "Chaque jobber déclare ses compétences par catégorie et est évalué après chaque mission réalisée, pour vous garantir le meilleur niveau de confiance dans votre choix.",
+  },
+  {
+    icon: '🛡️',
+    title: 'Un paiement protégé',
+    desc: "Le montant de la mission est bloqué en séquestre dès la réservation et versé au jobber seulement après votre validation. En cas de désaccord, notre équipe vous accompagne pour trouver une solution.",
+  },
+  {
+    icon: '💰',
+    title: 'Un budget respecté',
+    desc: "Le tarif horaire est fixé à l'avance et accepté par les deux parties avant le début de la mission — aucun dépassement sans votre accord explicite. Le paiement n'est déclenché qu'une fois la mission validée.",
+  },
+  {
+    icon: '🤝',
+    title: 'Un service encadré',
+    desc: "Notre équipe reste disponible pour vous accompagner en cas de question ou de difficulté, de la publication de votre mission jusqu'à son paiement final.",
+  },
 ];
 
 export default function ConfiancePage() {
