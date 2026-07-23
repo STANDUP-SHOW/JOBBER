@@ -111,7 +111,7 @@ export default async function HomePage() {
       <section className="mt-16 rounded-lg border border-ink/10 bg-ink px-6 py-10 text-center md:px-10">
         <p className="mx-auto max-w-2xl font-display text-2xl font-semibold leading-snug text-white md:text-3xl">
           Avec Jobber, les tarifs sont transparents et identiques à toutes les missions. Jobber est la plateforme la
-          moins chère en France pour les prestations de service.
+          moins chère en France pour les mises en relations de prestations de service.
         </p>
         <Link href="/frais" className="mt-6 inline-block rounded-md bg-white px-6 py-3 font-medium text-ink hover:bg-slate-100">
           Voir les tarifs
