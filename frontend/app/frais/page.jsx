@@ -74,7 +74,7 @@ export default function FraisPage() {
 
       <section className="mx-auto mt-16 max-w-2xl text-center">
         <h2 className="font-display text-2xl font-semibold text-moss">La version gratuite donne accès à tout</h2>
-        <p className="mt-3 text-slate-600">
+        <p className="mt-3 font-semibold text-ink">
           La version gratuite de Jobber donne accès à toutes les fonctionnalités de la plateforme. Avec les
           abonnements, la seule chose qui change, ce sont les prélèvements sur vos missions.
         </p>
