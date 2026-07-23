@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
+import { SUBSCRIPTION_COLORS } from '../../../lib/subscriptionColors';
 
 const MANAGER_PLANS = [
   { value: 'MANAGER_BOSS', name: 'Manager Boss', price: 10, limit: '10 missions par mois' },
@@ -41,26 +42,29 @@ function PlanSection({ title, description, plans, subscription, busy, hasCard, o
       <p className="mt-1 text-sm text-slate-500">{description}</p>
 
       {isActive && (
-        <div className="mt-4 rounded-lg border border-moss bg-moss-light p-4">
+        <div
+          className="mt-4 rounded-lg p-4"
+          style={SUBSCRIPTION_COLORS[subscription.plan] ? { backgroundColor: SUBSCRIPTION_COLORS[subscription.plan].bg, color: SUBSCRIPTION_COLORS[subscription.plan].text } : undefined}
+        >
           <div className="flex items-center justify-between">
-            <div className="font-display text-lg font-semibold text-ink">
+            <div className="font-display text-lg font-bold">
               {plans.find((p) => p.value === subscription.plan)?.name}
             </div>
-            <span className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-moss-dark">
+            <span className="rounded-full bg-white/90 px-2.5 py-1 text-xs font-medium text-ink">
               {STATUS_LABEL[subscription.status]}
             </span>
           </div>
-          <div className="mt-1 text-sm text-slate-600">
+          <div className="mt-1 text-sm opacity-90">
             {subscription.missionsUsedInPeriod}{limit === Infinity ? '' : ` / ${limit}`} missions sans frais utilisées ce mois-ci
           </div>
-          <div className="text-xs text-slate-500">
+          <div className="text-xs opacity-75">
             Renouvellement le {new Date(subscription.currentPeriodEnd).toLocaleDateString('fr-FR')}
           </div>
           <button
             type="button"
             disabled={busy}
             onClick={onCancel}
-            className="mt-3 text-sm font-medium text-clay disabled:opacity-60"
+            className="mt-3 text-sm font-medium underline disabled:opacity-60"
           >
             Résilier l'abonnement
           </button>
@@ -74,30 +78,38 @@ function PlanSection({ title, description, plans, subscription, busy, hasCard, o
       )}
 
       <div className="mt-4 space-y-3">
-        {plans.map((plan) => (
-          <div key={plan.value} className={`rounded-lg border p-4 ${subscription?.plan === plan.value && isActive ? 'border-moss' : 'border-slate-200 bg-white'}`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-display text-lg font-semibold text-ink">{plan.name}</div>
-                <div className="text-sm text-slate-500">{plan.limit} · plus aucun frais</div>
+        {plans.map((plan) => {
+          const color = SUBSCRIPTION_COLORS[plan.value];
+          const isCurrent = subscription?.plan === plan.value && isActive;
+          return (
+            <div
+              key={plan.value}
+              className={`rounded-lg p-4 ${color ? '' : 'border border-slate-200 bg-white'} ${isCurrent ? 'ring-2 ring-offset-2 ring-ink' : ''}`}
+              style={color ? { backgroundColor: color.bg, color: color.text } : undefined}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-display text-lg font-bold">{plan.name}</div>
+                  <div className={`text-sm ${color ? 'opacity-90' : 'text-slate-500'}`}>{plan.limit} · plus aucun frais</div>
+                </div>
+                <div className="text-right">
+                  <div className="font-display text-xl font-bold">{plan.price.toFixed(2).replace('.', ',')} €</div>
+                  <div className={`text-xs ${color ? 'opacity-75' : 'text-slate-400'}`}>/ mois</div>
+                </div>
               </div>
-              <div className="text-right">
-                <div className="font-display text-xl font-bold text-ink">{plan.price.toFixed(2).replace('.', ',')} €</div>
-                <div className="text-xs text-slate-400">/ mois</div>
-              </div>
+              {!isCurrent && (
+                <button
+                  type="button"
+                  disabled={busy || hasCard === false}
+                  onClick={() => onSubscribe(plan.value)}
+                  className="mt-3 w-full rounded-md bg-white/90 py-2.5 text-sm font-medium text-ink hover:bg-white disabled:opacity-60"
+                >
+                  {busy ? 'Traitement…' : isActive ? 'Changer pour cette offre' : "S'abonner"}
+                </button>
+              )}
             </div>
-            {!(subscription?.plan === plan.value && isActive) && (
-              <button
-                type="button"
-                disabled={busy || hasCard === false}
-                onClick={() => onSubscribe(plan.value)}
-                className="mt-3 w-full rounded-md bg-moss py-2.5 text-sm font-medium text-white hover:bg-moss-dark disabled:opacity-60"
-              >
-                {busy ? 'Traitement…' : isActive ? 'Changer pour cette offre' : "S'abonner"}
-              </button>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

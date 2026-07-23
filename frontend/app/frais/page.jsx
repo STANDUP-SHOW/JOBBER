@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { SITE_URL, SITE_NAME } from '../../lib/seo';
+import { SUBSCRIPTION_COLORS } from '../../lib/subscriptionColors';
 
 const title = 'Nos frais, en toute transparence — Jobber';
 const description =
@@ -13,16 +14,16 @@ export const metadata = {
 };
 
 const MANAGER_PLANS = [
-  { name: 'Sans abonnement', price: null, detail: '2,50 € de frais par mission publiée' },
-  { name: 'Manager Boss', price: '10 €', detail: '10 missions par mois sans frais' },
-  { name: 'Manager Holder', price: '20 €', detail: 'Missions illimitées sans frais' },
+  { key: null, name: 'Sans abonnement', price: null, detail: '2,50 € de frais par mission réalisée' },
+  { key: 'MANAGER_BOSS', name: 'Manager Boss', price: '10 €', detail: '10 missions par mois sans frais' },
+  { key: 'MANAGER_HOLDER', name: 'Manager Holder', price: '20 €', detail: 'Missions illimitées sans frais' },
 ];
 
 const JOBBER_PLANS = [
-  { name: 'Sans abonnement', price: null, detail: '2,50 € de frais par mission décrochée' },
-  { name: 'Jobber Silver', price: '15 €', detail: '10 missions par mois sans frais' },
-  { name: 'Jobber Gold', price: '20 €', detail: '20 missions par mois sans frais' },
-  { name: 'Jobber Platine', price: '29,99 €', detail: 'Missions illimitées sans frais' },
+  { key: null, name: 'Sans abonnement', price: null, detail: '2,50 € de frais par mission décrochée' },
+  { key: 'JOBBER_SILVER', name: 'Jobber Silver', price: '15 €', detail: '10 missions par mois sans frais' },
+  { key: 'JOBBER_GOLD', name: 'Jobber Gold', price: '20 €', detail: '20 missions par mois sans frais' },
+  { key: 'JOBBER_PLATINUM', name: 'Jobber Platine', price: '29,99 €', detail: 'Missions illimitées sans frais' },
 ];
 
 function PlanTable({ title, plans }) {
@@ -30,15 +31,26 @@ function PlanTable({ title, plans }) {
     <div>
       <h3 className="font-display text-lg font-semibold text-ink">{title}</h3>
       <div className="mt-4 space-y-3">
-        {plans.map((plan) => (
-          <div key={plan.name} className="rounded-lg border border-slate-200 bg-white p-4">
-            <div className="flex items-center justify-between">
-              <div className="font-display text-base font-semibold text-ink">{plan.name}</div>
-              {plan.price && <div className="font-display text-lg font-bold text-ink">{plan.price} <span className="text-sm font-normal text-slate-400">/ mois</span></div>}
+        {plans.map((plan) => {
+          const color = SUBSCRIPTION_COLORS[plan.key];
+          return (
+            <div
+              key={plan.name}
+              className={`rounded-lg p-4 ${color ? '' : 'border border-slate-200 bg-white'}`}
+              style={color ? { backgroundColor: color.bg, color: color.text } : undefined}
+            >
+              <div className="flex items-center justify-between">
+                <div className="font-display text-base font-bold">{plan.name}</div>
+                {plan.price && (
+                  <div className="font-display text-lg font-bold">
+                    {plan.price} <span className={`text-sm font-normal ${color ? 'opacity-80' : 'text-slate-400'}`}>/ mois</span>
+                  </div>
+                )}
+              </div>
+              <p className={`mt-1 text-sm ${color ? 'opacity-90' : 'text-slate-500'}`}>{plan.detail}</p>
             </div>
-            <p className="mt-1 text-sm text-slate-500">{plan.detail}</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -61,7 +73,7 @@ export default function FraisPage() {
       </section>
 
       <section className="mx-auto mt-16 max-w-2xl text-center">
-        <h2 className="font-display text-2xl font-semibold text-ink">La version gratuite donne accès à tout</h2>
+        <h2 className="font-display text-2xl font-semibold text-moss">La version gratuite donne accès à tout</h2>
         <p className="mt-3 text-slate-600">
           La version gratuite de Jobber donne accès à toutes les fonctionnalités de la plateforme. Avec les
           abonnements, la seule chose qui change, ce sont les prélèvements sur vos missions.
@@ -69,7 +81,7 @@ export default function FraisPage() {
       </section>
 
       <section className="mt-16 rounded-lg border border-slate-200 bg-white p-6 text-center md:p-10">
-        <h2 className="font-display text-2xl font-semibold text-ink">Sans aucun abonnement</h2>
+        <h2 className="font-display text-2xl font-semibold text-moss">Sans aucun abonnement</h2>
         <p className="mx-auto mt-3 max-w-xl text-lg text-ink">
           Pour une mission réalisée, Jobber prélève <strong>2,50 €</strong> au demandeur et <strong>2,50 €</strong>{' '}
           au jobber. Le manager et le jobber peuvent s'abonner pour ne plus avoir aucun frais à payer sur leurs
