@@ -87,6 +87,16 @@ export default function FraisPage() {
           au jobber. Le manager et le jobber peuvent s'abonner pour ne plus avoir aucun frais à payer sur leurs
           missions.
         </p>
+        <div className="mx-auto mt-6 max-w-xl rounded-lg bg-ink p-5 text-left">
+          <p className="text-sm font-bold text-ochre">
+            Concernant la formule sans abonnement à 2,50 € la mission : vous n'aurez jamais rien à payer à Jobber —
+            les frais sont déduits seulement au moment de la transaction, quand la mission est réalisée et validée
+            par le manager.
+          </p>
+          <p className="mt-2 text-sm font-bold text-ochre">
+            Publier une mission, répondre aux offres, décrocher des missions, c'est entièrement GRATUIT !
+          </p>
+        </div>
       </section>
 
       <section className="mt-16 grid gap-10 sm:grid-cols-2">

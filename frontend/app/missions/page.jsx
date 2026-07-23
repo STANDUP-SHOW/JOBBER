@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
+import Link from 'next/link';
 import MissionCard from '../../components/MissionCard';
 import ZoneSummaryCard from '../../components/ZoneSummaryCard';
 
@@ -56,6 +57,18 @@ export default function MissionsPage() {
       {user && (
         <div className="mt-4">
           <ZoneSummaryCard />
+        </div>
+      )}
+
+      {user && user.accountKind !== 'COMPANY' && (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-moss px-4 py-3.5">
+          <p className="text-sm font-medium text-ochre">
+            Ici n'apparaissent que les missions correspondant à vos compétences. Si vous voulez voir plus de
+            missions, cochez plus de cases dans votre profil jobber.
+          </p>
+          <Link href="/dashboard/profile" className="shrink-0 rounded-md bg-white px-4 py-2 text-sm font-medium text-ink hover:bg-slate-100">
+            Compléter mon profil
+          </Link>
         </div>
       )}
 
