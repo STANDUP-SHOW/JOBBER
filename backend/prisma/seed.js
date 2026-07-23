@@ -6,14 +6,18 @@ const CATEGORIES = [
   { name: 'Ménage', slug: 'menage', icon: '🧹', services: [
     'Ménage à domicile', 'Ménage de printemps', 'Repassage', 'Nettoyage de vitres', 'Aide au rangement',
     'Nettoyage après travaux', 'Nettoyage de four', 'Nettoyage de tapis et moquettes', 'Nettoyage de fin de bail',
+    "Ménage d'état des lieux", 'Ménage de location saisonnière', 'Ménage après un événement',
+    'Nettoyage de logement insalubre', 'Lessiver un mur',
+    'Nettoyage électroménager', 'Nettoyage textile', 'Nettoyage voiture',
   ], equipment: [
     'Aspirateur', 'Aspirateur vapeur', 'Nettoyeur haute pression', "Chariot de ménage", 'Chiffons microfibres',
     'Balai et serpillière', 'Escabeau', 'Produits d\'entretien écologiques', 'Gants de ménage', 'Raclette à vitres',
     'Fer et table à repasser', 'Housses de protection meubles', 'Sacs poubelle et gros sacs de rangement',
   ] },
   { name: 'Bricolage', slug: 'bricolage', icon: '🔧', services: [
-    'Petites réparations', 'Montage de meubles', "Pose d'étagères", 'Peinture intérieure', 'Pose de papier peint',
-    'Plomberie légère', 'Électricité légère', 'Fixation murale (TV, miroir…)', 'Pose de rideaux et stores', 'Montage de meubles de jardin',
+    'Ameublement', 'Pose et fixation', 'Rénovation des murs', 'Rénovation des sols',
+    "Petits travaux d'électricité", 'Petits travaux de plomberie', 'Installation électroménager',
+    'Serrurerie', 'Isolation', 'Petites réparations',
   ], equipment: [
     'Perceuse-visseuse', 'Boîte à outils complète', 'Niveau à bulle', 'Mètre ruban', 'Scie sauteuse',
     'Détecteur de câbles et canalisations', 'Ponceuse électrique', 'Marteau et maillet', 'Jeu de tournevis',
@@ -21,7 +25,7 @@ const CATEGORIES = [
     'Chevilles et fixations diverses', 'Rouleaux et pinceaux de peinture', 'Bâches de protection',
   ] },
   { name: 'Déménagement', slug: 'demenagement', icon: '📦', services: [
-    'Aide au déménagement', 'Déplacer un meuble', 'Emballage de cartons', 'Déballage et rangement',
+    'Aide au déménagement', 'Déplacer un meuble', "Déplacer de l'électroménager", 'Emballage de cartons', 'Déballage et rangement',
     'Montage et démontage de meubles', 'Location et transport de camion', "Débarras d'encombrants",
   ], equipment: [
     'Diable / chariot de transport', 'Sangles de manutention', 'Couvertures de déménagement',
@@ -31,6 +35,7 @@ const CATEGORIES = [
   { name: 'Jardinage', slug: 'jardinage', icon: '🌱', services: [
     'Tonte de pelouse', 'Taille de haie', 'Entretien de jardin', 'Désherbage', 'Plantation',
     'Ramassage de feuilles', 'Élagage', "Arrosage pendant l'absence", 'Création de potager',
+    'Entretien des espaces verts', 'Fleurs, potager et verger', 'Équipements extérieurs',
   ], equipment: [
     'Tondeuse à gazon', 'Taille-haie', 'Débroussailleuse', 'Souffleur / aspirateur de feuilles',
     'Sécateur et cisailles', 'Tronçonneuse', 'Râteau et balai de jardin', 'Bêche et pelle',
@@ -39,6 +44,7 @@ const CATEGORIES = [
   { name: "Garde d'enfants", slug: 'garde-enfants', icon: '🧒', services: [
     'Baby-sitting', "Sortie d'école", 'Aide aux devoirs', 'Garde le soir et le week-end',
     'Garde pendant les vacances', 'Activités et jeux éducatifs', 'Trajet domicile-activités',
+    'Garde périscolaire', 'Garde longue durée',
   ], equipment: [
     'Trousse de premiers secours', 'Siège auto (si transport)', 'Matériel de jeux et d\'éveil',
     'Livres et supports pédagogiques', 'Trousse à langer', 'Poussette (si besoin)',
@@ -54,6 +60,8 @@ const CATEGORIES = [
   { name: 'Aide à la personne', slug: 'aide-personne', icon: '🤝', services: [
     'Accompagnement courses', 'Accompagnement rendez-vous médicaux', 'Préparation de repas', 'Aide à la toilette',
     'Aide administrative', 'Compagnie et conversation', 'Aide au lever et au coucher', 'Accompagnement sorties',
+    'Maintien à domicile', 'Livraison de médicaments', 'Faire ou livrer des courses', 'Livraison à domicile',
+    'Serveur ou serveuse', 'Retouche couture',
   ], equipment: [
     'Gants jetables', 'Trousse de premiers secours', 'Matériel d\'aide au transfert (si formé)',
     'Sac de courses réutilisable', 'Chaise/déambulateur de transport (si besoin)',

@@ -73,15 +73,77 @@ const vehicleFields = (brands) => [
 const SERVICE_FIELDS = {
   // --- Aide à la personne ---
   'aide-personne-preparation-de-repas': [num('mealsCount', 'Nombre de repas'), text('diet', 'Régime alimentaire particulier (optionnel)')],
+  'aide-personne-maintien-a-domicile': [text('needsDescription', 'Besoins spécifiques')],
+  'aide-personne-livraison-de-medicaments': [text('pharmacyAddress', 'Adresse de la pharmacie (optionnel)')],
+  'aide-personne-faire-ou-livrer-des-courses': [text('shoppingList', 'Liste de courses (optionnel)')],
+  'aide-personne-livraison-a-domicile': [text('itemsDescription', 'Nature de la livraison')],
+  'aide-personne-serveur-ou-serveuse': [num('guestsCount', "Nombre d'invités"), text('eventType', "Type d'événement")],
+  'aide-personne-retouche-couture': [text('itemsDescription', 'Vêtements ou pièces à retoucher')],
 
   // --- Bricolage ---
-  'bricolage-montage-de-meubles': [num('furnitureCount', "Nombre de meubles à monter")],
-  'bricolage-pose-d-etageres': [num('shelfCount', "Nombre d'étagères"), select('wallType', 'Type de mur', WALL_TYPES)],
-  'bricolage-peinture-interieure': [SURFACE_M2(), num('roomsCount', 'Nombre de pièces')],
-  'bricolage-pose-de-papier-peint': [SURFACE_M2()],
-  'bricolage-fixation-murale-tv-miroir-': [num('weightKg', 'Poids approximatif', 'kg'), select('wallType', 'Type de mur', WALL_TYPES)],
-  'bricolage-pose-de-rideaux-et-stores': [num('windowsCount', 'Nombre de fenêtres'), select('wallType', 'Type de mur', WALL_TYPES)],
-  'bricolage-montage-de-meubles-de-jardin': [num('furnitureCount', 'Nombre de meubles')],
+  'bricolage-ameublement': [
+    multiselect('tasks', 'Précisions', [
+      'Montage de meubles IKEA', 'Assemblage de meubles', 'Montage de canapé', 'Montage de lit',
+      'Montage de meubles de cuisine', 'Montage de meubles de salle de bain', 'Démontage de meubles',
+      'Réparation de meubles', 'Peindre un meuble', 'Autre',
+    ]),
+  ],
+  'bricolage-pose-et-fixation': [
+    multiselect('tasks', 'Précisions', [
+      'Pose de tringles à rideaux', 'Pose de lampes et luminaires', "Fixation d'étagères", 'Accrocher une TV au mur',
+      'Accrocher un tableau', 'Pose de miroir', 'Fixer des éléments au mur', 'Pose de barre de douche',
+      'Pose de paroi de douche', 'Installer un pare-baignoire', 'Installation de store intérieur',
+      "Pose de hotte aspirante", 'Pose de crédence', 'Pose de clôture extérieure', 'Remplacer une porte',
+      'Changer une poignée', 'Autre',
+    ]),
+  ],
+  'bricolage-renovation-des-murs': [
+    multiselect('tasks', 'Précisions', [
+      'Peinture intérieure', 'Peinture extérieure', 'Peindre des volets', 'Peindre une porte',
+      'Pose de papier peint', 'Décoller du papier peint', 'Pose de crédence', 'Boucher un trou',
+      'Enduire un mur', 'Autre',
+    ]),
+  ],
+  'bricolage-renovation-des-sols': [
+    multiselect('tasks', 'Précisions', [
+      'Pose de parquet', 'Pose de dalles PVC', 'Pose de dalles de moquette', 'Pose de lino',
+      'Pose de plinthes', 'Retirer un revêtement existant', 'Peindre un sol', 'Peindre un escalier', 'Autre',
+    ]),
+  ],
+  'bricolage-petits-travaux-d-electricite': [
+    multiselect('tasks', 'Précisions', [
+      'Pose de lampes et luminaires', 'Changer une ampoule', 'Installation de prises électriques',
+      "Installation d'interrupteur", "Installation d'un radiateur électrique", 'Domotique',
+      "Pose d'objets connectés Nest", 'Autre',
+    ]),
+  ],
+  'bricolage-petits-travaux-de-plomberie': [
+    multiselect('tasks', 'Précisions', [
+      "Réparation de fuites d'eau", 'Déboucher un évier', 'Déboucher des WC', 'Déboucher des canalisations',
+      'Changer une chasse d\'eau', 'Réparer une chasse d\'eau', 'Changer un robinet',
+      'Faire les joints de la salle de bain', 'Changer une bonde', 'Changer un siphon',
+      'Détartrage de toilettes', "Changer l'abattant des WC", 'Autre',
+    ]),
+  ],
+  'bricolage-installation-electromenager': [
+    multiselect('tasks', 'Précisions', [
+      'Installation de machine à laver', 'Installation de lave-vaisselle', 'Installation de sèche-linge',
+      'Installation de frigo', 'Installation de congélateur', 'Installation de four',
+      'Installation de plaque de cuisson', 'Autre',
+    ]),
+  ],
+  'bricolage-serrurerie': [
+    multiselect('tasks', 'Précisions', ['Installer une serrure', 'Changer une serrure', 'Dépannage serrurerie', 'Autre']),
+  ],
+  'bricolage-isolation': [
+    multiselect('tasks', 'Précisions', ['Isolation de porte', 'Isolation de fenêtre', 'Autre']),
+  ],
+  'bricolage-petites-reparations': [
+    multiselect('tasks', 'Précisions', [
+      'Réparation de meubles', "Réparation de fuites d'eau", 'Boucher un trou', 'Réparer un vélo',
+      'Réparer une chasse d\'eau', 'Autre',
+    ]),
+  ],
 
   // --- Convoi ---
   'convoi-convoyage-de-vehicule': [num('distanceKm', 'Distance approximative', 'km'), text('vehicleType', 'Type de véhicule')],
@@ -90,9 +152,18 @@ const SERVICE_FIELDS = {
   'convoi-transport-de-marchandises': [num('weightKg', 'Poids approximatif', 'kg')],
 
   // --- Cours particuliers ---
-  'cours-particuliers-soutien-scolaire': [select('schoolLevel', 'Niveau scolaire', ['Primaire', 'Collège', 'Lycée', 'Supérieur']), text('subject', 'Matière')],
+  'cours-particuliers-soutien-scolaire': [
+    select('schoolLevel', 'Niveau scolaire', ['Primaire', 'Collège', 'Lycée', 'Supérieur']),
+    select('subject', 'Matière', [
+      'Mathématiques', 'Histoire', 'Géographie', 'Philosophie', "Sciences de l'ingénieur", 'SVT',
+      'Physique', 'Chimie', 'SES', 'Sciences 1ES/L', 'Arts plastiques', 'Éducation musicale', 'Autre',
+    ]),
+  ],
   'cours-particuliers-cours-d-informatique': [select('level', 'Niveau', ['Débutant', 'Intermédiaire', 'Avancé'])],
-  'cours-particuliers-cours-de-langues': [text('language', 'Langue'), select('level', 'Niveau', ['Débutant', 'Intermédiaire', 'Avancé'])],
+  'cours-particuliers-cours-de-langues': [
+    select('language', 'Langue', ['Français', 'Anglais', 'Espagnol', 'Allemand', 'Latin', 'Grec', 'Italien', 'Autre']),
+    select('level', 'Niveau', ['Débutant', 'Intermédiaire', 'Avancé']),
+  ],
   'cours-particuliers-cours-de-musique': [text('instrument', 'Instrument'), select('level', 'Niveau', ['Débutant', 'Intermédiaire', 'Avancé'])],
   'cours-particuliers-cours-de-mathematiques': [select('schoolLevel', 'Niveau scolaire', ['Primaire', 'Collège', 'Lycée', 'Supérieur'])],
   'cours-particuliers-preparation-aux-examens': [text('exam', 'Examen visé')],
@@ -108,6 +179,7 @@ const SERVICE_FIELDS = {
     bool('newHomeElevator', 'Ascenseur (nouveau logement)'),
   ],
   'demenagement-deplacer-un-meuble': [text('furnitureType', 'Type de meuble'), num('weightKg', 'Poids approximatif', 'kg')],
+  'demenagement-deplacer-de-l-electromenager': [text('applianceType', "Type d'électroménager"), num('weightKg', 'Poids approximatif', 'kg')],
   'demenagement-emballage-de-cartons': [num('boxesCount', 'Nombre de cartons estimé')],
   'demenagement-deballage-et-rangement': [num('boxesCount', 'Nombre de cartons estimé')],
   'demenagement-montage-et-demontage-de-meubles': [num('furnitureCount', 'Nombre de meubles')],
@@ -142,6 +214,8 @@ const SERVICE_FIELDS = {
   'garde-enfants-garde-pendant-les-vacances': [num('childrenCount', "Nombre d'enfants"), text('ages', 'Âges')],
   'garde-enfants-activites-et-jeux-educatifs': [text('ages', 'Âges')],
   'garde-enfants-trajet-domicile-activites': [num('childrenCount', "Nombre d'enfants")],
+  'garde-enfants-garde-periscolaire': [num('childrenCount', "Nombre d'enfants"), text('ages', 'Âges')],
+  'garde-enfants-garde-longue-duree': [num('childrenCount', "Nombre d'enfants"), text('ages', 'Âges'), num('daysCount', 'Durée', 'jours')],
 
   // --- Informatique ---
   'informatique-nettoyage-d-ordinateur': [select('deviceType', "Type d'appareil", ['PC fixe', 'Ordinateur portable', 'Mac'])],
@@ -168,6 +242,30 @@ const SERVICE_FIELDS = {
   ],
   'jardinage-arrosage-pendant-l-absence': [num('absenceDays', "Durée d'absence", 'jours')],
   'jardinage-creation-de-potager': [SURFACE_M2()],
+  'jardinage-entretien-des-espaces-verts': [
+    multiselect('tasks', 'Précisions', [
+      'Taille de haie', 'Tailler des arbustes', 'Débroussaillage', 'Désherbage', 'Déssouchage',
+      'Arrosage de plantes', 'Paillage de plantes', 'Entretien des massifs', 'Enlèvement de déchets verts',
+      'Ramassage de feuilles', 'Elimination de taupinières', "Entretien d'un étang", 'Ranger du bois',
+      'Couper du bois de chauffage', 'Saler autour de ma maison', 'Déneiger', 'Autre',
+    ]),
+    wasteDisposal('Le jobber devra-t-il évacuer les déchets verts en déchèterie ?'),
+  ],
+  'jardinage-fleurs-potager-et-verger': [
+    multiselect('tasks', 'Précisions', [
+      'Planter des fleurs', 'Planter des arbustes', 'Planter des arbres fruitiers', 'Paillage de plantes',
+      'Arrosage de plantes', "Entretien d'un potager", "Entretien d'un verger", 'Entretien des massifs',
+      "Retourner la terre d'un jardin", 'Cueillette de fruits et légumes', 'Autre',
+    ]),
+  ],
+  'jardinage-equipements-exterieurs': [
+    multiselect('tasks', 'Précisions', [
+      'Montage de pergola', "Montage d'abri de jardin", 'Montage de serre', 'Montage de barbecue',
+      'Montage de balançoire', 'Montage de trampoline', "Installation d'arrosage automatique",
+      "Installation d'éclairage extérieur", 'Installation de moustiquaire', 'Installation de nichoirs',
+      'Nettoyage de terrasse', 'Nettoyage de barbecue', 'Entretien de piscine', 'Entretien de pierre tombale', 'Autre',
+    ]),
+  ],
 
   // --- Mécanique ---
   'mecanique-voiture': vehicleFields(CAR_BRANDS),
@@ -185,6 +283,20 @@ const SERVICE_FIELDS = {
   'menage-nettoyage-apres-travaux': [SURFACE_M2()],
   'menage-nettoyage-de-tapis-et-moquettes': [SURFACE_M2()],
   'menage-nettoyage-de-fin-de-bail': [SURFACE_M2()],
+  'menage-menage-d-etat-des-lieux': [...roomFields()],
+  'menage-menage-de-location-saisonniere': [...roomFields()],
+  'menage-menage-apres-un-evenement': [SURFACE_M2(), num('guestsCount', "Nombre d'invités (optionnel)")],
+  'menage-nettoyage-de-logement-insalubre': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer des déchets en déchèterie ?')],
+  'menage-lessiver-un-mur': [SURFACE_M2()],
+  'menage-nettoyage-electromenager': [
+    multiselect('appliances', 'Appareils à nettoyer', ['Hotte', 'Frigo', 'Four', 'Congélateur', 'Autre']),
+  ],
+  'menage-nettoyage-textile': [
+    multiselect('items', 'Éléments à nettoyer', ['Canapé', 'Tapis', 'Moquette', 'Matelas', 'Rideaux', 'Autre']),
+  ],
+  'menage-nettoyage-voiture': [
+    multiselect('tasks', 'Précisions', ['Lavage automobile', 'Nettoyage intérieur', 'Nettoyage extérieur', 'Lustrage', 'Autre']),
+  ],
 
   // --- Peinture ---
   'peinture-peinture-interieure': [SURFACE_M2(), num('coatsCount', 'Nombre de couches souhaité'), ...roomFields()],
