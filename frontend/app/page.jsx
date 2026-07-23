@@ -113,6 +113,9 @@ export default async function HomePage() {
           Avec Jobber, les tarifs sont transparents et identiques à toutes les missions. Jobber est la plateforme la
           moins chère en France pour les mises en relations de prestations de service.
         </p>
+        <p className="mx-auto mt-3 max-w-2xl text-sm font-bold text-ochre">
+          La version gratuite de Jobber donne accès à toutes les fonctionnalités de la plateforme.
+        </p>
         <Link href="/frais" className="mt-6 inline-block rounded-md bg-white px-6 py-3 font-medium text-ink hover:bg-slate-100">
           Voir les tarifs
         </Link>
