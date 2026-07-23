@@ -184,8 +184,35 @@ export default async function HomePage() {
           <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {missions.map((m) => <MissionCard key={m.id} mission={m} />)}
           </div>
+          <div className="mt-6 text-center">
+            <Link href="/missions" className="inline-block rounded-md bg-moss px-6 py-3 font-medium text-paper hover:bg-moss-dark">
+              Suite &gt;&gt;
+            </Link>
+          </div>
         </section>
       )}
+
+      <section className="mt-16 rounded-lg border border-slate-200 bg-white p-6 text-center md:p-10">
+        <h2 className="font-display text-2xl font-semibold text-ink">Le service à domicile, en toute sérénité</h2>
+        <div className="mx-auto mt-6 grid max-w-2xl gap-3 text-left sm:grid-cols-2">
+          {[
+            ['🪪', 'Des profils vérifiés'],
+            ['⭐', 'Des compétences et des avis authentiques'],
+            ['🏅', 'Des jobbers reconnus, mission après mission'],
+            ['🔒', "L'argent en sécurité jusqu'à la fin de la mission"],
+            ['💬', 'Une messagerie pour rester en contact'],
+            ['📋', "Un crédit d'impôt de 50 % sur les services éligibles"],
+          ].map(([icon, label]) => (
+            <div key={label} className="flex items-center gap-3 rounded-lg bg-paper p-4">
+              <span className="text-2xl">{icon}</span>
+              <span className="font-medium text-ink">{label}</span>
+            </div>
+          ))}
+        </div>
+        <Link href="/confiance" className="mt-6 inline-block rounded-md bg-moss px-6 py-3 font-medium text-paper hover:bg-moss-dark">
+          En savoir plus
+        </Link>
+      </section>
     </div>
   );
 }
