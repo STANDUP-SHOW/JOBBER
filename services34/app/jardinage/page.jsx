@@ -27,14 +27,22 @@ export default function JardinagePage() {
         { icon: '📍', title: 'Un service local', desc: "Nous intervenons exclusivement à Béziers, Agde, Vias, Marseillan et dans les communes du pourtour biterrois." },
       ]}
       tasks={[
-        'Tonte de pelouse', 'Taille de haie',
+        { name: 'Tonte de pelouse', href: '/jardinage/tonte-de-pelouse' },
+        { name: 'Taille de haie', href: '/jardinage/taille-de-haie' },
         { name: 'Débroussaillage', href: '/jardinage/debroussaillage' },
-        'Désherbage', 'Élagage',
-        'Ramassage de feuilles', 'Entretien des massifs', "Arrosage pendant l'absence",
-        'Création de potager', 'Plantation de fleurs et arbustes', 'Entretien du potager ou du verger',
+        { name: 'Désherbage', href: '/jardinage/desherbage' },
+        { name: 'Élagage', href: '/jardinage/elagage' },
+        { name: 'Ramassage de feuilles', href: '/jardinage/ramassage-feuilles' },
+        { name: 'Entretien des massifs', href: '/jardinage/entretien-massifs' },
+        { name: "Arrosage pendant l'absence", href: '/jardinage/arrosage-pendant-absence' },
+        { name: 'Création de potager', href: '/jardinage/creation-potager' },
+        { name: 'Plantation de fleurs et arbustes', href: '/jardinage/plantation-fleurs-arbustes' },
+        { name: 'Entretien du potager ou du verger', href: '/jardinage/entretien-potager-verger' },
         { name: 'Aménagement de jardin', href: '/jardinage/amenagement-du-jardin' },
-        'Montage de pergola, abri de jardin, serre', 'Installation d\'arrosage automatique',
-        'Nettoyage de terrasse', 'Entretien de piscine (voir aussi notre page dédiée)',
+        { name: 'Montage de pergola, abri de jardin, serre', href: '/jardinage/montage-pergola-abri-serre' },
+        { name: "Installation d'arrosage automatique", href: '/jardinage/installation-arrosage-automatique' },
+        { name: 'Nettoyage de terrasse', href: '/jardinage/nettoyage-terrasse' },
+        { name: 'Entretien de piscine (voir aussi notre page dédiée)', href: '/jardinage/entretien-piscine' },
       ]}
       faq={[
         { q: 'Proposez-vous un entretien régulier du jardin ?', a: "Oui, vous pouvez demander un passage régulier (hebdomadaire, mensuel ou selon la saison) auprès du même agent." },
