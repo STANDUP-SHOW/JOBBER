@@ -27,11 +27,22 @@ export default function BricolagePage() {
         { icon: '📍', title: 'Un service local', desc: "Nous intervenons exclusivement à Béziers, Agde, Vias, Marseillan et dans les communes du pourtour biterrois." },
       ]}
       tasks={[
-        'Montage de meubles', 'Assemblage IKEA', 'Fixation d\'étagères', 'Accrocher un tableau ou un miroir',
-        'Pose de tringles à rideaux', 'Remplacer une porte ou une poignée', 'Pose de crédence',
-        'Peinture intérieure', 'Pose de papier peint', 'Boucher un trou, enduire un mur',
-        'Petits travaux d\'électricité', 'Petits travaux de plomberie', 'Installation électroménager',
-        'Serrurerie', 'Isolation de porte ou fenêtre', 'Petites réparations diverses',
+        { name: 'Montage de meubles', href: '/bricolage/montage-de-meubles' },
+        { name: 'Assemblage IKEA', href: '/bricolage/assemblage-ikea' },
+        { name: "Fixation d'étagères", href: '/bricolage/fixation-etageres' },
+        { name: 'Accrocher un tableau ou un miroir', href: '/bricolage/accrocher-tableau-miroir' },
+        { name: 'Pose de tringles à rideaux', href: '/bricolage/pose-tringles-rideaux' },
+        { name: 'Remplacer une porte ou une poignée', href: '/bricolage/remplacer-porte-poignee' },
+        { name: 'Pose de crédence', href: '/bricolage/pose-credence' },
+        { name: 'Peinture intérieure', href: '/bricolage/peinture-interieure' },
+        { name: 'Pose de papier peint', href: '/bricolage/pose-papier-peint' },
+        { name: 'Boucher un trou, enduire un mur', href: '/bricolage/boucher-trou-enduire-mur' },
+        { name: "Petits travaux d'électricité", href: '/bricolage/petits-travaux-electricite' },
+        { name: 'Petits travaux de plomberie', href: '/bricolage/petits-travaux-plomberie' },
+        { name: 'Installation électroménager', href: '/bricolage/installation-electromenager' },
+        { name: 'Serrurerie', href: '/bricolage/serrurerie' },
+        { name: 'Isolation de porte ou fenêtre', href: '/bricolage/isolation-porte-fenetre' },
+        { name: 'Petites réparations diverses', href: '/bricolage/petites-reparations' },
       ]}
       faq={[
         { q: 'Dans quelles communes intervenez-vous ?', a: "Nous intervenons à Béziers, Agde, Vias, Marseillan et dans toutes les communes situées dans un rayon d'environ 50 km autour de Béziers." },
