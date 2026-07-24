@@ -27,11 +27,15 @@ export default function ConciergeriePage() {
         { icon: '🪪', title: 'Des agents de confiance', desc: "Chaque agent Services 34 est identifié et intervient au nom de l'entreprise." },
       ]}
       tasks={[
-        'Surveillance de résidence secondaire pendant votre absence', 'Remise et gestion des clés',
-        'Accueil des voyageurs (location saisonnière)', "État des lieux d'entrée et de sortie",
-        'Réception de colis et de courrier', 'Relevé de compteurs (eau, électricité)',
-        "Ouverture pour un artisan ou un prestataire", 'Coordination de petits travaux en votre absence',
-        'Aération et entretien courant entre deux séjours',
+        { name: 'Surveillance de résidence secondaire pendant votre absence', href: '/conciergerie/surveillance-residence-secondaire' },
+        { name: 'Remise et gestion des clés', href: '/conciergerie/remise-gestion-cles' },
+        { name: 'Accueil des voyageurs (location saisonnière)', href: '/conciergerie/accueil-voyageurs' },
+        { name: "État des lieux d'entrée et de sortie", href: '/conciergerie/etat-des-lieux-entree-sortie' },
+        { name: 'Réception de colis et de courrier', href: '/conciergerie/reception-colis-courrier' },
+        { name: 'Relevé de compteurs (eau, électricité)', href: '/conciergerie/releve-compteurs' },
+        { name: "Ouverture pour un artisan ou un prestataire", href: '/conciergerie/ouverture-artisan-prestataire' },
+        { name: 'Coordination de petits travaux en votre absence', href: '/conciergerie/coordination-petits-travaux' },
+        { name: 'Aération et entretien courant entre deux séjours', href: '/conciergerie/aeration-entretien-entre-sejours' },
       ]}
       faq={[
         { q: 'Proposez-vous un forfait pour les locations saisonnières ?', a: "Chaque demande de conciergerie est traitée au cas par cas selon la fréquence des séjours et les prestations souhaitées (accueil, ménage, état des lieux). Décrivez votre besoin, nous vous recontactons rapidement." },
