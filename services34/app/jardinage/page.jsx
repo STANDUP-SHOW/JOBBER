@@ -1,4 +1,5 @@
 import ServiceCategoryPage from '../../components/ServiceCategoryPage';
+import BrandSetter from '../../components/BrandSetter';
 import { SITE_URL, SITE_NAME } from '../../lib/seo';
 
 const title = 'Jardinage à Béziers, Agde, Vias, Marseillan — Services 34';
@@ -13,6 +14,8 @@ export const metadata = {
 
 export default function JardinagePage() {
   return (
+    <>
+    <BrandSetter category="jardinage" label="Jardinage" />
     <ServiceCategoryPage
       eyebrow="Jardinage"
       title="Un jardin entretenu, été comme hiver"
@@ -36,5 +39,6 @@ export default function JardinagePage() {
         { q: 'Intervenez-vous pour les résidences secondaires ?', a: "Oui, c'est une demande fréquente sur le littoral — nous pouvons assurer un entretien régulier même en votre absence." },
       ]}
     />
+    </>
   );
 }

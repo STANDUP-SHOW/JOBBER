@@ -1,8 +1,7 @@
 /** @type {import('tailwindcss').Config} */
-// Placeholder brand palette (navy blue + golden yellow) — swap for the real
-// Services 34 logo colors once supplied. Deliberately distinct shades from
-// Jobber's own moss/ochre so the two brands never look identical even before
-// the real logo lands.
+// Brand palette from the real Services 34 logo (house + magnifying glass):
+// "brand" is the piscine/master dark blue, the other 4 category tints live
+// in lib/brand-context.jsx and are applied inline since they change per page.
 module.exports = {
   content: ['./app/**/*.{js,jsx}', './components/**/*.{js,jsx}'],
   theme: {
@@ -11,9 +10,9 @@ module.exports = {
         ink: '#101828',
         paper: '#F5F6F8',
         brand: {
-          DEFAULT: '#1E4FA3',
-          dark: '#163B7A',
-          light: '#E8EFFA',
+          DEFAULT: '#123E7A',
+          dark: '#0C2C59',
+          light: '#E5ECF6',
         },
         accent: {
           DEFAULT: '#F5B400',
@@ -31,6 +30,9 @@ module.exports = {
       fontFamily: {
         display: ['"Inter"', 'system-ui', 'sans-serif'],
         body: ['"Inter"', 'system-ui', 'sans-serif'],
+        // Bold rounded-geometric face matching the original logo's
+        // "BRAND NAME" wordmark style — used only for the header wordmark.
+        brand: ['"Poppins"', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
         sm: '6px',

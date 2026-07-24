@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import Logo from './Logo';
+import LogoMark from './Logo';
+import { useBrand } from '../lib/brand-context';
 
 const SERVICES = [
   ['Bricolage', '/bricolage'],
@@ -14,12 +15,17 @@ const SERVICES = [
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+  const { brand } = useBrand();
 
   return (
     <header className="border-b border-slate-200 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/">
-          <Logo className="h-9" />
+        {/* Pictogram left, wordmark right — same layout as Jobber's header. */}
+        <Link href="/" className="flex items-center gap-2">
+          <LogoMark color={brand.color} className="h-10 w-10 shrink-0" />
+          <span className="font-brand text-lg font-extrabold uppercase tracking-tight text-ink">
+            {brand.prefix}<span style={{ color: brand.color }}>Services</span> 34
+          </span>
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">
