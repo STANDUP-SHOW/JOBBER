@@ -123,9 +123,24 @@ export default function DemandePage() {
       <p className="mt-1 text-sm text-slate-500">Un agent Services 34 vous recontacte pour confirmer votre intervention.</p>
 
       {!authLoading && !user && (
-        <p className="mt-4 rounded-md bg-accent-light px-4 py-3 text-sm text-accent-dark">
-          Vous devrez <a href="/auth/register?next=/demande" className="font-medium underline">créer votre compte</a> pour envoyer votre demande — vous ne perdrez pas votre saisie.
-        </p>
+        <div className="mt-4 rounded-md bg-accent-light px-5 py-4 text-sm text-accent-dark">
+          <p className="font-semibold">Pourquoi créer votre compte ?</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            <li>Suivre votre demande</li>
+            <li>Recevoir votre offre de prestation</li>
+            <li>Mettre en place, gérer et consulter votre planning d'interventions</li>
+            <li>Laisser un avis sur le service reçu</li>
+            <li>Communiquer avec l'agence</li>
+            <li>Consulter l'heure d'arrivée exacte de votre agent, une fois sa géolocalisation activée</li>
+          </ul>
+          <p className="mt-3 font-medium">
+            Le compte est totalement gratuit — on ne vous demandera jamais de vous abonner.
+          </p>
+          <a href="/auth/register?next=/demande" className="mt-2 inline-block font-medium underline">
+            Créer mon compte gratuit
+          </a>
+          <span> — vous ne perdrez pas votre saisie.</span>
+        </div>
       )}
 
       <form onSubmit={onSubmit} className="mt-6 space-y-4">

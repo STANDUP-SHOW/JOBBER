@@ -9,6 +9,10 @@ export const VEHICLES = [
   { type: 'PETIT_UTILITAIRE_4M3', label: 'Petit utilitaire', capacity: 'Jusqu\'à 4 m³' },
   { type: 'FOURGONNETTE_9M3', label: 'Fourgonnette', capacity: 'Jusqu\'à 9 m³' },
   { type: 'CAMION_15M3', label: 'Camion', capacity: 'Jusqu\'à 15 m³' },
+  { type: 'GRAND_CAMION_20M3', label: 'Grand camion', capacity: 'Jusqu\'à 20 m³' },
+  { type: 'POIDS_LOURD', label: 'Poids lourd' },
+  { type: 'CAMION_PLATEAU', label: 'Camion plateau porteur' },
+  { type: 'REMORQUE_BATEAU', label: 'Remorque bateau', capacity: 'Convoi nautique' },
 ];
 
 const BLUE = '#1E4FA3';
@@ -33,6 +37,10 @@ function Wheels({ positions }) {
 
 function Glass({ x, y, w, h }) {
   return <rect x={x} y={y} width={w} height={h} rx="1" fill="#FFFFFF" {...S} strokeWidth="1.5" />;
+}
+
+function Ribs({ xs, y1, y2 }) {
+  return <path d={xs.map((x) => `M${x} ${y1} V${y2}`).join(' ')} stroke={INK} strokeWidth="1.5" opacity="0.45" />;
 }
 
 const ICONS = {
@@ -102,6 +110,48 @@ const ICONS = {
       <Glass x="8" y="17" w="7" h="6" />
       <path d="M21 8 H55 Q57 8 57 10 V30 H21 Z" fill={YELLOW} {...S} />
       <Wheels positions={[14, 45]} />
+    </svg>
+  ),
+  GRAND_CAMION_20M3: (
+    <svg viewBox="0 0 64 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 30 L2 18 Q2 14 7 14 H16 V30 Z" fill={BLUE} {...S} />
+      <path d="M2 30 H16 V23 H2 Z" fill={YELLOW} {...S} />
+      <Glass x="6" y="17" w="6.5" h="6" />
+      <path d="M18 6 H58 Q60 6 60 8 V30 H18 Z" fill={YELLOW} {...S} />
+      <Ribs xs={[25, 34, 43, 52]} y1={10} y2={26} />
+      <Wheels positions={[11, 32, 50]} />
+    </svg>
+  ),
+  POIDS_LOURD: (
+    <svg viewBox="0 0 64 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 30 L2 17 Q2 12 8 12 H15 V30 Z" fill={BLUE} {...S} />
+      <path d="M2 30 H15 V23 H2 Z" fill={YELLOW} {...S} />
+      <Glass x="6" y="15" w="6" h="6" />
+      <rect x="9" y="6" width="2.4" height="7" rx="1" fill={INK} />
+      <path d="M17 4 H59 Q61 4 61 6 V30 H17 Z" fill={BLUE_DARK} {...S} />
+      <path d="M17 30 H61 V23 H17 Z" fill={YELLOW} {...S} />
+      <Ribs xs={[24, 33, 42, 51]} y1={8} y2={26} />
+      <Wheels positions={[10, 31, 51]} />
+    </svg>
+  ),
+  CAMION_PLATEAU: (
+    <svg viewBox="0 0 64 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 30 L2 17 Q2 12 8 12 H15 V30 Z" fill={BLUE} {...S} />
+      <path d="M2 30 H15 V23 H2 Z" fill={YELLOW} {...S} />
+      <Glass x="6" y="15" w="6" h="6" />
+      <rect x="9" y="6" width="2.4" height="7" rx="1" fill={INK} />
+      <path d="M17 24 H61 V30 H17 Z" fill={YELLOW} {...S} />
+      <path d="M17 22 H61" stroke={INK} strokeWidth="2" strokeLinecap="round" />
+      <Wheels positions={[10, 31, 51]} />
+    </svg>
+  ),
+  REMORQUE_BATEAU: (
+    <svg viewBox="0 0 64 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 34 L8 34 L11 26 H44 V34 Z" fill={YELLOW} {...S} strokeWidth="1.5" />
+      <path d="M2 31 H8" stroke={INK} strokeWidth="3" strokeLinecap="round" />
+      <path d="M10 26 Q10 14 27 14 Q44 14 44 26 Z" fill={BLUE} {...S} />
+      <path d="M14 20 H40" stroke="#FFFFFF" strokeWidth="1.5" opacity="0.6" />
+      <Wheels positions={[36]} />
     </svg>
   ),
 };

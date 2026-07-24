@@ -27,6 +27,7 @@ const SURFACE_M2 = (label = 'Surface') => num('surfaceM2', label, 'm²');
 const WALL_TYPES = ['Béton', 'Placo', 'Brique', 'Bois', 'Autre'];
 const MASONRY_WALL_TYPES = ['Parpaing', 'Brique', 'Pierre', 'Béton banché', 'Autre'];
 const wasteDisposal = (label) => bool('wasteDisposal', label);
+const productsSource = () => select('productsSource', "Produits d'entretien", ['Je fournis les produits', "L'agent apporte les siens"]);
 
 // "Décrivez la mission" room-by-room instead of a flat m² figure — booleans
 // for rooms that are typically singular, counts for rooms that repeat.
@@ -275,21 +276,22 @@ const SERVICE_FIELDS = {
   'mecanique-autre-vehicule': [text('vehicleType', 'Type de véhicule'), text('brand', 'Marque'), text('model', 'Modèle'), num('year', 'Année'), num('mileageKm', 'Kilométrage', 'km')],
 
   // --- Ménage ---
-  'menage-menage-a-domicile': [...roomFields(), multiselect('appliances', 'Électroménager à nettoyer', APPLIANCES)],
+  'menage-menage-a-domicile': [...roomFields(), multiselect('appliances', 'Électroménager à nettoyer', APPLIANCES), productsSource()],
   'menage-repassage': [num('itemsCount', 'Nombre de pièces de linge estimé')],
-  'menage-nettoyage-de-vitres': [...roomFields(), num('windowsCount', 'Nombre de fenêtres')],
+  'menage-nettoyage-de-vitres': [...roomFields(), num('windowsCount', 'Nombre de fenêtres'), productsSource()],
   'menage-aide-au-rangement': [SURFACE_M2()],
-  'menage-menage-de-printemps': [SURFACE_M2()],
-  'menage-nettoyage-apres-travaux': [SURFACE_M2()],
-  'menage-nettoyage-de-tapis-et-moquettes': [SURFACE_M2()],
-  'menage-nettoyage-de-fin-de-bail': [SURFACE_M2()],
-  'menage-menage-d-etat-des-lieux': [...roomFields()],
-  'menage-menage-de-location-saisonniere': [...roomFields()],
-  'menage-menage-apres-un-evenement': [SURFACE_M2(), num('guestsCount', "Nombre d'invités (optionnel)")],
-  'menage-nettoyage-de-logement-insalubre': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer des déchets en déchèterie ?')],
-  'menage-lessiver-un-mur': [SURFACE_M2()],
+  'menage-menage-de-printemps': [SURFACE_M2(), productsSource()],
+  'menage-nettoyage-apres-travaux': [SURFACE_M2(), productsSource()],
+  'menage-nettoyage-de-tapis-et-moquettes': [SURFACE_M2(), productsSource()],
+  'menage-nettoyage-de-fin-de-bail': [SURFACE_M2(), productsSource()],
+  'menage-menage-d-etat-des-lieux': [...roomFields(), productsSource()],
+  'menage-menage-de-location-saisonniere': [...roomFields(), productsSource()],
+  'menage-menage-apres-un-evenement': [SURFACE_M2(), num('guestsCount', "Nombre d'invités (optionnel)"), productsSource()],
+  'menage-nettoyage-de-logement-insalubre': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer des déchets en déchèterie ?'), productsSource()],
+  'menage-lessiver-un-mur': [SURFACE_M2(), productsSource()],
   'menage-nettoyage-electromenager': [
     multiselect('appliances', 'Appareils à nettoyer', ['Hotte', 'Frigo', 'Four', 'Congélateur', 'Autre']),
+    productsSource(),
   ],
   'menage-nettoyage-textile': [
     multiselect('items', 'Éléments à nettoyer', ['Canapé', 'Tapis', 'Moquette', 'Matelas', 'Rideaux', 'Autre']),
