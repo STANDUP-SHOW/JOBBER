@@ -130,6 +130,13 @@ const CATEGORIES = [
     'Perche télescopique', 'Floculant et produits de traitement', 'Pompe de vidange', 'Peinture piscine (résine/époxy)',
     'Rouleaux et pinceaux', 'Ponceuse / décapeur', 'Gants et lunettes de protection',
   ] },
+  { name: 'Conciergerie', slug: 'conciergerie', icon: '🔑', services: [
+    'Surveillance de résidence secondaire', 'Remise et gestion des clés', 'Accueil des voyageurs',
+    "État des lieux d'entrée et de sortie", 'Réception de colis et de courrier',
+    'Relevé de compteurs', "Ouverture pour un artisan ou un prestataire",
+  ], equipment: [
+    'Trousseau de clés sécurisé', 'Carnet de suivi des passages', 'Application de gestion des accès',
+  ] },
   { name: 'Manutention', slug: 'manutention', icon: '🏗️', services: [
     'Emballage', 'Rangement', 'Chargement-déchargement',
   ], equipment: [
