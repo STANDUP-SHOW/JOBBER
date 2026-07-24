@@ -89,6 +89,18 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="mt-6 flex flex-col items-center gap-4 rounded-lg border-2 border-brand bg-brand-light px-6 py-6 text-center md:flex-row md:justify-between md:text-left">
+        <div>
+          <div className="font-display text-xl font-bold text-ink">Crédit d'impôt !</div>
+          <p className="mt-1 text-sm text-ink">
+            50 % du ménage, du jardinage et du petit bricolage réalisés avec Services 34 sont remboursés par l'État.
+          </p>
+        </div>
+        <Link href="/credit-impot" className="shrink-0 rounded-md bg-brand px-5 py-3 font-medium text-white hover:bg-brand-dark">
+          En savoir plus
+        </Link>
+      </section>
+
       <div className="mt-10 space-y-10">
         {CATEGORIES.map((c, i) => (
           <div key={c.category} className="space-y-4">
