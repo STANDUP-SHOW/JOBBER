@@ -17,6 +17,7 @@ export default function PiscinePage() {
     <>
     <BrandSetter category="piscine" label="Piscine" />
     <ServiceCategoryPage
+      category="piscine"
       eyebrow="Piscine"
       title="Une eau claire toute la saison"
       intro="Entretien régulier, remise en état après l'hiver, traitement de l'eau : nos agents s'occupent de votre piscine à Béziers, Agde, Vias, Marseillan et alentours."

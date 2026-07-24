@@ -1,6 +1,8 @@
 import Link from 'next/link';
+import { CATEGORY_COLORS } from '../lib/categoryColors';
 
-export default function ServiceCategoryPage({ eyebrow, title, intro, guarantees, tasks, faq }) {
+export default function ServiceCategoryPage({ category, eyebrow, title, intro, guarantees, tasks, faq }) {
+  const color = CATEGORY_COLORS[category];
   return (
     <div>
       <section className="overflow-hidden rounded-lg border border-brand/20 bg-brand-light py-10 px-6 text-center md:px-12">
@@ -71,14 +73,14 @@ export default function ServiceCategoryPage({ eyebrow, title, intro, guarantees,
         </section>
       )}
 
-      <section className="mt-16 mb-4 rounded-lg bg-ink py-10 px-6 text-center text-white md:px-12">
-        <h2 className="font-display text-2xl font-semibold">Une intervention près de chez vous</h2>
-        <p className="mx-auto mt-2 max-w-xl text-white/80">
-          Béziers, Agde, Vias, Marseillan et les communes environnantes — décrivez votre besoin, un agent Services 34 vous recontacte rapidement.
+      <section className="mt-16 mb-4 rounded-lg py-10 px-6 text-center text-white md:px-12" style={{ backgroundColor: color }}>
+        <h2 className="font-display text-2xl font-semibold">Un agent {eyebrow} Services 34 près de chez vous</h2>
+        <p className="mx-auto mt-2 max-w-xl text-white/85">
+          Béziers, Agde, Vias, Marseillan et les communes environnantes — décrivez votre besoin, un agent {eyebrow} Services 34 vous recontacte rapidement.
         </p>
         <div className="mt-6">
-          <Link href="/demande" className="rounded-md bg-white px-6 py-3 font-medium text-ink hover:bg-slate-100">
-            Demander une intervention
+          <Link href="/demande" className="rounded-md bg-white px-6 py-3 font-medium hover:bg-slate-100" style={{ color }}>
+            Demander une intervention {eyebrow}
           </Link>
         </div>
       </section>

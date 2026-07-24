@@ -17,6 +17,7 @@ export default function JardinagePage() {
     <>
     <BrandSetter category="jardinage" label="Jardinage" />
     <ServiceCategoryPage
+      category="jardinage"
       eyebrow="Jardinage"
       title="Un jardin entretenu, été comme hiver"
       intro="Tonte, taille de haie, entretien des massifs et des équipements extérieurs : nos agents s'occupent de votre jardin à Béziers, Agde, Vias, Marseillan et alentours."

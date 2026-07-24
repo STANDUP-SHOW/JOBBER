@@ -17,6 +17,7 @@ export default function BricolagePage() {
     <>
     <BrandSetter category="bricolage" label="Bricolage" />
     <ServiceCategoryPage
+      category="bricolage"
       eyebrow="Bricolage"
       title="Un coup de main pour tous vos petits travaux"
       intro="Montage de meubles, fixations, petites réparations : nos agents interviennent rapidement à Béziers, Agde, Vias, Marseillan et alentours, avec leur propre outillage."

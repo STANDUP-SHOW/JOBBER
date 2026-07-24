@@ -17,6 +17,7 @@ export default function ConciergeriePage() {
     <>
     <BrandSetter category="conciergerie" label="Conciergerie" />
     <ServiceCategoryPage
+      category="conciergerie"
       eyebrow="Conciergerie"
       title="Une présence de confiance quand vous n'êtes pas là"
       intro="Résidence secondaire ou location saisonnière : nos agents veillent sur votre bien, accueillent vos locataires et gèrent les imprévus à Béziers, Agde, Vias, Marseillan et alentours."
