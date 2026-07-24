@@ -33,12 +33,25 @@ export default function ServiceCategoryPage({ eyebrow, title, intro, guarantees,
 
       <section className="mt-16">
         <h2 className="text-center font-display text-2xl font-semibold text-ink">Nos prestations</h2>
+        <p className="mx-auto mt-1 max-w-md text-center text-sm text-slate-400">Les prestations soulignées ouvrent une fiche détaillée.</p>
         <div className="mx-auto mt-6 flex max-w-3xl flex-wrap justify-center gap-2">
-          {tasks.map((t) => (
-            <span key={t} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-ink">
-              {t}
-            </span>
-          ))}
+          {tasks.map((t) => {
+            const name = typeof t === 'string' ? t : t.name;
+            const href = typeof t === 'string' ? null : t.href;
+            return href ? (
+              <Link
+                key={name}
+                href={href}
+                className="rounded-full border border-brand bg-white px-4 py-2 text-sm font-medium text-brand underline decoration-brand/40 underline-offset-4 hover:bg-brand-light"
+              >
+                {name}
+              </Link>
+            ) : (
+              <span key={name} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-ink">
+                {name}
+              </span>
+            );
+          })}
         </div>
       </section>
 

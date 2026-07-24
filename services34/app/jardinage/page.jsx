@@ -27,9 +27,12 @@ export default function JardinagePage() {
         { icon: '📍', title: 'Un service local', desc: "Nous intervenons exclusivement à Béziers, Agde, Vias, Marseillan et dans les communes du pourtour biterrois." },
       ]}
       tasks={[
-        'Tonte de pelouse', 'Taille de haie', 'Débroussaillage', 'Désherbage', 'Élagage',
+        'Tonte de pelouse', 'Taille de haie',
+        { name: 'Débroussaillage', href: '/jardinage/debroussaillage' },
+        'Désherbage', 'Élagage',
         'Ramassage de feuilles', 'Entretien des massifs', "Arrosage pendant l'absence",
         'Création de potager', 'Plantation de fleurs et arbustes', 'Entretien du potager ou du verger',
+        { name: 'Aménagement de jardin', href: '/jardinage/amenagement-du-jardin' },
         'Montage de pergola, abri de jardin, serre', 'Installation d\'arrosage automatique',
         'Nettoyage de terrasse', 'Entretien de piscine (voir aussi notre page dédiée)',
       ]}

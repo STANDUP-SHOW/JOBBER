@@ -1,14 +1,9 @@
 'use client';
 
 import { createContext, useContext, useState } from 'react';
+import { CATEGORY_COLORS } from './categoryColors';
 
-export const CATEGORY_COLORS = {
-  piscine: '#123E7A',      // bleu foncé — reste proche de l'original
-  menage: '#38BDF8',       // bleu ciel
-  jardinage: '#5CB85C',    // vert clair
-  bricolage: '#F2871F',    // orange
-  conciergerie: '#FBC02D', // jaune
-};
+export { CATEGORY_COLORS };
 
 const DEFAULT_BRAND = { color: CATEGORY_COLORS.piscine, prefix: '' };
 

@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useBrand, CATEGORY_COLORS } from '../lib/brand-context';
+import { useBrand } from '../lib/brand-context';
+import { CATEGORY_COLORS } from '../lib/categoryColors';
 
 // Drop this at the top of a category page to recolor the header logo and
 // swap the wordmark to "<Catégorie> Services 34" while that page is
