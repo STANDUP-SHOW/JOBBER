@@ -22,12 +22,15 @@ export default function ConciergeriePage() {
       title="Une présence de confiance quand vous n'êtes pas là"
       intro="Résidence secondaire ou location saisonnière : nos agents veillent sur votre bien, accueillent vos locataires et gèrent les imprévus à Béziers, Agde, Vias, Marseillan et alentours."
       guarantees={[
+        { icon: '🏡', title: 'Gestion complète clé en main', desc: "Jardin, ménage, linge, accueil des voyageurs et entretien de la piscine : une seule formule pour ne plus rien gérer vous-même." },
         { icon: '🔑', title: 'Gestion des clés', desc: "Remise et récupération des clés, ouverture pour un artisan ou un livreur en votre absence." },
         { icon: '🏠', title: 'Surveillance régulière', desc: "Passages réguliers dans votre résidence secondaire pour vérifier que tout est en ordre." },
         { icon: '🧳', title: 'Accueil des locataires', desc: "Pour vos locations saisonnières : accueil des voyageurs, état des lieux d'entrée et de sortie." },
         { icon: '🪪', title: 'Des agents de confiance', desc: "Chaque agent Services 34 est identifié et intervient au nom de l'entreprise." },
       ]}
       tasks={[
+        { name: 'Gestion complète (location saisonnière clé en main)', href: '/conciergerie/gestion-complete' },
+        { name: 'Buanderie-Pressing', href: '/conciergerie/buanderie-pressing' },
         { name: 'Surveillance de résidence secondaire pendant votre absence', href: '/conciergerie/surveillance-residence-secondaire' },
         { name: 'Remise et gestion des clés', href: '/conciergerie/remise-gestion-cles' },
         { name: 'Accueil des voyageurs (location saisonnière)', href: '/conciergerie/accueil-voyageurs' },
