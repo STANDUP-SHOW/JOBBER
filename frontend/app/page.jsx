@@ -216,6 +216,29 @@ export default async function HomePage() {
           En savoir plus
         </Link>
       </section>
+
+      <section className="mt-16 mb-4 rounded-lg border border-ochre/30 bg-ochre/10 p-6 md:p-10">
+        <h2 className="font-display text-xl font-semibold text-ink">
+          Déchetterie, recyclage, gravats et encombrants
+        </h2>
+        <p className="mt-3 max-w-3xl text-sm text-slate-700">
+          Ce qui est peu connu : les déchèteries municipales sont financées par la taxe d'enlèvement des ordures
+          ménagères, payée par les particuliers — pas par les professionnels. Un artisan ou un jobber professionnel
+          qui dépose des déchets liés à une prestation doit donc s'acquitter d'une redevance spéciale, avec un pass
+          professionnel dédié. Et oui, cela vaut aussi pour les déchets verts.
+        </p>
+        <p className="mt-3 max-w-3xl text-sm text-slate-700">
+          Ce coût recouvre plusieurs éléments pour le professionnel : le temps du trajet jusqu'à la déchèterie, son
+          carburant, l'usage de son véhicule professionnel, et une facturation au poids ou au volume selon le type
+          de déchet — souvent plusieurs dizaines d'euros la tonne, avec des tarifs qui varient d'une commune à
+          l'autre.
+        </p>
+        <p className="mt-3 max-w-3xl text-sm font-medium text-ink">
+          Ne soyez donc pas surpris si un jobber professionnel ajoute des frais de déchetterie à son offre : ce
+          n'est pas une majoration arbitraire, c'est un coût réel qu'il doit couvrir pour évacuer vos déchets dans
+          les règles.
+        </p>
+      </section>
     </div>
   );
 }
