@@ -389,6 +389,15 @@ const SERVICE_FIELDS = {
   'maconnerie-reparation-de-fissures': [num('crackCount', 'Nombre de fissures')],
   'maconnerie-demolition': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les gravats et déchets de chantier en déchèterie ?')],
 
+  // --- Conciergerie ---
+  'conciergerie-surveillance-de-residence-secondaire': [num('visitFrequencyDays', 'Fréquence des passages souhaitée', 'jours')],
+  'conciergerie-remise-et-gestion-des-cles': [text('instructions', 'Instructions particulières')],
+  'conciergerie-accueil-des-voyageurs': [num('guestsCount', 'Nombre de voyageurs'), text('arrivalTime', "Heure d'arrivée prévue")],
+  'conciergerie-etat-des-lieux-d-entree-et-de-sortie': [select('type', "Type d'état des lieux", ['Entrée', 'Sortie'])],
+  'conciergerie-reception-de-colis-et-de-courrier': [text('instructions', 'Instructions particulières')],
+  'conciergerie-releve-de-compteurs': [multiselect('meters', 'Compteurs concernés', ['Eau', 'Électricité', 'Gaz', 'Autre'])],
+  'conciergerie-ouverture-pour-un-artisan-ou-un-prestataire': [text('visitorDetails', 'Nom et créneau du prestataire attendu')],
+
   // --- Manutention ---
   'manutention-emballage': [num('boxesCount', 'Nombre de cartons estimé')],
   'manutention-rangement': [SURFACE_M2()],
