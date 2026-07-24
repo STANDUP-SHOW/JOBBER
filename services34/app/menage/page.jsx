@@ -27,10 +27,19 @@ export default function MenagePage() {
         { icon: '📍', title: 'Un service local', desc: "Nous intervenons exclusivement à Béziers, Agde, Vias, Marseillan et dans les communes du pourtour biterrois." },
       ]}
       tasks={[
-        'Ménage à domicile', 'Ménage de printemps', "Ménage d'état des lieux", 'Ménage de location saisonnière',
-        "Ménage après un événement", 'Nettoyage de vitres', 'Repassage', 'Aide au rangement',
-        'Nettoyage après travaux', 'Nettoyage de fin de bail', 'Nettoyage électroménager',
-        'Nettoyage textile (canapé, tapis, matelas)', 'Nettoyage de logement insalubre',
+        { name: 'Ménage à domicile', href: '/menage/menage-a-domicile' },
+        { name: 'Ménage de printemps', href: '/menage/menage-de-printemps' },
+        { name: "Ménage d'état des lieux", href: '/menage/menage-etat-des-lieux' },
+        { name: 'Ménage de location saisonnière', href: '/menage/menage-location-saisonniere' },
+        { name: "Ménage après un événement", href: '/menage/menage-apres-evenement' },
+        { name: 'Nettoyage de vitres', href: '/menage/nettoyage-vitres' },
+        { name: 'Repassage', href: '/menage/repassage' },
+        { name: 'Aide au rangement', href: '/menage/aide-au-rangement' },
+        { name: 'Nettoyage après travaux', href: '/menage/nettoyage-apres-travaux' },
+        { name: 'Nettoyage de fin de bail', href: '/menage/nettoyage-fin-de-bail' },
+        { name: 'Nettoyage électroménager', href: '/menage/nettoyage-electromenager' },
+        { name: 'Nettoyage textile (canapé, tapis, matelas)', href: '/menage/nettoyage-textile' },
+        { name: 'Nettoyage de logement insalubre', href: '/menage/nettoyage-logement-insalubre' },
       ]}
       faq={[
         { q: 'Puis-je demander un ménage récurrent ?', a: "Oui, précisez la fréquence souhaitée (hebdomadaire, bimensuelle…) lors de votre demande — nous vous proposons un agent régulier dans la mesure du possible." },
