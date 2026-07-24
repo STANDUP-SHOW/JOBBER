@@ -17,6 +17,7 @@ export default function MenagePage() {
     <>
     <BrandSetter category="menage" label="Ménage" />
     <ServiceCategoryPage
+      category="menage"
       eyebrow="Ménage"
       title="Un intérieur impeccable, sans y passer votre temps"
       intro="Ménage ponctuel ou récurrent, nettoyage de fin de bail, vitres : nos agents s'occupent de l'entretien de votre logement à Béziers, Agde, Vias, Marseillan et alentours."
