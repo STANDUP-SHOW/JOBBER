@@ -240,10 +240,10 @@ export default function MissionDetailPage() {
     setSheetOpen(true);
   }
 
-  async function applyToMission(hourlyRate) {
+  async function applyToMission(hourlyRate, extraFees) {
     setBusy(true); setOfferError('');
     try {
-      await api.createOffer({ missionId: id, hourlyRate }, token);
+      await api.createOffer({ missionId: id, hourlyRate, extraFees }, token);
       await refresh();
       setSheetOpen(false);
     } catch (err) { setOfferError(err.message); } finally { setBusy(false); }
@@ -475,6 +475,13 @@ export default function MissionDetailPage() {
                   )}
                 </div>
                 <div className="text-sm text-slate-500">{offer.hourlyRate} €/h {offer.message ? `— "${offer.message}"` : ''}</div>
+                {offer.extraFees?.length > 0 && (
+                  <ul className="mt-1 space-y-0.5 text-xs text-slate-500">
+                    {offer.extraFees.map((f) => (
+                      <li key={f.key}>+ {f.label} : {f.amount} €</li>
+                    ))}
+                  </ul>
+                )}
                 <div className="text-xs text-slate-400 mt-1">Statut : {offer.status}</div>
               </div>
               {offer.status === 'PENDING' && mission.status === 'OPEN' && (
