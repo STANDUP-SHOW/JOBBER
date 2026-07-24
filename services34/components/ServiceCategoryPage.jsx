@@ -5,8 +5,11 @@ export default function ServiceCategoryPage({ category, eyebrow, title, intro, g
   const color = CATEGORY_COLORS[category];
   return (
     <div>
-      <section className="overflow-hidden rounded-lg border border-brand/20 bg-brand-light py-10 px-6 text-center md:px-12">
-        <span className="rounded-full bg-brand px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
+      <section
+        className="overflow-hidden rounded-lg border py-10 px-6 text-center md:px-12"
+        style={{ backgroundColor: `${color}1A`, borderColor: `${color}33` }}
+      >
+        <span className="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide text-white" style={{ backgroundColor: color }}>
           {eyebrow}
         </span>
         <h1 className="mx-auto mt-4 max-w-2xl font-display text-4xl font-bold leading-[1.1] text-ink md:text-5xl">
@@ -14,8 +17,8 @@ export default function ServiceCategoryPage({ category, eyebrow, title, intro, g
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-lg text-ink">{intro}</p>
         <div className="mt-7 flex flex-wrap justify-center gap-3">
-          <Link href="/demande" className="rounded-md bg-brand px-6 py-3 font-medium text-white hover:bg-brand-dark">
-            Demander une intervention
+          <Link href="/demande" className="rounded-md px-6 py-3 font-medium text-white transition-opacity hover:opacity-90" style={{ backgroundColor: color }}>
+            Demander une intervention {eyebrow}
           </Link>
         </div>
       </section>
