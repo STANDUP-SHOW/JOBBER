@@ -27,10 +27,13 @@ export default function PiscinePage() {
         { icon: '📍', title: 'Un service local', desc: "Idéal pour les résidences secondaires du littoral — Agde, Vias, Marseillan — même en votre absence." },
       ]}
       tasks={[
-        "Entretien régulier (nettoyage, analyse et équilibrage de l'eau)",
-        'Remise en état de la piscine', 'Traitement et hivernage',
-        'Nettoyage du bassin et des skimmers', 'Contrôle du robot de piscine',
-        'Peinture de bassin (gel coat, résine, acrylique)', 'Réparation de fissures ou de carrelage',
+        { name: "Entretien régulier (nettoyage, analyse et équilibrage de l'eau)", href: '/piscine/entretien-regulier' },
+        { name: 'Remise en état de la piscine', href: '/piscine/remise-en-etat' },
+        { name: 'Traitement et hivernage', href: '/piscine/traitement-hivernage' },
+        { name: 'Nettoyage du bassin et des skimmers', href: '/piscine/nettoyage-bassin-skimmers' },
+        { name: 'Contrôle du robot de piscine', href: '/piscine/controle-robot-piscine' },
+        { name: 'Peinture de bassin (gel coat, résine, acrylique)', href: '/piscine/peinture-bassin' },
+        { name: 'Réparation de fissures ou de carrelage', href: '/piscine/reparation-fissures-carrelage' },
       ]}
       faq={[
         { q: "Intervenez-vous sur les résidences secondaires ?", a: "Oui, c'est l'une de nos prestations les plus demandées sur le littoral — nous pouvons assurer un entretien régulier même en votre absence, avec compte-rendu à chaque passage." },
