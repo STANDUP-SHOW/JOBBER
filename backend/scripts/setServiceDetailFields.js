@@ -397,6 +397,27 @@ const SERVICE_FIELDS = {
   'conciergerie-reception-de-colis-et-de-courrier': [text('instructions', 'Instructions particulières')],
   'conciergerie-releve-de-compteurs': [multiselect('meters', 'Compteurs concernés', ['Eau', 'Électricité', 'Gaz', 'Autre'])],
   'conciergerie-ouverture-pour-un-artisan-ou-un-prestataire': [text('visitorDetails', 'Nom et créneau du prestataire attendu')],
+  'conciergerie-gestion-complete': [
+    selectOther('propertyType', 'Type de bien', ['Maison', 'Appartement', 'Villa', 'Studio']),
+    num('bedroomCount', 'Nombre de chambres'),
+    bool('hasPool', 'Piscine sur place'),
+    bool('hasGarden', 'Jardin ou extérieur à entretenir'),
+    num('gardenSurfaceM2', 'Surface extérieure approximative', 'm²'),
+    multiselect('bookingPlatforms', 'Plateforme(s) de location utilisée(s)', ['Airbnb', 'Booking.com', 'Abritel / Vrbo', 'Site propre', 'Autre']),
+    bool('fullPlatformManagement', 'Gestion intégrale de la plateforme souhaitée (annonces, réponses clients, validation des réservations)'),
+    select('rentalFrequency', 'Fréquence de location prévue', ['Ponctuelle', 'Saisonnière', "À l'année"]),
+    select('contractDuration', 'Durée du contrat souhaitée', ['À la saison', "À l'année"]),
+    num('estimatedBookingsPerMonth', 'Nombre de locations estimé par mois'),
+    bool('laundryIncluded', 'Gestion du linge / buanderie souhaitée'),
+    text('additionalNotes', 'Précisions complémentaires'),
+  ],
+  'conciergerie-buanderie-pressing': [
+    num('bedCount', 'Nombre de couchages'),
+    multiselect('linenTypes', 'Linge concerné', ['Linge de lit', 'Linge de toilette', 'Linge de table']),
+    bool('cleaningClothsPack', 'Pack chiffons de nettoyage, torchons et serviettes de table'),
+    bool('winterBlankets', 'Plaids supplémentaires (hiver)'),
+    text('notes', 'Précisions complémentaires'),
+  ],
 
   // --- Manutention ---
   'manutention-emballage': [num('boxesCount', 'Nombre de cartons estimé')],

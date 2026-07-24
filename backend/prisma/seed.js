@@ -133,7 +133,8 @@ const CATEGORIES = [
   { name: 'Conciergerie', slug: 'conciergerie', icon: '🔑', services: [
     'Surveillance de résidence secondaire', 'Remise et gestion des clés', 'Accueil des voyageurs',
     "État des lieux d'entrée et de sortie", 'Réception de colis et de courrier',
-    'Relevé de compteurs', "Ouverture pour un artisan ou un prestataire",
+    'Relevé de compteurs', "Ouverture pour un artisan ou un prestataire", 'Gestion complète',
+    'Buanderie-Pressing',
   ], equipment: [
     'Trousseau de clés sécurisé', 'Carnet de suivi des passages', 'Application de gestion des accès',
   ] },
