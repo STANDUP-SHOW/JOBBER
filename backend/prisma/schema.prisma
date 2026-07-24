@@ -441,6 +441,7 @@ model Offer {
   providerId  String
   provider    User        @relation("ProviderOffers", fields: [providerId], references: [id])
   hourlyRate  Float
+  extraFees   Json?       // [{ key: 'displacement', label: 'Frais de route - Déplacement', amount: 15 }, ...] — optional paid options the jobber adds to their offer, see EXTRA_FEE_TYPES in offers.routes.js
   message     String?
   status      OfferStatus @default(PENDING)
   createdAt   DateTime    @default(now())

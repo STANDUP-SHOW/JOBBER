@@ -5,9 +5,28 @@ const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Optional paid options a jobber can add on top of their hourly rate when
+// applying to a mission — e.g. travel costs, vehicle/fuel/consumables,
+// waste-disposal fees. Fixed catalog so amounts stay auditable; jobbers
+// pick which apply and fill in their own amount for each.
+const EXTRA_FEE_TYPES = {
+  displacement: 'Frais de route - Déplacement',
+  vehicle: 'Frais de mise à disposition du véhicule requis',
+  fuel: 'Frais de carburant',
+  consumables: 'Frais de consommables utilisés (produits, cartons)',
+  equipment: 'Frais de matériel (location...)',
+  wasteDisposal: 'Frais de déchetterie',
+};
+
+const extraFeeSchema = z.object({
+  key: z.enum(Object.keys(EXTRA_FEE_TYPES)),
+  amount: z.number().positive(),
+});
+
 const createOfferSchema = z.object({
   missionId: z.string(),
   hourlyRate: z.number().positive(),
+  extraFees: z.array(extraFeeSchema).optional().default([]),
 });
 
 // Apply to a mission ("postuler") — any account can candidater, including
@@ -26,11 +45,16 @@ router.post('/', requireAuth, async (req, res, next) => {
       return res.status(400).json({ error: 'Vous ne pouvez pas postuler à votre propre mission' });
     }
 
+    // Labels are resolved server-side from the fixed catalog rather than trusted
+    // from the client, so a tampered payload can't inject arbitrary text.
+    const extraFees = data.extraFees.map((f) => ({ key: f.key, label: EXTRA_FEE_TYPES[f.key], amount: f.amount }));
+
     const offer = await prisma.offer.create({
       data: {
         missionId: data.missionId,
         providerId: req.user.id,
         hourlyRate: data.hourlyRate,
+        extraFees: extraFees.length > 0 ? extraFees : undefined,
       },
     });
 
@@ -121,7 +145,8 @@ router.post('/:id/accept', requireAuth, async (req, res, next) => {
     if (offer.mission.clientId !== req.user.id) return res.status(403).json({ error: 'Non autorisé' });
     if (offer.status !== 'PENDING') return res.status(400).json({ error: 'Cette offre n\'est plus disponible' });
 
-    const totalAmount = round2(offer.hourlyRate * offer.mission.estimatedHours);
+    const extraFeesTotal = (offer.extraFees || []).reduce((sum, f) => sum + f.amount, 0);
+    const totalAmount = round2(offer.hourlyRate * offer.mission.estimatedHours + extraFeesTotal);
     const isCompanyClient = req.user.accountKind === 'COMPANY';
 
     const [managerSub, providerSub] = await Promise.all([
