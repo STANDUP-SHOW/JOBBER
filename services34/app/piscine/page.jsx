@@ -1,4 +1,5 @@
 import ServiceCategoryPage from '../../components/ServiceCategoryPage';
+import BrandSetter from '../../components/BrandSetter';
 import { SITE_URL, SITE_NAME } from '../../lib/seo';
 
 const title = 'Entretien de piscine à Béziers, Agde, Vias, Marseillan — Services 34';
@@ -13,6 +14,8 @@ export const metadata = {
 
 export default function PiscinePage() {
   return (
+    <>
+    <BrandSetter category="piscine" label="Piscine" />
     <ServiceCategoryPage
       eyebrow="Piscine"
       title="Une eau claire toute la saison"
@@ -35,5 +38,6 @@ export default function PiscinePage() {
         { q: 'Que couvre une remise en état ?', a: "Nettoyage complet du bassin, contrôle des équipements (skimmers, robot), et rééquilibrage chimique de l'eau avant la saison." },
       ]}
     />
+    </>
   );
 }

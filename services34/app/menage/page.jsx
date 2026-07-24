@@ -1,4 +1,5 @@
 import ServiceCategoryPage from '../../components/ServiceCategoryPage';
+import BrandSetter from '../../components/BrandSetter';
 import { SITE_URL, SITE_NAME } from '../../lib/seo';
 
 const title = 'Ménage à Béziers, Agde, Vias, Marseillan — Services 34';
@@ -13,6 +14,8 @@ export const metadata = {
 
 export default function MenagePage() {
   return (
+    <>
+    <BrandSetter category="menage" label="Ménage" />
     <ServiceCategoryPage
       eyebrow="Ménage"
       title="Un intérieur impeccable, sans y passer votre temps"
@@ -35,5 +38,6 @@ export default function MenagePage() {
         { q: 'Intervenez-vous pour un état des lieux ?', a: "Oui, nos agents interviennent avant une remise de clés ou un état des lieux de sortie." },
       ]}
     />
+    </>
   );
 }

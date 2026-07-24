@@ -1,5 +1,6 @@
 import './globals.css';
 import { AuthProvider } from '../lib/auth-context';
+import { BrandProvider } from '../lib/brand-context';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { SITE_URL, SITE_NAME } from '../lib/seo';
@@ -40,11 +41,13 @@ export default function RootLayout({ children }) {
     <html lang="fr">
       <body className="font-body">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
-        <AuthProvider>
-          <Header />
-          <main className="mx-auto min-h-screen max-w-6xl px-6 py-10">{children}</main>
-          <Footer />
-        </AuthProvider>
+        <BrandProvider>
+          <AuthProvider>
+            <Header />
+            <main className="mx-auto min-h-screen max-w-6xl px-6 py-10">{children}</main>
+            <Footer />
+          </AuthProvider>
+        </BrandProvider>
       </body>
     </html>
   );

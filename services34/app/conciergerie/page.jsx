@@ -1,4 +1,5 @@
 import ServiceCategoryPage from '../../components/ServiceCategoryPage';
+import BrandSetter from '../../components/BrandSetter';
 import { SITE_URL, SITE_NAME } from '../../lib/seo';
 
 const title = 'Conciergerie à Béziers, Agde, Vias, Marseillan — Services 34';
@@ -13,6 +14,8 @@ export const metadata = {
 
 export default function ConciergeriePage() {
   return (
+    <>
+    <BrandSetter category="conciergerie" label="Conciergerie" />
     <ServiceCategoryPage
       eyebrow="Conciergerie"
       title="Une présence de confiance quand vous n'êtes pas là"
@@ -36,5 +39,6 @@ export default function ConciergeriePage() {
         { q: 'Gérez-vous la remise des clés à mes locataires ?', a: "Oui, nos agents peuvent accueillir vos locataires, leur remettre les clés et réaliser l'état des lieux d'entrée." },
       ]}
     />
+    </>
   );
 }

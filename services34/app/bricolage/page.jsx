@@ -1,4 +1,5 @@
 import ServiceCategoryPage from '../../components/ServiceCategoryPage';
+import BrandSetter from '../../components/BrandSetter';
 import { SITE_URL, SITE_NAME } from '../../lib/seo';
 
 const title = 'Bricolage à Béziers, Agde, Vias, Marseillan — Services 34';
@@ -13,6 +14,8 @@ export const metadata = {
 
 export default function BricolagePage() {
   return (
+    <>
+    <BrandSetter category="bricolage" label="Bricolage" />
     <ServiceCategoryPage
       eyebrow="Bricolage"
       title="Un coup de main pour tous vos petits travaux"
@@ -36,5 +39,6 @@ export default function BricolagePage() {
         { q: 'Comment se passe la facturation ?', a: "Vous recevez un tarif avant intervention. Le paiement est géré directement avec Services 34, aucune démarche administrative de votre côté." },
       ]}
     />
+    </>
   );
 }
