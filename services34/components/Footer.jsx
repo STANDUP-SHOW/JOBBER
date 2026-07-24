@@ -1,0 +1,43 @@
+import Link from 'next/link';
+
+const SERVICES = [
+  ['Bricolage', '/bricolage'],
+  ['Ménage', '/menage'],
+  ['Jardinage', '/jardinage'],
+  ['Piscine', '/piscine'],
+  ['Conciergerie', '/conciergerie'],
+];
+
+export default function Footer() {
+  return (
+    <footer className="mt-16 border-t border-slate-200 bg-white">
+      <div className="mx-auto max-w-6xl px-6 py-10">
+        <div className="grid gap-8 sm:grid-cols-3">
+          <div>
+            <div className="font-display text-lg font-bold text-brand">Services 34</div>
+            <p className="mt-2 text-sm text-slate-500">
+              Services à la personne à Béziers, Agde, Vias, Marseillan et dans tout le pourtour biterrois.
+            </p>
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-ink">Nos services</div>
+            <ul className="mt-2 space-y-1.5">
+              {SERVICES.map(([label, href]) => (
+                <li key={href}>
+                  <Link href={href} className="text-sm text-slate-500 hover:text-brand">{label}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-ink">Zone d'intervention</div>
+            <p className="mt-2 text-sm text-slate-500">
+              Béziers · Agde · Vias · Marseillan et les communes environnantes, dans un rayon de 50 km.
+            </p>
+          </div>
+        </div>
+        <p className="mt-8 text-center text-xs text-slate-400">© {new Date().getFullYear()} Services 34</p>
+      </div>
+    </footer>
+  );
+}
