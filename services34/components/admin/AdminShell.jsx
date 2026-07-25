@@ -8,6 +8,7 @@ import LogoMark from '../Logo';
 
 const NAV = [
   { href: '/admin', label: 'Demandes d\'interventions reçues' },
+  { href: '/admin/nouvelle-mission-agence', label: 'Nouvelle mission agence' },
   { href: '/admin/demandes-jobber', label: "Demandes d'intervention Jobber" },
   { href: '/admin/offres-jobber', label: 'Offres Jobber' },
   { href: '/admin/missions-jobber-en-cours', label: 'Missions Jobber en cours' },
@@ -16,6 +17,7 @@ const NAV = [
   { href: '/admin/missions-agence-en-cours', label: 'Missions Agence en cours' },
   { href: '/admin/missions-agence-terminees', label: 'Missions Agence terminées' },
   { href: '/admin/factures-agence', label: 'Mes factures Agence' },
+  { href: '/admin/planning', label: 'Planning' },
   { href: '/admin/employes', label: 'Mes employés' },
   { href: '/admin/parametres', label: 'Paramètres du compte' },
 ];

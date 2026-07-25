@@ -4,16 +4,33 @@ import { useEffect, useState } from 'react';
 import { useAgencyAuth } from '../../../lib/agency-auth-context';
 import { agencyApi } from '../../../lib/agencyApi';
 import MissionCountdown from '../../../components/admin/MissionCountdown';
+import PlanningPicker from '../../../components/admin/PlanningPicker';
 
 export default function MissionsJobberEnCoursPage() {
   const { token } = useAgencyAuth();
   const [missions, setMissions] = useState(null);
+  const [plannings, setPlannings] = useState([]);
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function refresh() {
+    try {
+      const { missions } = await agencyApi.missionsJobberEnCours(token);
+      setMissions(missions);
+    } catch (err) { setError(err.message); }
+  }
 
   useEffect(() => {
     if (!token) return;
-    agencyApi.missionsJobberEnCours(token).then(({ missions }) => setMissions(missions)).catch((e) => setError(e.message));
+    refresh();
+    agencyApi.plannings(token).then(({ plannings }) => setPlannings(plannings)).catch(() => {});
   }, [token]);
+
+  async function assign(missionId, planningId) {
+    setBusy(true);
+    try { await agencyApi.assignPlanning(missionId, planningId, token); await refresh(); }
+    catch (err) { setError(err.message); } finally { setBusy(false); }
+  }
 
   const byCategory = missions?.reduce((acc, m) => {
     const key = m.category?.name || 'Autre';
@@ -36,14 +53,17 @@ export default function MissionsJobberEnCoursPage() {
             <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-slate-400">{category}</h2>
             <div className="mt-2 space-y-3">
               {list.map((m) => (
-                <div key={m.id} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4">
+                <div key={m.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4">
                   <div>
                     <div className="font-medium text-ink">{m.title}</div>
                     <div className="text-sm text-slate-500">
                       {m.booking?.provider?.firstName} {m.booking?.provider?.lastName?.[0]}. · {new Date(m.desiredDate).toLocaleString('fr-FR')}
                     </div>
                   </div>
-                  <MissionCountdown desiredDate={m.desiredDate} />
+                  <div className="flex items-center gap-3">
+                    <MissionCountdown desiredDate={m.desiredDate} />
+                    <PlanningPicker mission={m} plannings={plannings} onAssign={assign} busy={busy} />
+                  </div>
                 </div>
               ))}
             </div>

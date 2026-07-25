@@ -212,6 +212,16 @@ model User {
   // so one white-label site can never spoof another's missions. Scales to
   // any number of future corporate sites without touching client code.
   agencyDomain            String?   @unique
+  // "Information entreprise" block in Paramètres — legal/company details
+  // shown on the agency's own account, separate from companySiret/companyName
+  // above (kept for the pre-existing entreprise/manager account flow).
+  siegeSocialAddress      String?
+  siegeSocialCity         String?
+  siegeSocialDepartement  String?
+  representantCivilite    String?
+  representantNom         String?
+  representantPrenom      String?
+  jobberLicenseNumber     String?
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
@@ -233,6 +243,7 @@ model User {
   agencyEmployees     AgencyEmployee[] @relation("AgencyEmployer")
   employedByAgencies  AgencyEmployee[] @relation("AgencyEmployeeOf")
   agencyInvoices      Invoice[]  @relation("AgencyInvoices")
+  agencyPlannings     Planning[] @relation("AgencyPlannings")
 }
 
 // A manager bookmarking a jobber they'd like to work with again ("Mes
@@ -323,6 +334,26 @@ model Category {
   equipment   Equipment[]
   missions    Mission[]
   providers   ProviderCategory[]
+  plannings   Planning[]
+}
+
+// An agency's own work calendar — missions "mises au planning" land here so
+// the agency can track who's doing what. Defaults to one per category
+// ("Planning Bricolage", "Planning Jardinage"...) but the agency can create
+// as many named plannings as it likes (e.g. "Planning Emily" for a specific
+// employee), optionally still scoped to a category.
+model Planning {
+  id         String    @id @default(cuid())
+  agencyId   String
+  agency     User      @relation("AgencyPlannings", fields: [agencyId], references: [id])
+  name       String
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+  createdAt  DateTime  @default(now())
+
+  missions   Mission[]
+
+  @@unique([agencyId, name])
 }
 
 // A piece of equipment/tooling typically needed for a category — the jobber
@@ -455,6 +486,11 @@ model Mission {
   // corporate-agency missions.
   corporateCode     String?           @unique
   visibility        MissionVisibility @default(PUBLIC)
+  // "Mise au planning" — an agency assigns an in-progress mission to one of
+  // its Plannings (per-category by default, or a named one like "Planning
+  // Emily") to track who's doing what. Null until assigned.
+  planningId     String?
+  planning       Planning?     @relation(fields: [planningId], references: [id])
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -465,9 +501,10 @@ model Mission {
   scheduleEntries   MissionScheduleEntry[]
 }
 
-// One row per date when an agency "embauche" (hires) an employee jobber
-// across several days for the same mission — the "+ Ajouter une date"
-// button in Mes employés → Embaucher pour une mission.
+// One row per date in a mission's explicit schedule — used both for a
+// recurring mission's "+ Ajouter une date" list (any mission, Jobber or
+// agency) and for an agency's "embauche" of an employee jobber across
+// several days for the same mission.
 model MissionScheduleEntry {
   id        String   @id @default(cuid())
   missionId String

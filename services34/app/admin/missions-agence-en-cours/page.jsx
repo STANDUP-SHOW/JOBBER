@@ -4,16 +4,33 @@ import { useEffect, useState } from 'react';
 import { useAgencyAuth } from '../../../lib/agency-auth-context';
 import { agencyApi } from '../../../lib/agencyApi';
 import MissionCountdown from '../../../components/admin/MissionCountdown';
+import PlanningPicker from '../../../components/admin/PlanningPicker';
 
 export default function MissionsAgenceEnCoursPage() {
   const { token } = useAgencyAuth();
   const [missions, setMissions] = useState(null);
+  const [plannings, setPlannings] = useState([]);
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function refresh() {
+    try {
+      const { missions } = await agencyApi.missionsAgenceEnCours(token);
+      setMissions(missions);
+    } catch (err) { setError(err.message); }
+  }
 
   useEffect(() => {
     if (!token) return;
-    agencyApi.missionsAgenceEnCours(token).then(({ missions }) => setMissions(missions)).catch((e) => setError(e.message));
+    refresh();
+    agencyApi.plannings(token).then(({ plannings }) => setPlannings(plannings)).catch(() => {});
   }, [token]);
+
+  async function assign(missionId, planningId) {
+    setBusy(true);
+    try { await agencyApi.assignPlanning(missionId, planningId, token); await refresh(); }
+    catch (err) { setError(err.message); } finally { setBusy(false); }
+  }
 
   return (
     <div>
@@ -26,12 +43,15 @@ export default function MissionsAgenceEnCoursPage() {
 
       <div className="mt-6 space-y-3">
         {missions?.map((m) => (
-          <div key={m.id} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4">
+          <div key={m.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4">
             <div>
               <div className="font-medium text-ink">{m.category?.icon} {m.title}</div>
               <div className="text-sm text-slate-500">{m.client?.firstName} {m.client?.lastName} · {m.client?.phone}</div>
             </div>
-            <MissionCountdown desiredDate={m.desiredDate} />
+            <div className="flex items-center gap-3">
+              <MissionCountdown desiredDate={m.desiredDate} />
+              <PlanningPicker mission={m} plannings={plannings} onAssign={assign} busy={busy} />
+            </div>
           </div>
         ))}
       </div>

@@ -54,6 +54,12 @@ const createMissionSchema = z.object({
   isRecurring: z.boolean().optional().default(false),
   recurrenceCount: z.number().int().min(1).max(10).optional(),
   recurrenceUnit: z.enum(RECURRENCE_UNITS).optional(),
+  // Explicit schedule for a recurring mission — one entry per occurrence
+  // ("+ Ajouter une date"): date, heure de début, heure de fin, nombre
+  // d'heures. Only kept when isRecurring is true.
+  dates: z.array(z.object({
+    date: z.string(), startTime: z.string(), hours: z.number().positive(), endTime: z.string(),
+  })).optional().default([]),
   requiredEquipmentIds: z.array(z.string()).optional().default([]),
   requiredVehicleTypes: z.array(z.enum(VEHICLE_TYPES)).optional().default([]),
   otherEquipmentNote: z.string().max(200).optional().transform((v) => (v ? v : undefined)),
@@ -81,8 +87,9 @@ const TRANSPORT_CATEGORY_SLUGS = ['demenagement', 'convoi', 'transport'];
 // Create a mission — any authenticated account can post a job request
 router.post('/', requireAuth, async (req, res, next) => {
   try {
-    const { requiredEquipmentIds, ...data } = createMissionSchema.parse(req.body);
+    const { requiredEquipmentIds, dates, ...data } = createMissionSchema.parse(req.body);
     if (!data.isRecurring) { data.recurrenceCount = undefined; data.recurrenceUnit = undefined; }
+    const scheduleEntries = data.isRecurring ? dates : [];
 
     const category = await prisma.category.findUnique({ where: { id: data.categoryId }, select: { slug: true } });
     if (!category) return res.status(400).json({ error: 'Catégorie introuvable' });
@@ -140,8 +147,11 @@ router.post('/', requireAuth, async (req, res, next) => {
         requiredEquipment: requiredEquipmentIds.length
           ? { create: requiredEquipmentIds.map((equipmentId) => ({ equipmentId })) }
           : undefined,
+        scheduleEntries: scheduleEntries.length
+          ? { create: scheduleEntries.map((d) => ({ date: new Date(d.date), startTime: d.startTime, hours: d.hours, endTime: d.endTime })) }
+          : undefined,
       },
-      include: { requiredEquipment: { include: { equipment: true } } },
+      include: { requiredEquipment: { include: { equipment: true } }, scheduleEntries: true },
     });
     res.status(201).json({ mission });
   } catch (err) {

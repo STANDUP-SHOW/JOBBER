@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import CategoryShowcase from '../components/CategoryShowcase';
 import GuaranteesGrid from '../components/GuaranteesGrid';
 
@@ -89,6 +90,17 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="mt-6 rounded-lg bg-clay px-6 py-6 text-center text-white md:px-10">
+        <div className="font-display text-xl font-bold">Les demandes urgentes</div>
+        <p className="mx-auto mt-2 max-w-xl text-sm text-white/90">
+          En cochant l'option "Urgent" dans votre demande de service, celle-ci est traitée le jour même : un agent
+          Services 34 chez vous sous 24h.
+        </p>
+        <Link href="/urgence" className="mt-4 inline-block rounded-md bg-white px-5 py-2.5 text-sm font-semibold text-clay hover:bg-white/90">
+          En savoir plus
+        </Link>
+      </section>
+
       <section className="mt-6 flex flex-col items-center gap-4 rounded-lg border-2 border-brand bg-brand-light px-6 py-6 text-center md:flex-row md:justify-between md:text-left">
         <div>
           <div className="font-display text-xl font-bold text-ink">Crédit d'impôt !</div>
@@ -129,26 +141,39 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mt-10 mb-4 rounded-lg border border-accent/30 bg-accent-light p-6 md:p-10">
-        <h2 className="font-display text-xl font-semibold text-ink">
-          Déchetterie, recyclage, gravats et encombrants
-        </h2>
-        <p className="mt-3 max-w-3xl text-sm text-slate-700">
-          Ce qui est peu connu : les déchèteries municipales sont financées par la taxe d'enlèvement des ordures
-          ménagères, payée par les particuliers — pas par les professionnels. Un agent Services 34 qui dépose des
-          déchets liés à une prestation doit donc s'acquitter d'une redevance spéciale, avec un pass professionnel
-          dédié. Et oui, cela vaut aussi pour les déchets verts.
-        </p>
-        <p className="mt-3 max-w-3xl text-sm text-slate-700">
-          Ce coût recouvre plusieurs éléments pour l'agent : le temps du trajet jusqu'à la déchèterie, son
-          carburant, l'usage de son véhicule professionnel, et une facturation au poids ou au volume selon le type
-          de déchet — souvent plusieurs dizaines d'euros la tonne, avec des tarifs qui varient d'une commune à
-          l'autre.
-        </p>
-        <p className="mt-3 max-w-3xl text-sm font-medium text-ink">
-          Ne soyez donc pas surpris si un agent ajoute des frais de déchetterie à son offre : ce n'est pas une
-          majoration arbitraire, c'est un coût réel qu'il doit couvrir pour évacuer vos déchets dans les règles.
-        </p>
+      <section className="mt-10 mb-4 overflow-hidden rounded-lg border border-accent/30 bg-accent-light">
+        <div className="grid md:grid-cols-2">
+          <div className="relative aspect-square md:aspect-auto">
+            <Image
+              src="/images/info/dechetterie.png"
+              alt="Agent Services 34 chargeant des déchets verts dans son véhicule professionnel"
+              fill
+              className="object-cover"
+              sizes="(min-width: 768px) 50vw, 100vw"
+            />
+          </div>
+          <div className="p-6 md:p-10">
+            <h2 className="font-display text-xl font-semibold text-ink">
+              Déchetterie, recyclage, gravats et encombrants
+            </h2>
+            <p className="mt-3 text-sm text-slate-700">
+              Ce qui est peu connu : les déchèteries municipales sont financées par la taxe d'enlèvement des
+              ordures ménagères, payée par les particuliers — pas par les professionnels. Un agent Services 34 qui
+              dépose des déchets liés à une prestation doit donc s'acquitter d'une redevance spéciale, avec un pass
+              professionnel dédié. Et oui, cela vaut aussi pour les déchets verts.
+            </p>
+            <p className="mt-3 text-sm text-slate-700">
+              Ce coût recouvre plusieurs éléments pour l'agent : le temps du trajet jusqu'à la déchèterie, son
+              carburant, l'usage de son véhicule professionnel, et une facturation au poids ou au volume selon le
+              type de déchet — souvent plusieurs dizaines d'euros la tonne, avec des tarifs qui varient d'une
+              commune à l'autre.
+            </p>
+            <p className="mt-3 text-sm font-medium text-ink">
+              Des frais de déchetterie peuvent être introduits à votre devis : ce n'est pas une majoration
+              arbitraire, c'est un coût réel que nous devons couvrir pour évacuer vos déchets dans les règles.
+            </p>
+          </div>
+        </div>
       </section>
     </div>
   );
