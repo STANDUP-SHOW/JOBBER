@@ -10,13 +10,22 @@ const { z } = require('zod');
 const bcrypt = require('bcryptjs');
 const prisma = require('../config/prisma');
 const { signToken, verifyToken } = require('../utils/jwt');
-const { REFUSAL_REASONS_JOBBER } = require('../utils/agency');
+const { REFUSAL_REASONS_JOBBER, generateCorporateCode } = require('../utils/agency');
 const { geocodeAddress } = require('../services/geocodingService');
 
 const router = express.Router();
 
 const MAX_PIN_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
+
+// Same list as missions.routes.js (not exported there, so duplicated here).
+const VEHICLE_TYPES = [
+  'VOITURE_TOURISME', 'MINIBUS', 'CAMION_BENNE', 'REMORQUE', 'GRANDE_REMORQUE',
+  'PETIT_UTILITAIRE_4M3', 'FOURGONNETTE_9M3', 'CAMION_15M3', 'GRAND_CAMION_20M3', 'POIDS_LOURD',
+  'CAMION_PLATEAU', 'REMORQUE_BATEAU',
+];
+
+const missionDetailsSchema = z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.array(z.string())])).optional();
 
 // "Information entreprise" block in Paramètres, plus the core admin fields —
 // shared shape returned by /login, /me and /credentials.
@@ -169,53 +178,74 @@ router.get('/missions/received', async (req, res, next) => {
 
 const createAgencyMissionSchema = z.object({
   categoryId: z.string(),
-  serviceId: z.string().optional(),
+  serviceId: z.string().optional().transform((v) => (v ? v : undefined)),
   title: z.string().min(3),
   description: z.string().min(10),
   address: z.string().min(3),
   estimatedHours: z.number().positive().default(1),
   desiredDate: z.string(),
+  isUrgent: z.boolean().optional().default(false),
+  datesFlexible: z.boolean().optional().default(false),
   isRecurring: z.boolean().optional().default(false),
   dates: z.array(z.object({
     date: z.string(), startTime: z.string(), hours: z.number().positive(), endTime: z.string(),
   })).optional().default([]),
+  requiredEquipmentIds: z.array(z.string()).optional().default([]),
+  requiredVehicleTypes: z.array(z.enum(VEHICLE_TYPES)).optional().default([]),
+  otherEquipmentNote: z.string().max(200).optional().transform((v) => (v ? v : undefined)),
+  otherVehicleNote: z.string().max(200).optional().transform((v) => (v ? v : undefined)),
+  details: missionDetailsSchema,
 });
 
 // "Créer une mission agence" — the agency originates the mission itself
 // (e.g. a long-term contract), rather than a visitor submitting a demande.
 // Kept private until the agency clicks "Publier sur Jobber" or "Traité en
-// agence", exactly like a client-submitted demande.
+// agence", exactly like a client-submitted demande. Carries the same
+// fields as a normal demande (service précis, adresse géocodée, options,
+// matériel/véhicule requis) so it isn't a stripped-down mission.
 router.post('/missions', async (req, res, next) => {
   try {
-    const data = createAgencyMissionSchema.parse(req.body);
+    const { requiredEquipmentIds, dates, ...data } = createAgencyMissionSchema.parse(req.body);
     const category = await prisma.category.findUnique({ where: { id: data.categoryId }, select: { id: true, slug: true } });
     if (!category) return res.status(400).json({ error: 'Catégorie introuvable' });
 
-    const scheduleEntries = data.isRecurring ? data.dates : [];
+    const scheduleEntries = data.isRecurring ? dates : [];
     const totalHours = scheduleEntries.length
       ? scheduleEntries.reduce((sum, d) => sum + d.hours, 0)
       : data.estimatedHours;
     const desiredDate = scheduleEntries.length ? new Date(scheduleEntries[0].date) : new Date(data.desiredDate);
+    const geocoded = await geocodeAddress(data.address);
 
     const mission = await prisma.mission.create({
       data: {
         categoryId: category.id,
-        serviceId: data.serviceId || undefined,
+        serviceId: data.serviceId,
         title: data.title,
         description: data.description,
         address: data.address,
+        lat: geocoded?.lat,
+        lng: geocoded?.lng,
         desiredDate,
         estimatedHours: totalHours,
+        isUrgent: data.isUrgent,
+        datesFlexible: data.datesFlexible,
         isRecurring: data.isRecurring,
+        requiredVehicleTypes: data.requiredVehicleTypes,
+        otherEquipmentNote: data.otherEquipmentNote,
+        otherVehicleNote: data.otherVehicleNote,
+        details: data.details,
         clientId: req.agency.id,
         corporateAgencyId: req.agency.id,
         corporateCode: generateCorporateCode(category.slug),
         visibility: 'PRIVATE',
+        requiredEquipment: requiredEquipmentIds.length
+          ? { create: requiredEquipmentIds.map((equipmentId) => ({ equipmentId })) }
+          : undefined,
         scheduleEntries: scheduleEntries.length
           ? { create: scheduleEntries.map((d) => ({ date: new Date(d.date), startTime: d.startTime, hours: d.hours, endTime: d.endTime })) }
           : undefined,
       },
-      include: { scheduleEntries: true },
+      include: { scheduleEntries: true, requiredEquipment: { include: { equipment: true } } },
     });
     res.status(201).json({ mission });
   } catch (err) {
@@ -546,10 +576,15 @@ router.post('/employees', async (req, res, next) => {
 
 const embaucheSchema = z.object({
   categoryId: z.string(),
-  serviceId: z.string().optional(),
+  serviceId: z.string().optional().transform((v) => (v ? v : undefined)),
   title: z.string().min(3),
   description: z.string().min(10),
   address: z.string().min(3),
+  requiredEquipmentIds: z.array(z.string()).optional().default([]),
+  requiredVehicleTypes: z.array(z.enum(VEHICLE_TYPES)).optional().default([]),
+  otherEquipmentNote: z.string().max(200).optional().transform((v) => (v ? v : undefined)),
+  otherVehicleNote: z.string().max(200).optional().transform((v) => (v ? v : undefined)),
+  details: missionDetailsSchema,
   dates: z.array(z.object({
     date: z.string(), startTime: z.string(), hours: z.number().positive(), endTime: z.string(),
   })).min(1),
@@ -558,32 +593,49 @@ const embaucheSchema = z.object({
 // "Embaucher pour une mission" — creates a private, planning-based mission
 // addressed to one specific employee jobber (no public listing, no
 // competing offers). The jobber accepts/refuses via the normal jobber.city
-// offer flow, targeted just at them.
+// offer flow, targeted just at them. Same field set as a normal demande
+// (service précis, adresse géocodée, matériel/véhicule requis) so the
+// jobber sees a fully-described mission, not an empty shell.
 router.post('/employees/:jobberId/embauche', async (req, res, next) => {
   try {
-    const data = embaucheSchema.parse(req.body);
+    const { requiredEquipmentIds, dates, ...data } = embaucheSchema.parse(req.body);
     const jobber = await prisma.user.findUnique({ where: { id: req.params.jobberId } });
     if (!jobber) return res.status(404).json({ error: 'Jobber introuvable' });
     const isEmployee = await prisma.agencyEmployee.findUnique({ where: { agencyId_jobberId: { agencyId: req.agency.id, jobberId: jobber.id } } });
     if (!isEmployee) return res.status(403).json({ error: "Ce jobber ne fait pas partie de vos employés" });
+    const category = await prisma.category.findUnique({ where: { id: data.categoryId }, select: { id: true, slug: true } });
+    if (!category) return res.status(400).json({ error: 'Catégorie introuvable' });
 
-    const firstDate = data.dates[0];
-    const totalHours = data.dates.reduce((sum, d) => sum + d.hours, 0);
+    const firstDate = dates[0];
+    const totalHours = dates.reduce((sum, d) => sum + d.hours, 0);
+    const geocoded = await geocodeAddress(data.address);
 
     const mission = await prisma.mission.create({
       data: {
-        categoryId: data.categoryId,
-        serviceId: data.serviceId || undefined,
+        categoryId: category.id,
+        serviceId: data.serviceId,
         title: data.title,
         description: data.description,
         address: data.address,
+        lat: geocoded?.lat,
+        lng: geocoded?.lng,
         desiredDate: new Date(firstDate.date),
         estimatedHours: totalHours,
+        isRecurring: dates.length > 1,
+        requiredVehicleTypes: data.requiredVehicleTypes,
+        otherEquipmentNote: data.otherEquipmentNote,
+        otherVehicleNote: data.otherVehicleNote,
+        details: data.details,
         clientId: req.agency.id,
         corporateAgencyId: req.agency.id,
+        corporateCode: generateCorporateCode(category.slug),
         visibility: 'PRIVATE',
-        scheduleEntries: { create: data.dates.map((d) => ({ date: new Date(d.date), startTime: d.startTime, hours: d.hours, endTime: d.endTime })) },
+        requiredEquipment: requiredEquipmentIds.length
+          ? { create: requiredEquipmentIds.map((equipmentId) => ({ equipmentId })) }
+          : undefined,
+        scheduleEntries: { create: dates.map((d) => ({ date: new Date(d.date), startTime: d.startTime, hours: d.hours, endTime: d.endTime })) },
       },
+      include: { scheduleEntries: true, requiredEquipment: { include: { equipment: true } } },
     });
 
     const offer = await prisma.offer.create({

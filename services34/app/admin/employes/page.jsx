@@ -3,10 +3,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAgencyAuth } from '../../../lib/agency-auth-context';
 import { agencyApi } from '../../../lib/agencyApi';
+import { api } from '../../../lib/api';
 import { VEHICLES } from '../../../components/VehicleIcon';
+import MissionExtraFields from '../../../components/admin/MissionExtraFields';
+import AddressAutocomplete from '../../../components/AddressAutocomplete';
 
 function emptyDate() {
   return { date: '', startTime: '09:00', hours: 2, endTime: '11:00' };
+}
+
+function emptyForm(categoryId = '') {
+  return {
+    categoryId, serviceId: '', details: {}, title: '', description: '', address: '', dates: [emptyDate()],
+    requiredEquipmentIds: [], otherEquipmentChecked: false, otherEquipmentNote: '',
+    requiredVehicleTypes: [], otherVehicleChecked: false, otherVehicleNote: '',
+  };
 }
 
 export default function EmployesPage() {
@@ -20,12 +31,16 @@ export default function EmployesPage() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
 
-  const [form, setForm] = useState({ categoryId: '', title: '', description: '', address: '', dates: [emptyDate()] });
+  const [allCategories, setAllCategories] = useState([]);
+  const [form, setForm] = useState(emptyForm());
 
   useEffect(() => {
     if (!token) return;
     agencyApi.employees(token).then(({ employees }) => setEmployees(employees)).catch((e) => setError(e.message));
+    api.categories().then(({ categories }) => setAllCategories(categories)).catch(() => {});
   }, [token]);
+
+  const selectedCategory = allCategories.find((c) => c.id === form.categoryId);
 
   const categories = useMemo(() => {
     const set = new Map();
@@ -44,7 +59,7 @@ export default function EmployesPage() {
 
   function openEmbauche(jobberId, categoryId) {
     setEmbaucheFor(jobberId);
-    setForm({ categoryId: categoryId || '', title: '', description: '', address: '', dates: [emptyDate()] });
+    setForm(emptyForm(categoryId || ''));
     setMessage('');
   }
 
@@ -62,10 +77,16 @@ export default function EmployesPage() {
     try {
       await agencyApi.embauche(embaucheFor, {
         categoryId: form.categoryId,
+        serviceId: form.serviceId || undefined,
+        details: Object.fromEntries(Object.entries(form.details).filter(([, v]) => v !== '' && v != null)),
         title: form.title,
         description: form.description,
         address: form.address,
         dates: form.dates.map((d) => ({ ...d, hours: Number(d.hours) })),
+        requiredEquipmentIds: form.requiredEquipmentIds,
+        otherEquipmentNote: form.otherEquipmentChecked ? form.otherEquipmentNote.trim() : '',
+        requiredVehicleTypes: form.requiredVehicleTypes,
+        otherVehicleNote: form.otherVehicleChecked ? form.otherVehicleNote.trim() : '',
       }, token);
       setMessage('Mission planning envoyée au jobber — il peut l\'accepter ou la refuser.');
       setEmbaucheFor(null);
@@ -123,9 +144,22 @@ export default function EmployesPage() {
 
             {embaucheFor === jobber.id && (
               <form onSubmit={submitEmbauche} className="mt-4 space-y-3 border-t border-slate-100 pt-4">
+                <select
+                  required value={form.categoryId}
+                  onChange={(e) => setForm({ ...form, categoryId: e.target.value, serviceId: '', details: {}, requiredEquipmentIds: [] })}
+                  className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
+                >
+                  <option value="">Catégorie…</option>
+                  {jobber.providerProfile?.categories?.map((c) => (
+                    <option key={c.categoryId} value={c.categoryId}>{c.category?.name}</option>
+                  ))}
+                </select>
+
+                <MissionExtraFields category={selectedCategory} form={form} setForm={setForm} />
+
                 <input required placeholder="Titre de la mission" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm" />
                 <textarea required placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm" />
-                <input required placeholder="Adresse" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm" />
+                <AddressAutocomplete value={form.address} onChange={(v) => setForm({ ...form, address: v })} required placeholder="Adresse" />
 
                 <div>
                   <span className="text-xs font-medium text-slate-500">Planning — plusieurs missions, plusieurs jours</span>
