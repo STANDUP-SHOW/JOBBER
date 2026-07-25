@@ -4,6 +4,7 @@ import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
+import GoogleSignInButton from '../../../components/GoogleSignInButton';
 
 export default function LoginPage() {
   return (
@@ -65,6 +66,16 @@ function LoginForm() {
           {loading ? 'Connexion…' : 'Se connecter'}
         </button>
       </form>
+
+      <div className="mt-6 flex items-center gap-3 text-xs text-slate-400">
+        <div className="h-px flex-1 bg-slate-200" />
+        ou
+        <div className="h-px flex-1 bg-slate-200" />
+      </div>
+
+      <div className="mt-4 flex justify-center">
+        <GoogleSignInButton />
+      </div>
 
       <p className="mt-6 text-center text-sm text-slate-500">
         Pas encore de compte ? <a href="/auth/register" className="font-medium text-brand hover:underline">S'inscrire</a>
