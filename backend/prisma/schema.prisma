@@ -33,6 +33,17 @@ enum MissionStatus {
   CANCELLED
 }
 
+// PUBLIC missions show on Jobber's public marketplace as usual. PRIVATE
+// missions never appear there — used for corporate demandes still pending
+// agency review, missions the agency handles itself ("Mission Agence"),
+// and direct employee-targeted offers ("Embaucher pour une mission").
+// A PRIVATE mission becomes PUBLIC only when the agency clicks "Publier
+// sur Jobber".
+enum MissionVisibility {
+  PUBLIC
+  PRIVATE
+}
+
 enum OfferStatus {
   PENDING
   ACCEPTED
@@ -184,6 +195,23 @@ model User {
   notifyEmailPartners     Boolean @default(true)
   notifySmsOffers         Boolean @default(false)
   notifySmsCancellation   Boolean @default(true)
+  // Corporate agency admin login (e.g. Services 34) — a second, separate
+  // credential pair (identifiant + PIN) used only for admin.<site> access,
+  // independent of the account's normal email/password. Null for every
+  // account that isn't a corporate agency admin.
+  adminLoginId            String?   @unique
+  adminPinHash            String?
+  adminPinFailedAttempts  Int       @default(0)
+  adminPinLockedUntil     DateTime?
+  // Corporate agency's own service radius ("ma zone d'intervention"),
+  // extensible up to 150 km — distinct from a jobber's ProviderProfile.radiusKm.
+  serviceRadiusKm         Int?      @default(50)
+  // Hostname of this agency's white-label site (e.g. "services34.fr").
+  // Missions created via requests whose Origin matches this domain are
+  // attributed to this agency server-side — never trusted from the client,
+  // so one white-label site can never spoof another's missions. Scales to
+  // any number of future corporate sites without touching client code.
+  agencyDomain            String?   @unique
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
@@ -201,6 +229,10 @@ model User {
   conversationsAsProvider Conversation[] @relation("ConvProvider")
   favoritesAsManager  Favorite[] @relation("FavoritesByManager")
   favoritedAsProvider Favorite[] @relation("FavoritedProvider")
+  agencyMissions      Mission[]  @relation("CorporateAgencyMissions")
+  agencyEmployees     AgencyEmployee[] @relation("AgencyEmployer")
+  employedByAgencies  AgencyEmployee[] @relation("AgencyEmployeeOf")
+  agencyInvoices      Invoice[]  @relation("AgencyInvoices")
 }
 
 // A manager bookmarking a jobber they'd like to work with again ("Mes
@@ -413,6 +445,16 @@ model Mission {
   // hedgeLengthM: 12 }) — keyed by field key, shape defined per-service.
   details        Json?
   status         MissionStatus @default(OPEN)
+  // Set when this mission originated from a corporate white-label site
+  // (e.g. services34.fr) rather than jobber.city directly. Null for
+  // ordinary missions.
+  corporateAgencyId String?
+  corporateAgency   User?             @relation("CorporateAgencyMissions", fields: [corporateAgencyId], references: [id])
+  // "XX-AAAA-MM-123XX" — 2-letter category code, year, month, 3 random
+  // digits + 2 random letters. Generated once, on creation, only for
+  // corporate-agency missions.
+  corporateCode     String?           @unique
+  visibility        MissionVisibility @default(PUBLIC)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -420,6 +462,60 @@ model Mission {
   booking           Booking?
   conversations     Conversation[]
   requiredEquipment MissionEquipment[]
+  scheduleEntries   MissionScheduleEntry[]
+}
+
+// One row per date when an agency "embauche" (hires) an employee jobber
+// across several days for the same mission — the "+ Ajouter une date"
+// button in Mes employés → Embaucher pour une mission.
+model MissionScheduleEntry {
+  id        String   @id @default(cuid())
+  missionId String
+  mission   Mission  @relation(fields: [missionId], references: [id])
+  date      DateTime
+  startTime String
+  hours     Float
+  endTime   String
+  createdAt DateTime @default(now())
+}
+
+// A jobber a corporate agency has chosen to keep in its trusted roster
+// after a completed mission ("voulez-vous garder ce jobber parmi vos
+// employés ?"). Powers "Mes employés" and the direct "Embaucher pour une
+// mission" flow (private mission + targeted offer, no public listing).
+model AgencyEmployee {
+  id        String   @id @default(cuid())
+  agencyId  String
+  agency    User     @relation("AgencyEmployer", fields: [agencyId], references: [id])
+  jobberId  String
+  jobber    User     @relation("AgencyEmployeeOf", fields: [jobberId], references: [id])
+  addedAt   DateTime @default(now())
+
+  @@unique([agencyId, jobberId])
+}
+
+enum InvoiceKind {
+  JOBBER_MISSION
+  JOBBER_MONTHLY
+  AGENCY_MISSION
+  AGENCY_MONTHLY
+}
+
+// "Mes factures Jobber" / "Mes factures Agence" — one row per mission and
+// one row per month, per the agency's own numbering scheme. Presentation
+// (PDF layout, branding) is deliberately out of scope for now; this only
+// tracks the records themselves.
+model Invoice {
+  id          String      @id @default(cuid())
+  agencyId    String
+  agency      User        @relation("AgencyInvoices", fields: [agencyId], references: [id])
+  kind        InvoiceKind
+  reference   String      @unique
+  missionId   String?
+  periodYear  Int?
+  periodMonth Int?
+  amount      Float
+  createdAt   DateTime    @default(now())
 }
 
 // Equipment the client is asking the jobber to bring for this specific
@@ -444,6 +540,7 @@ model Offer {
   extraFees   Json?       // [{ key: 'displacement', label: 'Frais de route - Déplacement', amount: 15 }, ...] — optional paid options the jobber adds to their offer, see EXTRA_FEE_TYPES in offers.routes.js
   message     String?
   status      OfferStatus @default(PENDING)
+  refusalReason String?
   createdAt   DateTime    @default(now())
 
   @@unique([missionId, providerId])

@@ -1,8 +1,7 @@
 import './globals.css';
 import { AuthProvider } from '../lib/auth-context';
 import { BrandProvider } from '../lib/brand-context';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import SiteChrome from '../components/SiteChrome';
 import { SITE_URL, SITE_NAME } from '../lib/seo';
 
 const description =
@@ -43,9 +42,7 @@ export default function RootLayout({ children }) {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
         <BrandProvider>
           <AuthProvider>
-            <Header />
-            <main className="mx-auto min-h-screen max-w-6xl px-6 py-10">{children}</main>
-            <Footer />
+            <SiteChrome>{children}</SiteChrome>
           </AuthProvider>
         </BrandProvider>
       </body>
