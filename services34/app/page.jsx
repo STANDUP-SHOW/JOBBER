@@ -95,7 +95,7 @@ export default function HomePage() {
           Nouveau
         </span>
         <div className="mt-2 font-display text-xl font-bold">Intervention en urgence</div>
-        <p className="mx-auto mt-2 max-w-xl text-sm text-white/90">
+        <p className="mx-auto mt-3 max-w-xl font-display text-3xl font-extrabold leading-tight md:text-4xl">
           Une urgence à la maison ? On s'en occupe tout de suite ! Et si on venait chez vous aujourd'hui ?
         </p>
         <p className="mx-auto mt-2 max-w-xl text-sm font-semibold text-white">

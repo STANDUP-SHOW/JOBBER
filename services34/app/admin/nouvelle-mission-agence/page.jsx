@@ -5,9 +5,21 @@ import { useAgencyAuth } from '../../../lib/agency-auth-context';
 import { agencyApi } from '../../../lib/agencyApi';
 import { api } from '../../../lib/api';
 import RecurringDatesEditor from '../../../components/admin/RecurringDatesEditor';
+import MissionExtraFields from '../../../components/admin/MissionExtraFields';
+import AddressAutocomplete from '../../../components/AddressAutocomplete';
 
 function emptyDate() {
   return { date: '', startTime: '09:00', hours: 2, endTime: '11:00' };
+}
+
+function emptyForm() {
+  return {
+    categoryId: '', serviceId: '', details: {}, title: '', description: '', address: '',
+    estimatedHours: 2, desiredDate: '', isRecurring: false, dates: [emptyDate()],
+    isUrgent: false, datesFlexible: false,
+    requiredEquipmentIds: [], otherEquipmentChecked: false, otherEquipmentNote: '',
+    requiredVehicleTypes: [], otherVehicleChecked: false, otherVehicleNote: '',
+  };
 }
 
 export default function NouvelleMissionAgencePage() {
@@ -20,10 +32,8 @@ export default function NouvelleMissionAgencePage() {
   const [showForm, setShowForm] = useState(false);
   const [rateDrafts, setRateDrafts] = useState({});
 
-  const [form, setForm] = useState({
-    categoryId: '', title: '', description: '', address: '',
-    estimatedHours: 2, desiredDate: '', isRecurring: false, dates: [emptyDate()],
-  });
+  const [form, setForm] = useState(emptyForm());
+  const selectedCategory = categories.find((c) => c.id === form.categoryId);
 
   async function refresh() {
     try {
@@ -44,17 +54,25 @@ export default function NouvelleMissionAgencePage() {
     try {
       await agencyApi.createAgencyMission({
         categoryId: form.categoryId,
+        serviceId: form.serviceId || undefined,
+        details: Object.fromEntries(Object.entries(form.details).filter(([, v]) => v !== '' && v != null)),
         title: form.title,
         description: form.description,
         address: form.address,
         estimatedHours: Number(form.estimatedHours),
         desiredDate: form.desiredDate || new Date().toISOString(),
+        isUrgent: form.isUrgent,
+        datesFlexible: form.datesFlexible,
         isRecurring: form.isRecurring,
         dates: form.isRecurring ? form.dates.map((d) => ({ ...d, hours: Number(d.hours) })) : [],
+        requiredEquipmentIds: form.requiredEquipmentIds,
+        otherEquipmentNote: form.otherEquipmentChecked ? form.otherEquipmentNote.trim() : '',
+        requiredVehicleTypes: form.requiredVehicleTypes,
+        otherVehicleNote: form.otherVehicleChecked ? form.otherVehicleNote.trim() : '',
       }, token);
       setMessage('Mission agence créée.');
       setShowForm(false);
-      setForm({ categoryId: '', title: '', description: '', address: '', estimatedHours: 2, desiredDate: '', isRecurring: false, dates: [emptyDate()] });
+      setForm(emptyForm());
       await refresh();
     } catch (err) { setError(err.message); } finally { setBusy(false); }
   }
@@ -83,13 +101,20 @@ export default function NouvelleMissionAgencePage() {
 
       {showForm && (
         <form onSubmit={submit} className="mt-6 space-y-4 rounded-lg border border-slate-200 bg-white p-6">
-          <select required value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })} className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm">
+          <select
+            required value={form.categoryId}
+            onChange={(e) => setForm({ ...form, categoryId: e.target.value, serviceId: '', details: {}, requiredEquipmentIds: [] })}
+            className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
+          >
             <option value="">Catégorie…</option>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
           </select>
+
+          <MissionExtraFields category={selectedCategory} form={form} setForm={setForm} />
+
           <input required placeholder="Titre de la mission" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm" />
           <textarea required placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm" />
-          <input required placeholder="Adresse" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm" />
+          <AddressAutocomplete value={form.address} onChange={(v) => setForm({ ...form, address: v })} required placeholder="Adresse" />
 
           <div>
             <span className="text-xs font-medium text-slate-500">Fréquence</span>
@@ -111,6 +136,30 @@ export default function NouvelleMissionAgencePage() {
               <input type="number" min={0.5} step={0.5} required value={form.estimatedHours} onChange={(e) => setForm({ ...form, estimatedHours: e.target.value })} placeholder="Heures" className="w-28 rounded-md border border-slate-200 px-3 py-2 text-sm" />
             </div>
           )}
+
+          <div>
+            <span className="text-xs font-medium text-slate-500">Options (cumulables)</span>
+            <div className="mt-2 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, isUrgent: !f.isUrgent }))}
+                className={`rounded-lg border-2 py-3 text-center text-sm font-bold uppercase tracking-wide transition ${
+                  form.isUrgent ? 'border-clay bg-clay text-white' : 'border-slate-200 text-slate-500 hover:border-clay hover:text-clay'
+                }`}
+              >
+                Urgent
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, datesFlexible: !f.datesFlexible }))}
+                className={`rounded-lg border-2 py-3 text-center text-sm font-bold uppercase tracking-wide transition ${
+                  form.datesFlexible ? 'border-green-600 bg-green-600 text-white' : 'border-slate-200 text-slate-500 hover:border-green-600 hover:text-green-600'
+                }`}
+              >
+                Dates flexibles
+              </button>
+            </div>
+          </div>
 
           <div className="flex gap-3">
             <button type="submit" disabled={busy} className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark disabled:opacity-60">
