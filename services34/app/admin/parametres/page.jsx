@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAgencyAuth } from '../../../lib/agency-auth-context';
 import { agencyApi } from '../../../lib/agencyApi';
+import ZoneSettingsSheet from '../../../components/admin/ZoneSettingsSheet';
 
 const CIVILITES = ['Monsieur', 'Madame', 'Autre'];
 
@@ -10,7 +11,7 @@ export default function ParametresPage() {
   const { token, agency, login } = useAgencyAuth();
   const [loginId, setLoginId] = useState(agency?.adminLoginId || '');
   const [pin, setPin] = useState('');
-  const [radius, setRadius] = useState(agency?.serviceRadiusKm || 50);
+  const [zoneOpen, setZoneOpen] = useState(false);
   const [company, setCompany] = useState({
     companyName: agency?.companyName || '',
     companySiret: agency?.companySiret || '',
@@ -46,16 +47,6 @@ export default function ParametresPage() {
       login(token, updated);
       setPin('');
       setMessage('Identifiants mis à jour.');
-    } catch (err) { setError(err.message); } finally { setBusy(false); }
-  }
-
-  async function saveRadius(e) {
-    e.preventDefault();
-    setBusy(true); setError(''); setMessage('');
-    try {
-      const { agency: updated } = await agencyApi.updateCredentials({ serviceRadiusKm: Number(radius) }, token);
-      login(token, updated);
-      setMessage('Zone d\'intervention mise à jour.');
     } catch (err) { setError(err.message); } finally { setBusy(false); }
   }
 
@@ -117,18 +108,32 @@ export default function ParametresPage() {
 
       <section className="mt-6 rounded-lg border border-slate-200 bg-white p-6">
         <h2 className="font-display text-base font-semibold text-ink">Ma zone d'intervention</h2>
-        <p className="mt-1 text-sm text-slate-500">Rayon autour de votre secteur, extensible jusqu'à 150 km.</p>
-        <form onSubmit={saveRadius} className="mt-4 flex items-center gap-3">
-          <input
-            type="number" min={1} max={150} value={radius}
-            onChange={(e) => setRadius(e.target.value)}
-            className="w-24 rounded-md border border-slate-200 px-3 py-2 text-sm"
+        <p className="mt-1 text-sm text-slate-500">Adresse de l'entreprise et rayon d'intervention, extensible jusqu'à 150 km.</p>
+        <button
+          type="button"
+          onClick={() => setZoneOpen(true)}
+          className="mt-4 flex w-full items-center gap-3 rounded-lg border border-slate-200 px-4 py-3 text-left hover:border-brand"
+        >
+          <span className="text-lg">📍</span>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-medium text-ink">{agency?.address || "Définir l'adresse de l'entreprise"}</div>
+            <div className="text-xs text-slate-400">Rayon : {agency?.serviceRadiusKm ?? 50} km</div>
+          </div>
+          <span className="shrink-0 text-xs font-medium text-brand">Modifier</span>
+        </button>
+
+        {zoneOpen && (
+          <ZoneSettingsSheet
+            agency={agency}
+            token={token}
+            onClose={() => setZoneOpen(false)}
+            onSaved={(updated) => {
+              login(token, updated);
+              setZoneOpen(false);
+              setMessage("Zone d'intervention mise à jour.");
+            }}
           />
-          <span className="text-sm text-slate-500">km</span>
-          <button type="submit" disabled={busy} className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark disabled:opacity-60">
-            Enregistrer
-          </button>
-        </form>
+        )}
       </section>
 
       <section className="mt-6 rounded-lg border border-slate-200 bg-white p-6">

@@ -11,6 +11,7 @@ const bcrypt = require('bcryptjs');
 const prisma = require('../config/prisma');
 const { signToken, verifyToken } = require('../utils/jwt');
 const { REFUSAL_REASONS_JOBBER } = require('../utils/agency');
+const { geocodeAddress } = require('../services/geocodingService');
 
 const router = express.Router();
 
@@ -25,6 +26,9 @@ function agencyPublicFields(agency) {
     companyName: agency.companyName,
     adminLoginId: agency.adminLoginId,
     serviceRadiusKm: agency.serviceRadiusKm,
+    address: agency.address,
+    lat: agency.lat,
+    lng: agency.lng,
     companySiret: agency.companySiret,
     siegeSocialAddress: agency.siegeSocialAddress,
     siegeSocialCity: agency.siegeSocialCity,
@@ -105,6 +109,7 @@ const credentialsSchema = z.object({
   loginId: z.string().min(1).optional(),
   pin: z.string().min(4).max(12).optional(),
   serviceRadiusKm: z.number().min(1).max(150).optional(),
+  address: z.string().min(1).optional(),
   companyName: z.string().min(1).optional(),
   companySiret: z.string().min(1).optional(),
   siegeSocialAddress: z.string().min(1).optional(),
@@ -122,6 +127,12 @@ router.patch('/credentials', async (req, res, next) => {
     if (data.loginId) update.adminLoginId = data.loginId;
     if (data.pin) update.adminPinHash = await bcrypt.hash(data.pin, 10);
     if (data.serviceRadiusKm) update.serviceRadiusKm = data.serviceRadiusKm;
+    if (data.address) {
+      update.address = data.address;
+      const geocoded = await geocodeAddress(data.address);
+      update.lat = geocoded?.lat;
+      update.lng = geocoded?.lng;
+    }
     if (data.companyName) update.companyName = data.companyName;
     if (data.companySiret) update.companySiret = data.companySiret;
     if (data.siegeSocialAddress) update.siegeSocialAddress = data.siegeSocialAddress;
