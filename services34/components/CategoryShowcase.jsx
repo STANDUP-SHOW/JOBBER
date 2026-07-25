@@ -25,7 +25,7 @@ export default function CategoryShowcase({ category, label, image, pitch, href, 
           </div>
         </div>
         <div className={`flex flex-col justify-center p-8 md:p-10 ${reverse ? 'md:order-1' : ''}`}>
-          <span className="text-xs font-bold uppercase tracking-wide" style={{ color }}>{label}</span>
+          <span className="text-xs font-bold uppercase tracking-wide" style={{ color }}>{label} Services 34</span>
           <h2 className="mt-2 font-display text-3xl font-bold uppercase leading-tight text-ink md:text-4xl">{label}</h2>
           <p className="mt-4 max-w-md text-slate-600">{pitch}</p>
           <Link

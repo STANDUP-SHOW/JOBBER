@@ -6,6 +6,13 @@
 
 html {
   scroll-behavior: smooth;
+  font-size: 107%;
+}
+
+@media (max-width: 767px) {
+  html {
+    font-size: 120%;
+  }
 }
 
 body {
