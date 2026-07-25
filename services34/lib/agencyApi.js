@@ -26,6 +26,13 @@ export const agencyApi = {
   publishToJobber: (missionId, token) => request(`/missions/${missionId}/publish-to-jobber`, { method: 'POST', token }),
   missionAgence: (missionId, payload, token) => request(`/missions/${missionId}/agence`, { method: 'POST', body: payload, token }),
 
+  createAgencyMission: (payload, token) => request('/missions', { method: 'POST', body: payload, token }),
+  missionsNouvelleAgence: (token) => request('/missions/nouvelle-agence', { token }),
+
+  plannings: (token) => request('/plannings', { token }),
+  createPlanning: (payload, token) => request('/plannings', { method: 'POST', body: payload, token }),
+  assignPlanning: (missionId, planningId, token) => request(`/missions/${missionId}/assign-planning`, { method: 'POST', body: { planningId }, token }),
+
   missionsPublished: (token) => request('/missions/published', { token }),
 
   offers: (token) => request('/offers', { token }),

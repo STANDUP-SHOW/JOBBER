@@ -17,6 +17,25 @@ const router = express.Router();
 const MAX_PIN_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
 
+// "Information entreprise" block in Paramètres, plus the core admin fields —
+// shared shape returned by /login, /me and /credentials.
+function agencyPublicFields(agency) {
+  return {
+    id: agency.id,
+    companyName: agency.companyName,
+    adminLoginId: agency.adminLoginId,
+    serviceRadiusKm: agency.serviceRadiusKm,
+    companySiret: agency.companySiret,
+    siegeSocialAddress: agency.siegeSocialAddress,
+    siegeSocialCity: agency.siegeSocialCity,
+    siegeSocialDepartement: agency.siegeSocialDepartement,
+    representantCivilite: agency.representantCivilite,
+    representantNom: agency.representantNom,
+    representantPrenom: agency.representantPrenom,
+    jobberLicenseNumber: agency.jobberLicenseNumber,
+  };
+}
+
 // Separate from requireAuth: verifies the JWT is valid AND belongs to a
 // corporate agency account, then loads the fresh user row onto req.agency.
 async function requireAgencyAuth(req, res, next) {
@@ -67,7 +86,7 @@ router.post('/login', async (req, res, next) => {
 
     await prisma.user.update({ where: { id: agency.id }, data: { adminPinFailedAttempts: 0, adminPinLockedUntil: null } });
     const token = signToken(agency);
-    res.json({ token, agency: { id: agency.id, companyName: agency.companyName, adminLoginId: agency.adminLoginId, serviceRadiusKm: agency.serviceRadiusKm } });
+    res.json({ token, agency: agencyPublicFields(agency) });
   } catch (err) {
     if (err.name === 'ZodError') { err.status = 400; err.expose = true; err.message = err.errors[0].message; }
     next(err);
@@ -77,13 +96,23 @@ router.post('/login', async (req, res, next) => {
 router.use(requireAgencyAuth);
 
 router.get('/me', (req, res) => {
-  res.json({ agency: { id: req.agency.id, companyName: req.agency.companyName, adminLoginId: req.agency.adminLoginId, serviceRadiusKm: req.agency.serviceRadiusKm } });
+  res.json({ agency: agencyPublicFields(req.agency) });
 });
+
+const CIVILITES = ['Monsieur', 'Madame', 'Autre'];
 
 const credentialsSchema = z.object({
   loginId: z.string().min(1).optional(),
   pin: z.string().min(4).max(12).optional(),
   serviceRadiusKm: z.number().min(1).max(150).optional(),
+  companyName: z.string().min(1).optional(),
+  companySiret: z.string().min(1).optional(),
+  siegeSocialAddress: z.string().min(1).optional(),
+  siegeSocialCity: z.string().min(1).optional(),
+  siegeSocialDepartement: z.string().min(1).optional(),
+  representantCivilite: z.enum(CIVILITES).optional(),
+  representantNom: z.string().min(1).optional(),
+  representantPrenom: z.string().min(1).optional(),
 });
 
 router.patch('/credentials', async (req, res, next) => {
@@ -93,11 +122,19 @@ router.patch('/credentials', async (req, res, next) => {
     if (data.loginId) update.adminLoginId = data.loginId;
     if (data.pin) update.adminPinHash = await bcrypt.hash(data.pin, 10);
     if (data.serviceRadiusKm) update.serviceRadiusKm = data.serviceRadiusKm;
+    if (data.companyName) update.companyName = data.companyName;
+    if (data.companySiret) update.companySiret = data.companySiret;
+    if (data.siegeSocialAddress) update.siegeSocialAddress = data.siegeSocialAddress;
+    if (data.siegeSocialCity) update.siegeSocialCity = data.siegeSocialCity;
+    if (data.siegeSocialDepartement) update.siegeSocialDepartement = data.siegeSocialDepartement;
+    if (data.representantCivilite) update.representantCivilite = data.representantCivilite;
+    if (data.representantNom) update.representantNom = data.representantNom;
+    if (data.representantPrenom) update.representantPrenom = data.representantPrenom;
     const agency = await prisma.user.update({ where: { id: req.agency.id }, data: update });
-    res.json({ agency: { id: agency.id, companyName: agency.companyName, adminLoginId: agency.adminLoginId, serviceRadiusKm: agency.serviceRadiusKm } });
+    res.json({ agency: agencyPublicFields(agency) });
   } catch (err) {
     if (err.name === 'ZodError') { err.status = 400; err.expose = true; err.message = err.errors[0].message; }
-    if (err.code === 'P2002') { err.status = 409; err.expose = true; err.message = 'Cet identifiant est déjà utilisé'; }
+    if (err.code === 'P2002') { err.status = 409; err.expose = true; err.message = 'Cet identifiant ou ce SIRET est déjà utilisé'; }
     next(err);
   }
 });
@@ -108,8 +145,80 @@ router.patch('/credentials', async (req, res, next) => {
 router.get('/missions/received', async (req, res, next) => {
   try {
     const missions = await prisma.mission.findMany({
-      where: { corporateAgencyId: req.agency.id, visibility: 'PRIVATE', status: 'OPEN', offers: { none: {} } },
+      // clientId excludes the agency's own directly-created missions (see
+      // "Nouvelle mission agence" below) — this list is only for requests a
+      // real visitor submitted via the agency's site.
+      where: { corporateAgencyId: req.agency.id, clientId: { not: req.agency.id }, visibility: 'PRIVATE', status: 'OPEN', offers: { none: {} } },
       include: { category: true, service: true, client: { select: { firstName: true, lastName: true, phone: true, email: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json({ missions });
+  } catch (err) { next(err); }
+});
+
+const createAgencyMissionSchema = z.object({
+  categoryId: z.string(),
+  serviceId: z.string().optional(),
+  title: z.string().min(3),
+  description: z.string().min(10),
+  address: z.string().min(3),
+  estimatedHours: z.number().positive().default(1),
+  desiredDate: z.string(),
+  isRecurring: z.boolean().optional().default(false),
+  dates: z.array(z.object({
+    date: z.string(), startTime: z.string(), hours: z.number().positive(), endTime: z.string(),
+  })).optional().default([]),
+});
+
+// "Créer une mission agence" — the agency originates the mission itself
+// (e.g. a long-term contract), rather than a visitor submitting a demande.
+// Kept private until the agency clicks "Publier sur Jobber" or "Traité en
+// agence", exactly like a client-submitted demande.
+router.post('/missions', async (req, res, next) => {
+  try {
+    const data = createAgencyMissionSchema.parse(req.body);
+    const category = await prisma.category.findUnique({ where: { id: data.categoryId }, select: { id: true, slug: true } });
+    if (!category) return res.status(400).json({ error: 'Catégorie introuvable' });
+
+    const scheduleEntries = data.isRecurring ? data.dates : [];
+    const totalHours = scheduleEntries.length
+      ? scheduleEntries.reduce((sum, d) => sum + d.hours, 0)
+      : data.estimatedHours;
+    const desiredDate = scheduleEntries.length ? new Date(scheduleEntries[0].date) : new Date(data.desiredDate);
+
+    const mission = await prisma.mission.create({
+      data: {
+        categoryId: category.id,
+        serviceId: data.serviceId || undefined,
+        title: data.title,
+        description: data.description,
+        address: data.address,
+        desiredDate,
+        estimatedHours: totalHours,
+        isRecurring: data.isRecurring,
+        clientId: req.agency.id,
+        corporateAgencyId: req.agency.id,
+        corporateCode: generateCorporateCode(category.slug),
+        visibility: 'PRIVATE',
+        scheduleEntries: scheduleEntries.length
+          ? { create: scheduleEntries.map((d) => ({ date: new Date(d.date), startTime: d.startTime, hours: d.hours, endTime: d.endTime })) }
+          : undefined,
+      },
+      include: { scheduleEntries: true },
+    });
+    res.status(201).json({ mission });
+  } catch (err) {
+    if (err.name === 'ZodError') { err.status = 400; err.expose = true; err.message = err.errors[0].message; }
+    next(err);
+  }
+});
+
+// --- Nouvelle mission agence : missions the agency created directly ---
+router.get('/missions/nouvelle-agence', async (req, res, next) => {
+  try {
+    const missions = await prisma.mission.findMany({
+      where: { corporateAgencyId: req.agency.id, clientId: req.agency.id },
+      include: { category: true, service: true, scheduleEntries: true },
       orderBy: { createdAt: 'desc' },
     });
     res.json({ missions });
@@ -274,7 +383,7 @@ router.get('/missions/jobber/en-cours', async (req, res, next) => {
         status: { in: ['ASSIGNED', 'IN_PROGRESS'] },
         booking: { providerId: { not: req.agency.id } },
       },
-      include: { category: true, booking: { include: { provider: { select: { firstName: true, lastName: true } } } } },
+      include: { category: true, planning: true, booking: { include: { provider: { select: { firstName: true, lastName: true } } } } },
       orderBy: { desiredDate: 'asc' },
     });
     res.json({ missions });
@@ -301,7 +410,7 @@ router.get('/missions/agence/en-cours', async (req, res, next) => {
   try {
     const missions = await prisma.mission.findMany({
       where: { corporateAgencyId: req.agency.id, status: { in: ['ASSIGNED', 'IN_PROGRESS'] }, booking: { providerId: req.agency.id } },
-      include: { category: true, booking: true, client: { select: { firstName: true, lastName: true, phone: true } } },
+      include: { category: true, planning: true, booking: true, client: { select: { firstName: true, lastName: true, phone: true } } },
       orderBy: { desiredDate: 'asc' },
     });
     res.json({ missions });
@@ -471,6 +580,60 @@ router.post('/employees/:jobberId/embauche', async (req, res, next) => {
     });
 
     res.status(201).json({ mission, offer });
+  } catch (err) {
+    if (err.name === 'ZodError') { err.status = 400; err.expose = true; err.message = err.errors[0].message; }
+    next(err);
+  }
+});
+
+// --- Planning ---
+// Missions "en cours" get assigned to a Planning so the agency can see
+// who's doing what — one per category by default ("Planning Bricolage"),
+// or a custom named one (e.g. "Planning Emily" for a specific employee).
+router.get('/plannings', async (req, res, next) => {
+  try {
+    const plannings = await prisma.planning.findMany({
+      where: { agencyId: req.agency.id },
+      include: {
+        category: true,
+        missions: {
+          include: { category: true, booking: { include: { provider: { select: { firstName: true, lastName: true } } } } },
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+    res.json({ plannings });
+  } catch (err) { next(err); }
+});
+
+const createPlanningSchema = z.object({ name: z.string().min(1), categoryId: z.string().optional() });
+
+router.post('/plannings', async (req, res, next) => {
+  try {
+    const data = createPlanningSchema.parse(req.body);
+    const planning = await prisma.planning.create({
+      data: { agencyId: req.agency.id, name: data.name, categoryId: data.categoryId || undefined },
+    });
+    res.status(201).json({ planning });
+  } catch (err) {
+    if (err.code === 'P2002') { err.status = 409; err.expose = true; err.message = 'Un planning porte déjà ce nom'; }
+    if (err.name === 'ZodError') { err.status = 400; err.expose = true; err.message = err.errors[0].message; }
+    next(err);
+  }
+});
+
+const assignPlanningSchema = z.object({ planningId: z.string() });
+
+router.post('/missions/:id/assign-planning', async (req, res, next) => {
+  try {
+    const { planningId } = assignPlanningSchema.parse(req.body);
+    const mission = await prisma.mission.findUnique({ where: { id: req.params.id } });
+    if (!mission || mission.corporateAgencyId !== req.agency.id) return res.status(404).json({ error: 'Mission introuvable' });
+    const planning = await prisma.planning.findUnique({ where: { id: planningId } });
+    if (!planning || planning.agencyId !== req.agency.id) return res.status(404).json({ error: 'Planning introuvable' });
+
+    const updated = await prisma.mission.update({ where: { id: mission.id }, data: { planningId } });
+    res.json({ mission: updated });
   } catch (err) {
     if (err.name === 'ZodError') { err.status = 400; err.expose = true; err.message = err.errors[0].message; }
     next(err);

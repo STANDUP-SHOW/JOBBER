@@ -11,6 +11,8 @@ const prisma = new PrismaClient();
 const AGENCY_EMAIL = 'agence@services34.fr';
 const DEFAULT_ADMIN_LOGIN_ID = 'ADMIN';
 const DEFAULT_ADMIN_PIN = '050978';
+// Issued by Jobber — not self-editable from the agency's own Paramètres page.
+const JOBBER_LICENSE_NUMBER = '2026-07-410';
 
 async function main() {
   const adminPinHash = await bcrypt.hash(DEFAULT_ADMIN_PIN, 10);
@@ -23,6 +25,7 @@ async function main() {
       adminPinFailedAttempts: 0,
       adminPinLockedUntil: null,
       agencyDomain: 'services34.fr',
+      jobberLicenseNumber: JOBBER_LICENSE_NUMBER,
     },
     create: {
       email: AGENCY_EMAIL,
@@ -37,6 +40,7 @@ async function main() {
       agencyDomain: 'services34.fr',
       adminLoginId: DEFAULT_ADMIN_LOGIN_ID,
       adminPinHash,
+      jobberLicenseNumber: JOBBER_LICENSE_NUMBER,
     },
   });
 
