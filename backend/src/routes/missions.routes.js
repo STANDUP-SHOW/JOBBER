@@ -3,6 +3,7 @@ const { z } = require('zod');
 const prisma = require('../config/prisma');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { geocodeAddress, jitterCoordinate, haversineDistanceKm } = require('../services/geocodingService');
+const { generateCorporateCode } = require('../utils/agency');
 
 const router = express.Router();
 
@@ -98,6 +99,27 @@ router.post('/', requireAuth, async (req, res, next) => {
       data.requiresMachine = undefined;
       data.requiredMachines = [];
     }
+    // A corporate agency's own white-label site (e.g. services34.fr) is
+    // identified by the request's Origin — never trusted from the request
+    // body, so one white-label site can never spoof another's missions.
+    // Ordinary jobber.city requests match no agencyDomain and pass through
+    // untouched.
+    let corporateAgencyId;
+    let corporateCode;
+    const originHost = (() => {
+      try { return new URL(req.headers.origin || req.headers.referer || '').hostname.replace(/^www\./, ''); } catch { return null; }
+    })();
+    if (originHost) {
+      const agency = await prisma.user.findFirst({
+        where: { companyType: 'CORPORATE', OR: [{ agencyDomain: originHost }, { agencyDomain: `www.${originHost}` }] },
+        select: { id: true },
+      });
+      if (agency) {
+        corporateAgencyId = agency.id;
+        corporateCode = generateCorporateCode(category.slug);
+      }
+    }
+
     const [geocoded, dropoffGeocoded] = await Promise.all([
       geocodeAddress(data.address),
       data.dropoffAddress ? geocodeAddress(data.dropoffAddress) : null,
@@ -112,6 +134,9 @@ router.post('/', requireAuth, async (req, res, next) => {
         desiredDate: new Date(data.desiredDate),
         missionEndDate: data.missionEndDate ? new Date(data.missionEndDate) : undefined,
         clientId: req.user.id,
+        corporateAgencyId,
+        corporateCode,
+        visibility: corporateAgencyId ? 'PRIVATE' : 'PUBLIC',
         requiredEquipment: requiredEquipmentIds.length
           ? { create: requiredEquipmentIds.map((equipmentId) => ({ equipmentId })) }
           : undefined,
@@ -133,12 +158,17 @@ router.post('/', requireAuth, async (req, res, next) => {
 router.get('/', optionalAuth, async (req, res, next) => {
   try {
     const { categoryId, status, clientId, type } = req.query;
+    // PRIVATE missions (corporate demandes pending review, agency-only,
+    // employee-targeted) never show on the public marketplace — except to
+    // the client who owns them, browsing their own "mes missions".
+    const isOwnMissionsLookup = clientId && req.user && clientId === req.user.id;
     let missions = await prisma.mission.findMany({
       where: {
         categoryId: categoryId || undefined,
         status: status || undefined,
         clientId: clientId || undefined,
         type: MISSION_TYPES.includes(type) ? type : undefined,
+        visibility: isOwnMissionsLookup ? undefined : 'PUBLIC',
       },
       include: {
         category: true, service: true, client: { select: { id: true, firstName: true, avatarUrl: true, accountKind: true, companyType: true, companyName: true } },
