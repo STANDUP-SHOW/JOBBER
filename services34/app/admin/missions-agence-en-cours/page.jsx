@@ -5,11 +5,13 @@ import { useAgencyAuth } from '../../../lib/agency-auth-context';
 import { agencyApi } from '../../../lib/agencyApi';
 import MissionCountdown from '../../../components/admin/MissionCountdown';
 import PlanningPicker from '../../../components/admin/PlanningPicker';
+import EmbaucherEmployePicker from '../../../components/admin/EmbaucherEmployePicker';
 
 export default function MissionsAgenceEnCoursPage() {
   const { token } = useAgencyAuth();
   const [missions, setMissions] = useState(null);
   const [plannings, setPlannings] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -24,11 +26,18 @@ export default function MissionsAgenceEnCoursPage() {
     if (!token) return;
     refresh();
     agencyApi.plannings(token).then(({ plannings }) => setPlannings(plannings)).catch(() => {});
+    agencyApi.employees(token).then(({ employees }) => setEmployees(employees)).catch(() => {});
   }, [token]);
 
   async function assign(missionId, planningId) {
     setBusy(true);
     try { await agencyApi.assignPlanning(missionId, planningId, token); await refresh(); }
+    catch (err) { setError(err.message); } finally { setBusy(false); }
+  }
+
+  async function embaucher(missionId, jobberId) {
+    setBusy(true);
+    try { await agencyApi.embaucherEmploye(missionId, jobberId, token); await refresh(); }
     catch (err) { setError(err.message); } finally { setBusy(false); }
   }
 
@@ -48,8 +57,9 @@ export default function MissionsAgenceEnCoursPage() {
               <div className="font-medium text-ink">{m.category?.icon} {m.title}</div>
               <div className="text-sm text-slate-500">{m.client?.firstName} {m.client?.lastName} · {m.client?.phone}</div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <MissionCountdown desiredDate={m.desiredDate} />
+              <EmbaucherEmployePicker mission={m} employees={employees} onAssign={embaucher} busy={busy} />
               <PlanningPicker mission={m} plannings={plannings} onAssign={assign} busy={busy} />
             </div>
           </div>
