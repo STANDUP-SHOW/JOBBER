@@ -458,6 +458,35 @@ router.get('/missions/agence/en-cours', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+const embaucherEmployeSchema = z.object({ jobberId: z.string() });
+
+// "Embaucher" from an in-progress agence mission — staffs one of the
+// agency's own employees onto a mission it already committed to handle
+// itself, by moving the booking's provider from the agency to the
+// employee. No offer/accept cycle: the employment relationship is already
+// established via AgencyEmployee, so this is an internal dispatch
+// decision, not a marketplace application. Once reassigned the mission
+// naturally shows up under "Missions Jobber en cours" instead (that list
+// is defined purely by booking.providerId !== agency.id).
+router.post('/missions/:id/embaucher-employe', async (req, res, next) => {
+  try {
+    const { jobberId } = embaucherEmployeSchema.parse(req.body);
+    const mission = await prisma.mission.findUnique({ where: { id: req.params.id }, include: { booking: true } });
+    if (!mission || mission.corporateAgencyId !== req.agency.id) return res.status(404).json({ error: 'Mission introuvable' });
+    if (!mission.booking || mission.booking.providerId !== req.agency.id) {
+      return res.status(400).json({ error: "Cette mission n'est pas actuellement traitée par l'agence" });
+    }
+    const isEmployee = await prisma.agencyEmployee.findUnique({ where: { agencyId_jobberId: { agencyId: req.agency.id, jobberId } } });
+    if (!isEmployee) return res.status(403).json({ error: "Ce jobber ne fait pas partie de vos employés" });
+
+    const booking = await prisma.booking.update({ where: { id: mission.booking.id }, data: { providerId: jobberId } });
+    res.json({ booking });
+  } catch (err) {
+    if (err.name === 'ZodError') { err.status = 400; err.expose = true; err.message = err.errors[0].message; }
+    next(err);
+  }
+});
+
 router.get('/missions/agence/terminees', async (req, res, next) => {
   try {
     const missions = await prisma.mission.findMany({

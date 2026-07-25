@@ -43,6 +43,7 @@ export const agencyApi = {
   missionsJobberTerminees: (token) => request('/missions/jobber/terminees', { token }),
   missionsAgenceEnCours: (token) => request('/missions/agence/en-cours', { token }),
   missionsAgenceTerminees: (token) => request('/missions/agence/terminees', { token }),
+  embaucherEmploye: (missionId, jobberId, token) => request(`/missions/${missionId}/embaucher-employe`, { method: 'POST', body: { jobberId }, token }),
 
   invoices: (type, token) => request(`/invoices?type=${type}`, { token }),
   generateMissionInvoice: (missionId, token) => request(`/invoices/generate-mission/${missionId}`, { method: 'POST', token }),
