@@ -91,10 +91,15 @@ export default function HomePage() {
       </section>
 
       <section className="mt-6 rounded-lg bg-clay px-6 py-6 text-center text-white md:px-10">
-        <div className="font-display text-xl font-bold">Les demandes urgentes</div>
+        <span className="rounded-full bg-white px-3 py-1 text-xs font-bold uppercase tracking-wide text-clay">
+          Nouveau
+        </span>
+        <div className="mt-2 font-display text-xl font-bold">Intervention en urgence</div>
         <p className="mx-auto mt-2 max-w-xl text-sm text-white/90">
-          En cochant l'option "Urgent" dans votre demande de service, celle-ci est traitée le jour même : un agent
-          Services 34 chez vous sous 24h.
+          Une urgence à la maison ? On s'en occupe tout de suite ! Et si on venait chez vous aujourd'hui ?
+        </p>
+        <p className="mx-auto mt-2 max-w-xl text-sm font-semibold text-white">
+          Cochez le bouton "Urgent" dans votre demande d'intervention.
         </p>
         <Link href="/urgence" className="mt-4 inline-block rounded-md bg-white px-5 py-2.5 text-sm font-semibold text-clay hover:bg-white/90">
           En savoir plus
