@@ -141,7 +141,7 @@ export default function CreditImpotPage() {
           Décrivez votre besoin en quelques minutes et profitez de votre crédit d'impôt dès votre première mission.
         </p>
         <div className="mt-6">
-          <Link href="/demande" className="rounded-md bg-white px-6 py-3 font-medium text-ink hover:bg-slate-100">
+          <Link href="/demande" className="inline-block rounded-md bg-white px-6 py-3 font-medium text-ink hover:bg-slate-100">
             Demander une intervention
           </Link>
         </div>

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import LogoMark, { SERVICES34_DARK_BLUE, SERVICES34_GOLD } from './Logo';
 import { useBrand } from '../lib/brand-context';
+import { useAuth } from '../lib/auth-context';
 
 const SERVICES = [
   ['Bricolage', '/bricolage'],
@@ -16,15 +17,20 @@ const SERVICES = [
 export default function Header() {
   const [open, setOpen] = useState(false);
   const { brand } = useBrand();
+  const { user } = useAuth();
 
   return (
     <header className="border-b border-slate-200 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         {/* Pictogram left, wordmark right — same layout as Jobber's header. */}
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex min-w-0 items-center gap-2">
           <LogoMark color={brand.prefix ? brand.color : SERVICES34_GOLD} className="h-10 w-10 shrink-0" />
-          <span className="font-brand text-lg font-extrabold uppercase tracking-tight text-ink">
-            {brand.prefix}<span style={{ color: SERVICES34_DARK_BLUE }}>Services</span>{' '}
+          <span className="whitespace-nowrap font-brand text-base font-extrabold uppercase tracking-tight text-ink sm:text-lg">
+            {/* Category prefix (e.g. "Conciergerie ") only shows once there's
+                room for it — on narrow screens it can push "34" onto its own
+                line and split the wordmark awkwardly. */}
+            <span className="hidden sm:inline">{brand.prefix}</span>
+            <span style={{ color: SERVICES34_DARK_BLUE }}>Services</span>{' '}
             <span style={{ color: SERVICES34_GOLD }}>34</span>
           </span>
         </Link>
@@ -38,8 +44,8 @@ export default function Header() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Link href="/auth/login" className="text-sm font-medium text-ink hover:text-brand">
-            Se connecter
+          <Link href={user ? '/compte' : '/auth/login'} className="text-sm font-medium text-ink hover:text-brand">
+            {user ? 'Mon compte' : 'Se connecter'}
           </Link>
           <Link href="/demande" className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark">
             Demander une intervention
@@ -64,8 +70,8 @@ export default function Header() {
                 {label}
               </Link>
             ))}
-            <Link href="/auth/login" className="text-sm font-medium text-ink" onClick={() => setOpen(false)}>
-              Se connecter
+            <Link href={user ? '/compte' : '/auth/login'} className="text-sm font-medium text-ink" onClick={() => setOpen(false)}>
+              {user ? 'Mon compte' : 'Se connecter'}
             </Link>
             <Link
               href="/demande"

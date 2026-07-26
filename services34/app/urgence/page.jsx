@@ -35,7 +35,7 @@ export default function UrgencePage() {
           un agent Services 34 peut intervenir en priorité.
         </p>
         <div className="mt-7">
-          <Link href="/demande" className="rounded-md bg-white px-6 py-3 font-medium text-clay hover:bg-white/90">
+          <Link href="/demande" className="inline-block rounded-md bg-white px-6 py-3 font-medium text-clay hover:bg-white/90">
             Demander une intervention urgente
           </Link>
         </div>
@@ -110,7 +110,7 @@ export default function UrgencePage() {
           Décrivez votre besoin, cochez "Urgent" et choisissez le délai qui vous convient.
         </p>
         <div className="mt-6">
-          <Link href="/demande" className="rounded-md bg-white px-6 py-3 font-medium text-ink hover:bg-slate-100">
+          <Link href="/demande" className="inline-block rounded-md bg-white px-6 py-3 font-medium text-ink hover:bg-slate-100">
             Demander une intervention
           </Link>
         </div>

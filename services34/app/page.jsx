@@ -84,7 +84,7 @@ export default function HomePage() {
           intervient chez vous, dans le pourtour biterrois.
         </p>
         <div className="mt-7">
-          <Link href="/demande" className="rounded-md bg-brand px-6 py-3 font-medium text-white hover:bg-brand-dark">
+          <Link href="/demande" className="inline-block rounded-md bg-brand px-6 py-3 font-medium text-white hover:bg-brand-dark">
             Demander une intervention
           </Link>
         </div>
@@ -154,7 +154,7 @@ export default function HomePage() {
           Créez votre compte et décrivez votre besoin en quelques minutes.
         </p>
         <div className="mt-6">
-          <Link href="/demande" className="rounded-md bg-white px-6 py-3 font-medium text-ink hover:bg-slate-100">
+          <Link href="/demande" className="inline-block rounded-md bg-white px-6 py-3 font-medium text-ink hover:bg-slate-100">
             Demander une intervention
           </Link>
         </div>
