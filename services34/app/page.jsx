@@ -118,6 +118,20 @@ export default function HomePage() {
         </Link>
       </section>
 
+      <section className="mt-6 rounded-lg bg-emerald-600 px-6 py-6 text-center text-white">
+        <p className="font-display text-lg font-bold">
+          Nos tarifs sont transparents : 30 € de l'heure TTC avant crédit d'impôt de 50 %, ce qui vous revient à 15 €
+          TTC de l'heure après crédit d'impôt.
+        </p>
+        <p className="mt-2 text-sm font-bold">
+          Dans la limite de 12 000 € de dépenses par an (plafond majorable selon la composition du foyer, jusqu'à
+          15 000 € voire 20 000 € en cas de handicap — article 199 sexdecies du Code général des impôts).
+        </p>
+        <p className="mt-2 text-sm font-bold">
+          Hors frais éventuels annexes pouvant se greffer au devis.
+        </p>
+      </section>
+
       <div className="mt-10 space-y-10">
         {CATEGORIES.map((c, i) => (
           <div key={c.category} className="space-y-4">

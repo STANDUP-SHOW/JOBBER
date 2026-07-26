@@ -282,7 +282,22 @@ router.post('/missions/:id/publish-to-jobber', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-const agenceOfferSchema = z.object({ hourlyRate: z.number().positive() });
+// Same catalog as offers.routes.js's EXTRA_FEE_TYPES (not exported there,
+// so duplicated here) — labels are resolved server-side so a tampered
+// payload can't inject arbitrary text.
+const EXTRA_FEE_TYPES = {
+  displacement: 'Frais de route - Déplacement',
+  vehicle: 'Frais de mise à disposition du véhicule requis',
+  fuel: 'Frais de carburant',
+  consumables: 'Frais de consommables utilisés (produits, cartons)',
+  equipment: 'Frais de matériel (location...)',
+  wasteDisposal: 'Frais de déchetterie',
+};
+
+const agenceOfferSchema = z.object({
+  hourlyRate: z.number().positive(),
+  extraFees: z.array(z.object({ key: z.enum(Object.keys(EXTRA_FEE_TYPES)), amount: z.number().positive() })).optional().default([]),
+});
 
 // "Mission Agence" — the agency itself takes the mission, without ever
 // publishing it to Jobber. The agency decides internally to handle it and
@@ -294,13 +309,15 @@ const agenceOfferSchema = z.object({ hourlyRate: z.number().positive() });
 // en cours"'s booking.providerId === agency.id filter.
 router.post('/missions/:id/agence', async (req, res, next) => {
   try {
-    const { hourlyRate } = agenceOfferSchema.parse(req.body);
+    const { hourlyRate, extraFees: extraFeesInput } = agenceOfferSchema.parse(req.body);
     const mission = await prisma.mission.findUnique({ where: { id: req.params.id } });
     if (!mission || mission.corporateAgencyId !== req.agency.id) return res.status(404).json({ error: 'Demande introuvable' });
 
-    const totalAmount = round2(hourlyRate * mission.estimatedHours);
+    const extraFees = extraFeesInput.map((f) => ({ key: f.key, label: EXTRA_FEE_TYPES[f.key], amount: f.amount }));
+    const extraFeesTotal = extraFees.reduce((sum, f) => sum + f.amount, 0);
+    const totalAmount = round2(hourlyRate * mission.estimatedHours + extraFeesTotal);
     const offer = await prisma.offer.create({
-      data: { missionId: mission.id, providerId: req.agency.id, hourlyRate, status: 'ACCEPTED' },
+      data: { missionId: mission.id, providerId: req.agency.id, hourlyRate, status: 'ACCEPTED', extraFees: extraFees.length ? extraFees : undefined },
     });
     const [booking] = await prisma.$transaction([
       prisma.booking.create({
