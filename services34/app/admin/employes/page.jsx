@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useAgencyAuth } from '../../../lib/agency-auth-context';
 import { agencyApi } from '../../../lib/agencyApi';
 import { api } from '../../../lib/api';
@@ -97,8 +98,10 @@ export default function EmployesPage() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl font-semibold text-ink">Mes employés</h1>
-      <p className="mt-1 text-sm text-slate-500">Jobbers ajoutés à votre vivier de confiance après une mission réussie.</p>
+      <h1 className="font-display text-2xl font-semibold text-ink">Mes employés OFF</h1>
+      <p className="mt-1 text-sm text-slate-500">
+        Tout votre vivier de confiance. Voir <Link href="/admin/employes-actifs" className="font-medium text-brand hover:underline">Mes employés ON</Link> pour ceux actuellement en mission.
+      </p>
 
       {error && <p className="mt-4 rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
       {message && <p className="mt-4 rounded-md bg-brand-light px-3 py-2 text-sm text-brand-dark">{message}</p>}

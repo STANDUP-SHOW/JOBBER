@@ -24,7 +24,7 @@ function emptyForm() {
 }
 
 export default function NouvelleMissionAgencePage() {
-  const { token } = useAgencyAuth();
+  const { token, agency } = useAgencyAuth();
   const [categories, setCategories] = useState([]);
   const [missions, setMissions] = useState(null);
   const [error, setError] = useState('');
@@ -186,6 +186,15 @@ export default function NouvelleMissionAgencePage() {
               {m.isRecurring && <span className="rounded-full bg-accent-light px-2 py-0.5 text-xs font-semibold text-accent-dark">Récurrent · {m.scheduleEntries?.length || 0} date(s)</span>}
             </div>
             <div className="mt-1 text-sm text-slate-500">{m.address} · {m.estimatedHours} h · {m.visibility === 'PUBLIC' ? 'Publiée sur Jobber' : 'Non publiée'}</div>
+            {(() => {
+              const employeOffer = m.offers?.find((o) => o.providerId !== agency?.id);
+              return employeOffer ? (
+                <div className="mt-1 text-xs font-semibold text-brand-dark">
+                  Employé embauché : {employeOffer.provider?.firstName} {employeOffer.provider?.lastName?.[0]}.
+                  {m.planning && ` · ${m.planning.name}`}
+                </div>
+              ) : null;
+            })()}
 
             {m.visibility !== 'PUBLIC' && m.status === 'OPEN' && (
               <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">

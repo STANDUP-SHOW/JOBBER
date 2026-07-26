@@ -266,7 +266,11 @@ router.get('/missions/nouvelle-agence', async (req, res, next) => {
   try {
     const missions = await prisma.mission.findMany({
       where: { corporateAgencyId: req.agency.id, clientId: req.agency.id },
-      include: { category: true, service: true, scheduleEntries: true, ...MISSION_BADGES_INCLUDE },
+      include: {
+        category: true, service: true, scheduleEntries: true, planning: true,
+        offers: { include: { provider: { select: { firstName: true, lastName: true } } } },
+        ...MISSION_BADGES_INCLUDE,
+      },
       orderBy: { createdAt: 'desc' },
     });
     res.json({ missions });
@@ -675,6 +679,12 @@ router.post('/invoices/generate-monthly', async (req, res, next) => {
 });
 
 // --- Section 9 : Mes employés ---
+// "ON" = currently hired — has a live offer or an in-progress booking on
+// one of the agency's own missions. Computed separately from the employee
+// list itself (a jobber's activeMissions can span any of their categories,
+// not just the one they were added under) and merged in below so the
+// front-end can split "Mes employés OFF" (full roster) from "Mes employés
+// ON" (currently working) without a second round-trip.
 router.get('/employees', async (req, res, next) => {
   try {
     const employees = await prisma.agencyEmployee.findMany({
@@ -682,7 +692,7 @@ router.get('/employees', async (req, res, next) => {
       include: {
         jobber: {
           select: {
-            id: true, firstName: true, lastName: true, avatarUrl: true,
+            id: true, firstName: true, lastName: true, avatarUrl: true, phone: true, email: true,
             providerProfile: {
               include: { categories: { include: { category: true } }, equipment: true, vehicles: true },
             },
@@ -691,7 +701,33 @@ router.get('/employees', async (req, res, next) => {
       },
       orderBy: { addedAt: 'desc' },
     });
-    res.json({ employees });
+
+    const jobberIds = employees.map((e) => e.jobber.id);
+    const activeMissions = jobberIds.length
+      ? await prisma.mission.findMany({
+          where: {
+            corporateAgencyId: req.agency.id,
+            status: { in: ['OPEN', 'ASSIGNED', 'IN_PROGRESS'] },
+            offers: { some: { providerId: { in: jobberIds }, status: { in: ['PENDING', 'ACCEPTED'] } } },
+          },
+          include: {
+            category: true,
+            offers: { where: { providerId: { in: jobberIds }, status: { in: ['PENDING', 'ACCEPTED'] } } },
+          },
+        })
+      : [];
+
+    const missionsByJobberId = new Map();
+    for (const mission of activeMissions) {
+      for (const offer of mission.offers) {
+        const list = missionsByJobberId.get(offer.providerId) || [];
+        list.push({ id: mission.id, title: mission.title, category: mission.category, status: mission.status, offerStatus: offer.status });
+        missionsByJobberId.set(offer.providerId, list);
+      }
+    }
+
+    const enriched = employees.map((e) => ({ ...e, activeMissions: missionsByJobberId.get(e.jobber.id) || [] }));
+    res.json({ employees: enriched });
   } catch (err) { next(err); }
 });
 
@@ -748,6 +784,16 @@ router.post('/employees/:jobberId/embauche', async (req, res, next) => {
     const totalHours = dates.reduce((sum, d) => sum + d.hours, 0);
     const geocoded = await geocodeAddress(data.address);
 
+    // "Embaucher" always puts the mission on a planning named after the
+    // employee (e.g. "Planning Emily") so the agency can see everything
+    // assigned to them at a glance — created on first hire, reused after.
+    const planningName = `Planning ${jobber.firstName}`;
+    const planning = await prisma.planning.upsert({
+      where: { agencyId_name: { agencyId: req.agency.id, name: planningName } },
+      update: {},
+      create: { agencyId: req.agency.id, name: planningName },
+    });
+
     const mission = await prisma.mission.create({
       data: {
         categoryId: category.id,
@@ -769,12 +815,13 @@ router.post('/employees/:jobberId/embauche', async (req, res, next) => {
         corporateAgencyId: req.agency.id,
         corporateCode: generateCorporateCode(category.slug),
         visibility: 'PRIVATE',
+        planningId: planning.id,
         requiredEquipment: requiredEquipmentIds.length
           ? { create: requiredEquipmentIds.map((equipmentId) => ({ equipmentId })) }
           : undefined,
         scheduleEntries: { create: dates.map((d) => ({ date: new Date(d.date), startTime: d.startTime, hours: d.hours, endTime: d.endTime })) },
       },
-      include: { scheduleEntries: true, requiredEquipment: { include: { equipment: true } } },
+      include: { scheduleEntries: true, requiredEquipment: { include: { equipment: true } }, planning: true },
     });
 
     const offer = await prisma.offer.create({
