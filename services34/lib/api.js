@@ -27,6 +27,10 @@ export const api = {
 
   categories: () => request('/categories'),
   createMission: (payload, token) => request('/missions', { method: 'POST', body: payload, token }),
+
+  startConversation: (payload, token) => request('/messages/conversations', { method: 'POST', body: payload, token }),
+  conversation: (id, token) => request(`/messages/conversations/${id}`, { token }),
+  sendMessage: (id, content, token) => request(`/messages/conversations/${id}/messages`, { method: 'POST', body: { content }, token }),
 };
 
 export { API_URL };

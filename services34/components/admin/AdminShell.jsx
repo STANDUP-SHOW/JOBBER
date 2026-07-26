@@ -18,7 +18,8 @@ const NAV = [
   { href: '/admin/missions-agence-terminees', label: 'Missions Agence terminées' },
   { href: '/admin/factures-agence', label: 'Mes factures Agence' },
   { href: '/admin/planning', label: 'Planning' },
-  { href: '/admin/employes', label: 'Mes employés' },
+  { href: '/admin/employes', label: 'Mes employés OFF' },
+  { href: '/admin/employes-actifs', label: 'Mes employés ON' },
   { href: '/admin/parametres', label: 'Paramètres du compte' },
 ];
 
