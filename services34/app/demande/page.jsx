@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
 import AddressAutocomplete from '../../components/AddressAutocomplete';
@@ -11,8 +11,17 @@ import { WORK_AT_HEIGHT_EQUIPMENT_NAMES } from '../../lib/workAtHeightEquipment'
 const ALLOWED_SLUGS = ['bricolage', 'menage', 'jardinage', 'piscine', 'conciergerie'];
 
 export default function DemandePage() {
+  return (
+    <Suspense fallback={null}>
+      <DemandeForm />
+    </Suspense>
+  );
+}
+
+function DemandeForm() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState({
     categoryId: '', serviceId: '', details: {},
@@ -32,6 +41,16 @@ export default function DemandePage() {
       setCategories(categories.filter((c) => ALLOWED_SLUGS.includes(c.slug)));
     }).catch(() => {});
   }, []);
+
+  // Arriving from a category page's own "Demander une intervention" button
+  // (?categorie=jardinage) pre-selects that category so the visitor only
+  // has to refine the prestation, instead of picking the category again.
+  useEffect(() => {
+    if (form.categoryId || categories.length === 0) return;
+    const slug = searchParams.get('categorie');
+    const match = slug && categories.find((c) => c.slug === slug);
+    if (match) setForm((f) => ({ ...f, categoryId: match.id }));
+  }, [categories, searchParams]);
 
   const selectedCategory = categories.find((c) => c.id === form.categoryId);
   const selectedService = selectedCategory?.services?.find((s) => s.id === form.serviceId);

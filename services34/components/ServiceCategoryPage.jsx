@@ -17,7 +17,7 @@ export default function ServiceCategoryPage({ category, eyebrow, title, intro, g
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-lg text-ink">{intro}</p>
         <div className="mt-7 flex flex-wrap justify-center gap-3">
-          <Link href="/demande" className="rounded-md px-6 py-3 font-medium text-white transition-opacity hover:opacity-90" style={{ backgroundColor: color }}>
+          <Link href={`/demande?categorie=${category}`} className="rounded-md px-6 py-3 font-medium text-white transition-opacity hover:opacity-90" style={{ backgroundColor: color }}>
             Demander une intervention {eyebrow}
           </Link>
         </div>
@@ -38,23 +38,23 @@ export default function ServiceCategoryPage({ category, eyebrow, title, intro, g
 
       <section className="mt-16">
         <h2 className="text-center font-display text-2xl font-semibold text-ink">Nos prestations</h2>
-        <p className="mx-auto mt-1 max-w-md text-center text-sm text-slate-400">Les prestations soulignées ouvrent une fiche détaillée.</p>
-        <div className="mx-auto mt-6 flex max-w-3xl flex-wrap justify-center gap-2">
+        <p className="mx-auto mt-1 max-w-md text-center text-sm text-slate-400">Cliquez sur une prestation pour en savoir plus.</p>
+        <div className="mx-auto mt-8 grid max-w-4xl grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           {tasks.map((t) => {
             const name = typeof t === 'string' ? t : t.name;
             const href = typeof t === 'string' ? null : t.href;
-            return href ? (
-              <Link
+            const icon = typeof t === 'string' ? null : t.icon;
+            const Tag = href ? Link : 'div';
+            return (
+              <Tag
                 key={name}
-                href={href}
-                className="rounded-full border border-brand bg-white px-4 py-2 text-sm font-medium text-brand underline decoration-brand/40 underline-offset-4 hover:bg-brand-light"
+                {...(href ? { href } : {})}
+                className={`flex min-h-[7.5rem] flex-col items-center justify-center gap-2 rounded-lg p-4 text-center text-white ${href ? 'transition-opacity hover:opacity-90' : ''}`}
+                style={{ backgroundColor: color }}
               >
-                {name}
-              </Link>
-            ) : (
-              <span key={name} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-ink">
-                {name}
-              </span>
+                {icon && <span className="text-2xl leading-none">{icon}</span>}
+                <span className="text-sm font-medium leading-tight">{name}</span>
+              </Tag>
             );
           })}
         </div>
@@ -82,7 +82,7 @@ export default function ServiceCategoryPage({ category, eyebrow, title, intro, g
           Béziers, Agde, Vias, Marseillan et les communes environnantes — décrivez votre besoin, un agent {eyebrow} Services 34 vous recontacte rapidement.
         </p>
         <div className="mt-6">
-          <Link href="/demande" className="rounded-md bg-white px-6 py-3 font-medium hover:bg-slate-100" style={{ color }}>
+          <Link href={`/demande?categorie=${category}`} className="inline-block rounded-md bg-white px-6 py-3 font-medium hover:bg-slate-100" style={{ color }}>
             Demander une intervention {eyebrow}
           </Link>
         </div>

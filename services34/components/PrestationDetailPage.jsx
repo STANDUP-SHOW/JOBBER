@@ -35,7 +35,7 @@ export default function PrestationDetailPage({
       <div className="mt-10 rounded-lg p-6 text-center text-white md:p-8" style={{ backgroundColor: color }}>
         <p className="font-display text-lg font-semibold">Un agent {categoryLabel} Services 34 près de chez vous</p>
         <p className="mt-1 text-sm text-white/85">Béziers, Agde, Vias, Marseillan et alentours — devis avant intervention.</p>
-        <Link href="/demande" className="mt-4 inline-block rounded-md bg-white px-5 py-2.5 text-sm font-semibold" style={{ color }}>
+        <Link href={`/demande?categorie=${category}`} className="mt-4 inline-block rounded-md bg-white px-5 py-2.5 text-sm font-semibold" style={{ color }}>
           Demander une intervention {categoryLabel}
         </Link>
       </div>

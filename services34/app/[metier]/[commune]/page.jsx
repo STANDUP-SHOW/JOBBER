@@ -142,7 +142,7 @@ export default function MetierCommunePage({ params }) {
         <div className="mt-10 max-w-2xl rounded-lg p-6 text-center text-white md:p-8" style={{ backgroundColor: color }}>
           <p className="font-display text-lg font-semibold">Un agent {metier.categoryLabel} Services 34 à {commune.name}</p>
           <p className="mt-1 text-sm text-white/85">Devis avant intervention, sans engagement.</p>
-          <Link href="/demande" className="mt-4 inline-block rounded-md bg-white px-5 py-2.5 text-sm font-semibold" style={{ color }}>
+          <Link href={`/demande?categorie=${metier.category}`} className="mt-4 inline-block rounded-md bg-white px-5 py-2.5 text-sm font-semibold" style={{ color }}>
             Demander une intervention {metier.categoryLabel}
           </Link>
         </div>
@@ -175,7 +175,7 @@ export default function MetierCommunePage({ params }) {
             <Link href={metier.parentHref} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-ink hover:border-slate-300">
               {metier.term} — la prestation en détail
             </Link>
-            <Link href="/demande" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-ink hover:border-slate-300">
+            <Link href={`/demande?categorie=${metier.category}`} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-ink hover:border-slate-300">
               Demander une intervention
             </Link>
           </div>

@@ -17,7 +17,7 @@ export default function RegisterPage() {
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get('next') || '/demande';
+  const next = searchParams.get('next') || '/compte';
   const { login } = useAuth();
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', password: '' });
   const [error, setError] = useState('');
