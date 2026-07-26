@@ -285,18 +285,46 @@ router.post('/missions/:id/publish-to-jobber', async (req, res, next) => {
 const agenceOfferSchema = z.object({ hourlyRate: z.number().positive() });
 
 // "Mission Agence" — the agency itself takes the mission, without ever
-// publishing it to Jobber. Creates a direct Offer from the agency, exactly
-// like a jobber applying, so the requester gets a normal offer to accept.
+// publishing it to Jobber. The agency decides internally to handle it and
+// bills the real client directly (no platform fee, unlike the Jobber path)
+// — so this confirms the mission immediately (offer + booking created
+// already ACCEPTED/SCHEDULED) rather than leaving a pending offer that
+// would require the original requester to separately accept it on
+// jobber.city. Without this the mission never satisfies "Missions Agence
+// en cours"'s booking.providerId === agency.id filter.
 router.post('/missions/:id/agence', async (req, res, next) => {
   try {
     const { hourlyRate } = agenceOfferSchema.parse(req.body);
     const mission = await prisma.mission.findUnique({ where: { id: req.params.id } });
     if (!mission || mission.corporateAgencyId !== req.agency.id) return res.status(404).json({ error: 'Demande introuvable' });
 
+    const totalAmount = round2(hourlyRate * mission.estimatedHours);
     const offer = await prisma.offer.create({
-      data: { missionId: mission.id, providerId: req.agency.id, hourlyRate },
+      data: { missionId: mission.id, providerId: req.agency.id, hourlyRate, status: 'ACCEPTED' },
     });
-    res.status(201).json({ offer });
+    const [booking] = await prisma.$transaction([
+      prisma.booking.create({
+        data: {
+          missionId: mission.id,
+          offerId: offer.id,
+          clientId: mission.clientId,
+          providerId: req.agency.id,
+          scheduledDate: mission.desiredDate,
+          hours: mission.estimatedHours,
+          hourlyRate,
+          totalAmount,
+          status: 'SCHEDULED',
+          payment: {
+            create: {
+              amount: totalAmount, platformFee: 0, managerFee: 0, providerFee: 0,
+              feeWaived: true, providerPayout: totalAmount, status: 'HELD_IN_ESCROW',
+            },
+          },
+        },
+      }),
+      prisma.mission.update({ where: { id: mission.id }, data: { status: 'ASSIGNED' } }),
+    ]);
+    res.status(201).json({ offer, booking });
   } catch (err) {
     if (err.code === 'P2002') { err.status = 409; err.expose = true; err.message = 'Une offre agence existe déjà pour cette demande'; }
     if (err.name === 'ZodError') { err.status = 400; err.expose = true; err.message = err.errors[0].message; }
