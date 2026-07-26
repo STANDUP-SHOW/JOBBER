@@ -489,12 +489,24 @@ router.get('/missions/jobber/terminees', async (req, res, next) => {
 });
 
 // --- Sections 7-8 : Missions Agence en cours / terminées ---
-// Same shape, but for missions the agency fulfilled itself (booking.providerId === agency.id).
+// "Agence" means never touched the public Jobber marketplace (visibility
+// PRIVATE) — whether the agency does the work itself or delegates it to
+// one of its own employees via "Embaucher" (booking.providerId !== agency
+// in that case). Previously this required booking.providerId === agency,
+// so embaucher-ing an employee off an in-progress mission made it vanish
+// from every list (it doesn't satisfy "Jobber" either, since that requires
+// visibility PUBLIC). Filtering on visibility instead keeps it here, with
+// booking.provider telling the front-end whether an employee was hired.
 router.get('/missions/agence/en-cours', async (req, res, next) => {
   try {
     const missions = await prisma.mission.findMany({
-      where: { corporateAgencyId: req.agency.id, status: { in: ['ASSIGNED', 'IN_PROGRESS'] }, booking: { providerId: req.agency.id } },
-      include: { category: true, planning: true, booking: true, client: { select: { firstName: true, lastName: true, phone: true } }, ...MISSION_BADGES_INCLUDE },
+      where: { corporateAgencyId: req.agency.id, visibility: 'PRIVATE', status: { in: ['ASSIGNED', 'IN_PROGRESS'] } },
+      include: {
+        category: true, planning: true,
+        booking: { include: { provider: { select: { firstName: true, lastName: true } } } },
+        client: { select: { firstName: true, lastName: true, phone: true } },
+        ...MISSION_BADGES_INCLUDE,
+      },
       orderBy: { desiredDate: 'asc' },
     });
     res.json({ missions });
@@ -508,9 +520,10 @@ const embaucherEmployeSchema = z.object({ jobberId: z.string() });
 // itself, by moving the booking's provider from the agency to the
 // employee. No offer/accept cycle: the employment relationship is already
 // established via AgencyEmployee, so this is an internal dispatch
-// decision, not a marketplace application. Once reassigned the mission
-// naturally shows up under "Missions Jobber en cours" instead (that list
-// is defined purely by booking.providerId !== agency.id).
+// decision, not a marketplace application. The mission stays in "Missions
+// Agence en cours" (that list is defined by visibility, not by who the
+// provider is) — booking.provider now tells the front-end an employee was
+// hired instead of the agency itself.
 router.post('/missions/:id/embaucher-employe', async (req, res, next) => {
   try {
     const { jobberId } = embaucherEmployeSchema.parse(req.body);
@@ -533,8 +546,13 @@ router.post('/missions/:id/embaucher-employe', async (req, res, next) => {
 router.get('/missions/agence/terminees', async (req, res, next) => {
   try {
     const missions = await prisma.mission.findMany({
-      where: { corporateAgencyId: req.agency.id, status: 'COMPLETED', booking: { providerId: req.agency.id } },
-      include: { category: true, booking: true, client: { select: { firstName: true, lastName: true, phone: true } }, ...MISSION_BADGES_INCLUDE },
+      where: { corporateAgencyId: req.agency.id, visibility: 'PRIVATE', status: 'COMPLETED' },
+      include: {
+        category: true,
+        booking: { include: { provider: { select: { firstName: true, lastName: true } } } },
+        client: { select: { firstName: true, lastName: true, phone: true } },
+        ...MISSION_BADGES_INCLUDE,
+      },
       orderBy: { updatedAt: 'desc' },
     });
     res.json({ missions });
