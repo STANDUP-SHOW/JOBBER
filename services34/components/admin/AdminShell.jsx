@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { useAgencyAuth } from '../../lib/agency-auth-context';
-import LogoMark from '../Logo';
+import LogoMark, { SERVICES34_DARK_BLUE, SERVICES34_GOLD } from '../Logo';
 
 const NAV = [
   { href: '/admin', label: 'Demandes d\'interventions reçues' },
@@ -45,9 +45,10 @@ export default function AdminShell({ children }) {
     <div className="min-h-screen bg-paper md:flex">
       <aside className="border-b border-slate-200 bg-white p-5 md:w-72 md:shrink-0 md:border-b-0 md:border-r">
         <Link href="/admin" className="flex items-center gap-2">
-          <LogoMark color="#123E7A" className="h-9 w-9" />
+          <LogoMark color={SERVICES34_GOLD} className="h-9 w-9" />
           <span className="font-brand text-base font-extrabold uppercase tracking-tight text-ink">
-            Services <span className="text-brand">34</span> <span className="text-xs font-medium normal-case text-slate-400">Admin</span>
+            <span style={{ color: SERVICES34_DARK_BLUE }}>Services</span> <span style={{ color: SERVICES34_GOLD }}>34</span>{' '}
+            <span className="text-xs font-medium normal-case text-slate-400">Admin</span>
           </span>
         </Link>
         <p className="mt-3 text-xs text-slate-400">{agency.companyName} · zone {agency.serviceRadiusKm} km</p>
