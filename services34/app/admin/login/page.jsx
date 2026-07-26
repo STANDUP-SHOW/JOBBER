@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { agencyApi } from '../../../lib/agencyApi';
 import { useAgencyAuth } from '../../../lib/agency-auth-context';
-import LogoMark from '../../../components/Logo';
+import LogoMark, { SERVICES34_DARK_BLUE, SERVICES34_GOLD } from '../../../components/Logo';
 
 export default function AgencyLoginPage() {
   const router = useRouter();
@@ -33,9 +33,9 @@ export default function AgencyLoginPage() {
     <div className="flex min-h-screen items-center justify-center px-6">
       <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-8 shadow-sm">
         <div className="flex flex-col items-center">
-          <LogoMark color="#123E7A" className="h-14 w-14" />
+          <LogoMark color={SERVICES34_GOLD} className="h-14 w-14" />
           <span className="mt-2 font-brand text-xl font-extrabold uppercase tracking-tight text-ink">
-            Services <span className="text-brand">34</span>
+            <span style={{ color: SERVICES34_DARK_BLUE }}>Services</span> <span style={{ color: SERVICES34_GOLD }}>34</span>
           </span>
           <span className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-400">Administration</span>
         </div>

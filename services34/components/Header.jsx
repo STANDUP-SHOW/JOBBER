@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import LogoMark from './Logo';
+import LogoMark, { SERVICES34_DARK_BLUE, SERVICES34_GOLD } from './Logo';
 import { useBrand } from '../lib/brand-context';
 
 const SERVICES = [
@@ -22,9 +22,10 @@ export default function Header() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         {/* Pictogram left, wordmark right — same layout as Jobber's header. */}
         <Link href="/" className="flex items-center gap-2">
-          <LogoMark color={brand.color} className="h-10 w-10 shrink-0" />
+          <LogoMark color={brand.prefix ? brand.color : SERVICES34_GOLD} className="h-10 w-10 shrink-0" />
           <span className="font-brand text-lg font-extrabold uppercase tracking-tight text-ink">
-            {brand.prefix}<span style={{ color: brand.color }}>Services</span> 34
+            {brand.prefix}<span style={{ color: SERVICES34_DARK_BLUE }}>Services</span>{' '}
+            <span style={{ color: SERVICES34_GOLD }}>34</span>
           </span>
         </Link>
 
