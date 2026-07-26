@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useAgencyAuth } from '../../../lib/agency-auth-context';
 import { agencyApi } from '../../../lib/agencyApi';
+import MissionInfoBadges from '../../../components/admin/MissionInfoBadges';
 
 export default function OffresJobberPage() {
   const { token } = useAgencyAuth();
@@ -63,12 +65,14 @@ export default function OffresJobberPage() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="font-display text-base font-semibold text-ink">
-                    Devis — {o.mission.title} {o.mission.corporateCode && <span className="font-mono text-xs text-slate-400">({o.mission.corporateCode})</span>}
+                    Devis — <Link href={`/admin/missions/${o.mission.id}`} className="hover:underline">{o.mission.title}</Link>{' '}
+                    {o.mission.corporateCode && <span className="font-mono text-xs text-slate-400">({o.mission.corporateCode})</span>}
                   </div>
                   <div className="mt-1 text-sm text-slate-500">
                     {o.provider.firstName} {o.provider.lastName?.[0]}.
                     {o.provider.providerProfile?.ratingCount > 0 && ` · ${o.provider.providerProfile.ratingAverage.toFixed(1)}★ (${o.provider.providerProfile.ratingCount})`}
                   </div>
+                  <MissionInfoBadges mission={o.mission} />
                 </div>
                 <button type="button" onClick={() => window.print()} className="rounded-md border border-slate-200 px-3 py-1.5 text-xs font-medium text-ink hover:border-slate-300">
                   Imprimer / télécharger

@@ -15,6 +15,7 @@ function emptyDate() {
 function emptyForm(categoryId = '') {
   return {
     categoryId, serviceId: '', details: {}, title: '', description: '', address: '', dates: [emptyDate()],
+    workAtHeight: null,
     requiredEquipmentIds: [], otherEquipmentChecked: false, otherEquipmentNote: '',
     requiredVehicleTypes: [], otherVehicleChecked: false, otherVehicleNote: '',
   };
@@ -83,6 +84,7 @@ export default function EmployesPage() {
         description: form.description,
         address: form.address,
         dates: form.dates.map((d) => ({ ...d, hours: Number(d.hours) })),
+        workAtHeight: form.workAtHeight ?? undefined,
         requiredEquipmentIds: form.requiredEquipmentIds,
         otherEquipmentNote: form.otherEquipmentChecked ? form.otherEquipmentNote.trim() : '',
         requiredVehicleTypes: form.requiredVehicleTypes,

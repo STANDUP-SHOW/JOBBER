@@ -23,6 +23,7 @@ export const agencyApi = {
   updateCredentials: (payload, token) => request('/credentials', { method: 'PATCH', body: payload, token }),
 
   missionsReceived: (token) => request('/missions/received', { token }),
+  missionDetail: (missionId, token) => request(`/missions/${missionId}`, { token }),
   publishToJobber: (missionId, token) => request(`/missions/${missionId}/publish-to-jobber`, { method: 'POST', token }),
   missionAgence: (missionId, payload, token) => request(`/missions/${missionId}/agence`, { method: 'POST', body: payload, token }),
 

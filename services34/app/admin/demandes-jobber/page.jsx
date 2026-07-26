@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useAgencyAuth } from '../../../lib/agency-auth-context';
 import { agencyApi } from '../../../lib/agencyApi';
+import MissionInfoBadges from '../../../components/admin/MissionInfoBadges';
 
 export default function DemandesJobberPage() {
   const { token } = useAgencyAuth();
@@ -31,7 +33,9 @@ export default function DemandesJobberPage() {
           <div key={m.id} className="rounded-lg border border-slate-200 bg-white p-5">
             <div className="flex items-center gap-2">
               <span className="text-xl">{m.category?.icon}</span>
-              <span className="font-display text-base font-semibold text-ink">{m.title}</span>
+              <Link href={`/admin/missions/${m.id}`} className="font-display text-base font-semibold text-ink hover:underline">
+                {m.title}
+              </Link>
               {m.corporateCode && (
                 <span className="rounded-full bg-brand-light px-2 py-0.5 text-xs font-mono font-semibold text-brand-dark">
                   {m.corporateCode}
@@ -41,6 +45,7 @@ export default function DemandesJobberPage() {
             <div className="mt-1 text-sm text-slate-500">
               {new Date(m.desiredDate).toLocaleDateString('fr-FR')} · {m.estimatedHours} h · {m.offers?.length || 0} offre(s) en attente
             </div>
+            <MissionInfoBadges mission={m} />
           </div>
         ))}
       </div>

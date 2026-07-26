@@ -16,7 +16,7 @@ function emptyForm() {
   return {
     categoryId: '', serviceId: '', details: {}, title: '', description: '', address: '',
     estimatedHours: 2, desiredDate: '', isRecurring: false, dates: [emptyDate()],
-    isUrgent: false, datesFlexible: false,
+    isUrgent: false, datesFlexible: false, workAtHeight: null,
     requiredEquipmentIds: [], otherEquipmentChecked: false, otherEquipmentNote: '',
     requiredVehicleTypes: [], otherVehicleChecked: false, otherVehicleNote: '',
   };
@@ -63,6 +63,7 @@ export default function NouvelleMissionAgencePage() {
         desiredDate: form.desiredDate || new Date().toISOString(),
         isUrgent: form.isUrgent,
         datesFlexible: form.datesFlexible,
+        workAtHeight: form.workAtHeight ?? undefined,
         isRecurring: form.isRecurring,
         dates: form.isRecurring ? form.dates.map((d) => ({ ...d, hours: Number(d.hours) })) : [],
         requiredEquipmentIds: form.requiredEquipmentIds,

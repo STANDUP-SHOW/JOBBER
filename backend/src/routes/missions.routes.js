@@ -23,6 +23,27 @@ function withPublicPosition(mission) {
   return result;
 }
 
+// A corporate-agency mission (e.g. from services34.fr) is published under
+// the agency's own name on the public Jobber marketplace — the real
+// requester who submitted the demande is only ever visible inside the
+// agency's own back-office, never to jobbers browsing publicly. The real
+// requester still sees their own true identity when looking at their own
+// mission (isOwner).
+function maskCorporateClient(mission, isOwner) {
+  if (!mission.corporateAgencyId || isOwner) return mission;
+  return {
+    ...mission,
+    client: {
+      id: mission.client?.id,
+      firstName: mission.corporateAgency?.companyName || 'Entreprise partenaire',
+      avatarUrl: null,
+      accountKind: 'COMPANY',
+      companyType: 'CORPORATE',
+      companyName: mission.corporateAgency?.companyName || null,
+    },
+  };
+}
+
 const VEHICLE_TYPES = [
   'VOITURE_TOURISME', 'MINIBUS', 'CAMION_BENNE', 'REMORQUE', 'GRANDE_REMORQUE',
   'PETIT_UTILITAIRE_4M3', 'FOURGONNETTE_9M3', 'CAMION_15M3', 'GRAND_CAMION_20M3', 'POIDS_LOURD',
@@ -51,6 +72,9 @@ const createMissionSchema = z.object({
   estimatedHours: z.number().positive().default(1),
   isUrgent: z.boolean().optional().default(false),
   datesFlexible: z.boolean().optional().default(false),
+  // Asked client-side only when the required equipment includes Échelle
+  // or Escabeau — flags a job that involves working at height.
+  workAtHeight: z.boolean().optional(),
   isRecurring: z.boolean().optional().default(false),
   recurrenceCount: z.number().int().min(1).max(10).optional(),
   recurrenceUnit: z.enum(RECURRENCE_UNITS).optional(),
@@ -182,6 +206,7 @@ router.get('/', optionalAuth, async (req, res, next) => {
       },
       include: {
         category: true, service: true, client: { select: { id: true, firstName: true, avatarUrl: true, accountKind: true, companyType: true, companyName: true } },
+        corporateAgency: { select: { companyName: true } },
         _count: { select: { offers: true } }, requiredEquipment: { include: { equipment: true } },
       },
       orderBy: { createdAt: 'desc' },
@@ -209,13 +234,13 @@ router.get('/', optionalAuth, async (req, res, next) => {
       }
     }
 
-    res.json({ missions: missions.map(withPublicPosition) });
+    res.json({ missions: missions.map((m) => withPublicPosition(maskCorporateClient(m, req.user && req.user.id === m.clientId))) });
   } catch (err) {
     next(err);
   }
 });
 
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', optionalAuth, async (req, res, next) => {
   try {
     const mission = await prisma.mission.findUnique({
       where: { id: req.params.id },
@@ -223,13 +248,15 @@ router.get('/:id', async (req, res, next) => {
         category: true,
         service: true,
         client: { select: { id: true, firstName: true, avatarUrl: true, accountKind: true, companyType: true, companyName: true } },
+        corporateAgency: { select: { companyName: true } },
         offers: { include: { provider: { select: { id: true, firstName: true, lastName: true, avatarUrl: true, providerProfile: true } } } },
         booking: true,
         requiredEquipment: { include: { equipment: true } },
       },
     });
     if (!mission) return res.status(404).json({ error: 'Mission introuvable' });
-    res.json({ mission: withPublicPosition(mission) });
+    const isOwner = req.user && req.user.id === mission.clientId;
+    res.json({ mission: withPublicPosition(maskCorporateClient(mission, isOwner)) });
   } catch (err) {
     next(err);
   }

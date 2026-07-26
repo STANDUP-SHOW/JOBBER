@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useAgencyAuth } from '../../../lib/agency-auth-context';
 import { agencyApi } from '../../../lib/agencyApi';
+import MissionInfoBadges from '../../../components/admin/MissionInfoBadges';
 
 export default function MissionsJobberTermineesPage() {
   const { token } = useAgencyAuth();
@@ -38,8 +40,10 @@ export default function MissionsJobberTermineesPage() {
         {missions?.map((m) => (
           <div key={m.id} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4">
             <div>
-              <div className="font-medium text-ink">{m.title} {m.corporateCode && <span className="font-mono text-xs text-slate-400">({m.corporateCode})</span>}</div>
+              <Link href={`/admin/missions/${m.id}`} className="font-medium text-ink hover:underline">{m.title}</Link>{' '}
+              {m.corporateCode && <span className="font-mono text-xs text-slate-400">({m.corporateCode})</span>}
               <div className="text-sm text-slate-500">{m.booking?.provider?.firstName} {m.booking?.provider?.lastName?.[0]}. · {m.booking?.totalAmount} €</div>
+              <MissionInfoBadges mission={m} />
             </div>
             <button
               type="button"
