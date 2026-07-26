@@ -7,6 +7,7 @@ import { useAuth } from '../../../lib/auth-context';
 import MissionPhotosUpload from '../../../components/MissionPhotosUpload';
 import AddressAutocomplete from '../../../components/AddressAutocomplete';
 import VehicleIcon, { VEHICLES } from '../../../components/VehicleIcon';
+import { WORK_AT_HEIGHT_EQUIPMENT_NAMES } from '../../../lib/workAtHeightEquipment';
 
 const TRANSPORT_CATEGORY_SLUGS = ['convoi', 'demenagement', 'transport'];
 // Categories where the jobber accompanies a person (courses, rendez-vous,
@@ -66,6 +67,7 @@ function NewMissionForm() {
     photos: [],
     isUrgent: false,
     datesFlexible: false,
+    workAtHeight: null,
     recurrenceType: 'PONCTUEL',
     recurrenceCount: 1,
     recurrenceUnit: 'SEMAINE',
@@ -99,6 +101,9 @@ function NewMissionForm() {
     ? VEHICLES.filter((v) => SIMPLE_VEHICLE_TYPES.includes(v.type))
     : VEHICLES;
   const machineOptions = selectedCategory ? MACHINES_BY_CATEGORY_SLUG[selectedCategory.slug] : null;
+  const showWorkAtHeight = selectedCategory?.equipment?.some(
+    (eq) => WORK_AT_HEIGHT_EQUIPMENT_NAMES.includes(eq.name) && form.requiredEquipmentIds.includes(eq.id)
+  );
 
   function setDetail(key, value) {
     setForm((f) => ({ ...f, details: { ...f.details, [key]: value } }));
@@ -161,6 +166,7 @@ function NewMissionForm() {
           ...rest,
           desiredDate: desiredDateTime,
           missionEndDate: missionEndDateTime,
+          workAtHeight: form.workAtHeight ?? undefined,
           estimatedHours: Number(form.estimatedHours),
           otherEquipmentNote: otherEquipmentChecked ? form.otherEquipmentNote.trim() : '',
           otherVehicleNote: otherVehicleChecked ? form.otherVehicleNote.trim() : '',
@@ -494,6 +500,32 @@ function NewMissionForm() {
             </div>
           )}
         </div>
+        )}
+
+        {showWorkAtHeight && (
+          <div>
+            <span className="text-sm font-semibold text-ink">Travail en hauteur prévu ?</span>
+            <div className="mt-2 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, workAtHeight: true }))}
+                className={`rounded-lg border-2 py-4 text-center font-display text-base font-bold uppercase tracking-wide transition ${
+                  form.workAtHeight === true ? 'border-clay bg-clay text-white' : 'border-slate-200 text-slate-500 hover:border-clay hover:text-clay'
+                }`}
+              >
+                Oui
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, workAtHeight: false }))}
+                className={`rounded-lg border-2 py-4 text-center font-display text-base font-bold uppercase tracking-wide transition ${
+                  form.workAtHeight === false ? 'border-moss bg-moss text-white' : 'border-slate-200 text-slate-500 hover:border-moss hover:text-moss'
+                }`}
+              >
+                Non
+              </button>
+            </div>
+          </div>
         )}
 
         {isCompany && !isLessonMode && (

@@ -458,6 +458,10 @@ model Mission {
   estimatedHours Float         @default(1)
   isUrgent       Boolean       @default(false)
   datesFlexible  Boolean       @default(false)
+  // Asked only when the selected équipement requis includes Échelle or
+  // Escabeau (bricolage/jardinage) — flags a job that involves working at
+  // height so the assigned jobber knows to expect it. Null when not asked.
+  workAtHeight   Boolean?
   isRecurring     Boolean         @default(false)
   recurrenceCount Int?
   recurrenceUnit  RecurrenceUnit?

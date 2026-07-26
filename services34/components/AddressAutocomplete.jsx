@@ -54,6 +54,10 @@ export default function AddressAutocomplete({
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange?.(e.target.value)}
+      // The browser's native "Enter submits the form" behavior fires even
+      // when Enter is pressed to accept a Places suggestion, submitting the
+      // whole form prematurely — block it here so only the button submits.
+      onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
       className={className}
       autoComplete="off"
     />

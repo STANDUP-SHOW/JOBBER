@@ -1,6 +1,7 @@
 'use client';
 
 import VehicleIcon, { VEHICLES } from '../VehicleIcon';
+import { WORK_AT_HEIGHT_EQUIPMENT_NAMES } from '../../lib/workAtHeightEquipment';
 
 // Same "service précis + détails + matériel + véhicule" fields as the
 // public /demande form — shared here so agency-created missions (Nouvelle
@@ -9,6 +10,9 @@ import VehicleIcon, { VEHICLES } from '../VehicleIcon';
 export default function MissionExtraFields({ category, form, setForm }) {
   const selectedService = category?.services?.find((s) => s.id === form.serviceId);
   const detailFields = selectedService?.detailFields || [];
+  const showWorkAtHeight = category?.equipment?.some(
+    (eq) => WORK_AT_HEIGHT_EQUIPMENT_NAMES.includes(eq.name) && form.requiredEquipmentIds.includes(eq.id)
+  );
 
   function setDetail(key, value) {
     setForm((f) => ({ ...f, details: { ...f.details, [key]: value } }));
@@ -149,6 +153,32 @@ export default function MissionExtraFields({ category, form, setForm }) {
           </div>
         )}
       </div>
+
+      {showWorkAtHeight && (
+        <div>
+          <span className="text-sm font-semibold text-ink">Travail en hauteur prévu ?</span>
+          <div className="mt-2 grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, workAtHeight: true }))}
+              className={`rounded-lg border-2 py-3 text-center text-sm font-bold uppercase tracking-wide transition ${
+                form.workAtHeight === true ? 'border-clay bg-clay text-white' : 'border-slate-200 text-slate-500 hover:border-clay hover:text-clay'
+              }`}
+            >
+              Oui
+            </button>
+            <button
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, workAtHeight: false }))}
+              className={`rounded-lg border-2 py-3 text-center text-sm font-bold uppercase tracking-wide transition ${
+                form.workAtHeight === false ? 'border-brand bg-brand text-white' : 'border-slate-200 text-slate-500 hover:border-brand hover:text-brand'
+              }`}
+            >
+              Non
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

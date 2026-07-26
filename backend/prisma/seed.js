@@ -21,7 +21,7 @@ const CATEGORIES = [
   ], equipment: [
     'Perceuse-visseuse', 'Boîte à outils complète', 'Niveau à bulle', 'Mètre ruban', 'Scie sauteuse',
     'Détecteur de câbles et canalisations', 'Ponceuse électrique', 'Marteau et maillet', 'Jeu de tournevis',
-    'Clé à molette et jeu de clés', 'Escabeau / échelle', 'Pistolet à silicone', 'Cutter et couteau universel',
+    'Clé à molette et jeu de clés', 'Échelle', 'Escabeau', 'Pistolet à silicone', 'Cutter et couteau universel',
     'Chevilles et fixations diverses', 'Rouleaux et pinceaux de peinture', 'Bâches de protection',
   ] },
   { name: 'Déménagement', slug: 'demenagement', icon: '📦', services: [
@@ -40,6 +40,7 @@ const CATEGORIES = [
     'Tondeuse à gazon', 'Taille-haie', 'Débroussailleuse', 'Souffleur / aspirateur de feuilles',
     'Sécateur et cisailles', 'Tronçonneuse', 'Râteau et balai de jardin', 'Bêche et pelle',
     'Brouette', 'Gants de jardinage', 'Tuyau d\'arrosage et arrosoir', 'Sacs à déchets verts',
+    'Échelle', 'Escabeau',
   ] },
   { name: "Garde d'enfants", slug: 'garde-enfants', icon: '🧒', services: [
     'Baby-sitting', "Sortie d'école", 'Aide aux devoirs', 'Garde le soir et le week-end',

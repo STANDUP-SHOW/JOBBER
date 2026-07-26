@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useAgencyAuth } from '../../../lib/agency-auth-context';
 import { agencyApi } from '../../../lib/agencyApi';
 import MissionCountdown from '../../../components/admin/MissionCountdown';
 import PlanningPicker from '../../../components/admin/PlanningPicker';
+import MissionInfoBadges from '../../../components/admin/MissionInfoBadges';
 
 export default function MissionsJobberEnCoursPage() {
   const { token } = useAgencyAuth();
@@ -55,10 +57,11 @@ export default function MissionsJobberEnCoursPage() {
               {list.map((m) => (
                 <div key={m.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4">
                   <div>
-                    <div className="font-medium text-ink">{m.title}</div>
+                    <Link href={`/admin/missions/${m.id}`} className="font-medium text-ink hover:underline">{m.title}</Link>
                     <div className="text-sm text-slate-500">
                       {m.booking?.provider?.firstName} {m.booking?.provider?.lastName?.[0]}. · {new Date(m.desiredDate).toLocaleString('fr-FR')}
                     </div>
+                    <MissionInfoBadges mission={m} />
                   </div>
                   <div className="flex items-center gap-3">
                     <MissionCountdown desiredDate={m.desiredDate} />

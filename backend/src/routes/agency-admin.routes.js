@@ -11,7 +11,7 @@ const bcrypt = require('bcryptjs');
 const prisma = require('../config/prisma');
 const { signToken, verifyToken } = require('../utils/jwt');
 const { REFUSAL_REASONS_JOBBER, generateCorporateCode } = require('../utils/agency');
-const { geocodeAddress } = require('../services/geocodingService');
+const { geocodeAddress, haversineDistanceKm } = require('../services/geocodingService');
 
 const router = express.Router();
 
@@ -26,6 +26,11 @@ const VEHICLE_TYPES = [
 ];
 
 const missionDetailsSchema = z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.array(z.string())])).optional();
+
+// Spread into every mission list's `include` so the admin's mission cards
+// can show what was actually checked (matériel/véhicule requis) — every
+// GET list endpoint below returns this alongside its own fields.
+const MISSION_BADGES_INCLUDE = { requiredEquipment: { include: { equipment: true } } };
 
 // "Information entreprise" block in Paramètres, plus the core admin fields —
 // shared shape returned by /login, /me and /credentials.
@@ -169,7 +174,7 @@ router.get('/missions/received', async (req, res, next) => {
       // "Nouvelle mission agence" below) — this list is only for requests a
       // real visitor submitted via the agency's site.
       where: { corporateAgencyId: req.agency.id, clientId: { not: req.agency.id }, visibility: 'PRIVATE', status: 'OPEN', offers: { none: {} } },
-      include: { category: true, service: true, client: { select: { firstName: true, lastName: true, phone: true, email: true } } },
+      include: { category: true, service: true, client: { select: { firstName: true, lastName: true, phone: true, email: true } }, ...MISSION_BADGES_INCLUDE },
       orderBy: { createdAt: 'desc' },
     });
     res.json({ missions });
@@ -186,6 +191,7 @@ const createAgencyMissionSchema = z.object({
   desiredDate: z.string(),
   isUrgent: z.boolean().optional().default(false),
   datesFlexible: z.boolean().optional().default(false),
+  workAtHeight: z.boolean().optional(),
   isRecurring: z.boolean().optional().default(false),
   dates: z.array(z.object({
     date: z.string(), startTime: z.string(), hours: z.number().positive(), endTime: z.string(),
@@ -229,6 +235,7 @@ router.post('/missions', async (req, res, next) => {
         estimatedHours: totalHours,
         isUrgent: data.isUrgent,
         datesFlexible: data.datesFlexible,
+        workAtHeight: data.workAtHeight,
         isRecurring: data.isRecurring,
         requiredVehicleTypes: data.requiredVehicleTypes,
         otherEquipmentNote: data.otherEquipmentNote,
@@ -259,7 +266,7 @@ router.get('/missions/nouvelle-agence', async (req, res, next) => {
   try {
     const missions = await prisma.mission.findMany({
       where: { corporateAgencyId: req.agency.id, clientId: req.agency.id },
-      include: { category: true, service: true, scheduleEntries: true },
+      include: { category: true, service: true, scheduleEntries: true, ...MISSION_BADGES_INCLUDE },
       orderBy: { createdAt: 'desc' },
     });
     res.json({ missions });
@@ -307,6 +314,7 @@ router.get('/missions/published', async (req, res, next) => {
       include: {
         category: true, service: true,
         offers: { where: { status: 'PENDING' }, include: { provider: { select: { firstName: true, lastName: true } } } },
+        ...MISSION_BADGES_INCLUDE,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -326,7 +334,14 @@ router.get('/offers', async (req, res, next) => {
         mission: { corporateAgencyId: req.agency.id, visibility: 'PUBLIC' },
       },
       include: {
-        mission: { select: { id: true, title: true, corporateCode: true, estimatedHours: true, desiredDate: true } },
+        mission: {
+          select: {
+            id: true, title: true, corporateCode: true, estimatedHours: true, desiredDate: true,
+            address: true, isUrgent: true, datesFlexible: true, workAtHeight: true, isRecurring: true,
+            requiredVehicleTypes: true, otherVehicleNote: true, otherEquipmentNote: true,
+            requiredEquipment: { include: { equipment: true } },
+          },
+        },
         provider: {
           select: {
             id: true, firstName: true, lastName: true,
@@ -424,7 +439,7 @@ router.get('/missions/jobber/en-cours', async (req, res, next) => {
         status: { in: ['ASSIGNED', 'IN_PROGRESS'] },
         booking: { providerId: { not: req.agency.id } },
       },
-      include: { category: true, planning: true, booking: { include: { provider: { select: { firstName: true, lastName: true } } } } },
+      include: { category: true, planning: true, booking: { include: { provider: { select: { firstName: true, lastName: true } } } }, ...MISSION_BADGES_INCLUDE },
       orderBy: { desiredDate: 'asc' },
     });
     res.json({ missions });
@@ -438,7 +453,7 @@ router.get('/missions/jobber/terminees', async (req, res, next) => {
         corporateAgencyId: req.agency.id, visibility: 'PUBLIC', status: 'COMPLETED',
         booking: { providerId: { not: req.agency.id } },
       },
-      include: { category: true, booking: { include: { provider: { select: { firstName: true, lastName: true } } } } },
+      include: { category: true, booking: { include: { provider: { select: { firstName: true, lastName: true } } } }, ...MISSION_BADGES_INCLUDE },
       orderBy: { updatedAt: 'desc' },
     });
     res.json({ missions });
@@ -451,7 +466,7 @@ router.get('/missions/agence/en-cours', async (req, res, next) => {
   try {
     const missions = await prisma.mission.findMany({
       where: { corporateAgencyId: req.agency.id, status: { in: ['ASSIGNED', 'IN_PROGRESS'] }, booking: { providerId: req.agency.id } },
-      include: { category: true, planning: true, booking: true, client: { select: { firstName: true, lastName: true, phone: true } } },
+      include: { category: true, planning: true, booking: true, client: { select: { firstName: true, lastName: true, phone: true } }, ...MISSION_BADGES_INCLUDE },
       orderBy: { desiredDate: 'asc' },
     });
     res.json({ missions });
@@ -491,10 +506,40 @@ router.get('/missions/agence/terminees', async (req, res, next) => {
   try {
     const missions = await prisma.mission.findMany({
       where: { corporateAgencyId: req.agency.id, status: 'COMPLETED', booking: { providerId: req.agency.id } },
-      include: { category: true, booking: true, client: { select: { firstName: true, lastName: true, phone: true } } },
+      include: { category: true, booking: true, client: { select: { firstName: true, lastName: true, phone: true } }, ...MISSION_BADGES_INCLUDE },
       orderBy: { updatedAt: 'desc' },
     });
     res.json({ missions });
+  } catch (err) { next(err); }
+});
+
+// Full detail for one mission — used by the admin's mission detail page,
+// reachable by clicking any mission card in any of the lists above
+// (received, published, en cours, terminées...). Includes the requester's
+// contact info and the distance from the agency's own address (set in
+// "Ma zone d'intervention"), when both are geocoded.
+router.get('/missions/:id', async (req, res, next) => {
+  try {
+    const mission = await prisma.mission.findUnique({
+      where: { id: req.params.id },
+      include: {
+        category: true, service: true,
+        client: { select: { firstName: true, lastName: true, phone: true, email: true, companyName: true, accountKind: true } },
+        booking: { include: { provider: { select: { firstName: true, lastName: true, phone: true } } } },
+        offers: { include: { provider: { select: { firstName: true, lastName: true } } } },
+        planning: true,
+        scheduleEntries: true,
+        ...MISSION_BADGES_INCLUDE,
+      },
+    });
+    if (!mission || mission.corporateAgencyId !== req.agency.id) return res.status(404).json({ error: 'Mission introuvable' });
+
+    let distanceKm = null;
+    if (mission.lat != null && mission.lng != null && req.agency.lat != null && req.agency.lng != null) {
+      distanceKm = Math.round(haversineDistanceKm(req.agency.lat, req.agency.lng, mission.lat, mission.lng) * 10) / 10;
+    }
+
+    res.json({ mission, distanceKm });
   } catch (err) { next(err); }
 });
 
@@ -609,6 +654,7 @@ const embaucheSchema = z.object({
   title: z.string().min(3),
   description: z.string().min(10),
   address: z.string().min(3),
+  workAtHeight: z.boolean().optional(),
   requiredEquipmentIds: z.array(z.string()).optional().default([]),
   requiredVehicleTypes: z.array(z.enum(VEHICLE_TYPES)).optional().default([]),
   otherEquipmentNote: z.string().max(200).optional().transform((v) => (v ? v : undefined)),
@@ -651,6 +697,7 @@ router.post('/employees/:jobberId/embauche', async (req, res, next) => {
         desiredDate: new Date(firstDate.date),
         estimatedHours: totalHours,
         isRecurring: dates.length > 1,
+        workAtHeight: data.workAtHeight,
         requiredVehicleTypes: data.requiredVehicleTypes,
         otherEquipmentNote: data.otherEquipmentNote,
         otherVehicleNote: data.otherVehicleNote,

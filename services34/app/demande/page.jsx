@@ -6,6 +6,7 @@ import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
 import AddressAutocomplete from '../../components/AddressAutocomplete';
 import VehicleIcon, { VEHICLES } from '../../components/VehicleIcon';
+import { WORK_AT_HEIGHT_EQUIPMENT_NAMES } from '../../lib/workAtHeightEquipment';
 
 const ALLOWED_SLUGS = ['bricolage', 'menage', 'jardinage', 'piscine', 'conciergerie'];
 
@@ -17,7 +18,7 @@ export default function DemandePage() {
     categoryId: '', serviceId: '', details: {},
     title: '', description: '', address: '',
     desiredDate: '', desiredTime: '10:00', estimatedHours: 2,
-    isUrgent: false, datesFlexible: false,
+    isUrgent: false, datesFlexible: false, workAtHeight: null,
     recurrenceType: 'PONCTUEL', recurrenceCount: 1, recurrenceUnit: 'SEMAINE',
     requiredEquipmentIds: [], otherEquipmentChecked: false, otherEquipmentNote: '',
     requiredVehicleTypes: [], otherVehicleChecked: false, otherVehicleNote: '',
@@ -35,6 +36,9 @@ export default function DemandePage() {
   const selectedCategory = categories.find((c) => c.id === form.categoryId);
   const selectedService = selectedCategory?.services?.find((s) => s.id === form.serviceId);
   const detailFields = selectedService?.detailFields || [];
+  const showWorkAtHeight = selectedCategory?.equipment?.some(
+    (eq) => WORK_AT_HEIGHT_EQUIPMENT_NAMES.includes(eq.name) && form.requiredEquipmentIds.includes(eq.id)
+  );
 
   function setDetail(key, value) {
     setForm((f) => ({ ...f, details: { ...f.details, [key]: value } }));
@@ -86,6 +90,7 @@ export default function DemandePage() {
           estimatedHours: Number(form.estimatedHours),
           isUrgent: form.isUrgent,
           datesFlexible: form.datesFlexible,
+          workAtHeight: form.workAtHeight ?? undefined,
           isRecurring,
           recurrenceCount: isRecurring ? Number(form.recurrenceCount) : undefined,
           recurrenceUnit: isRecurring ? form.recurrenceUnit : undefined,
@@ -388,6 +393,32 @@ export default function DemandePage() {
             </div>
           )}
         </div>
+
+        {showWorkAtHeight && (
+          <div>
+            <span className="text-sm font-semibold text-ink">Travail en hauteur prévu ?</span>
+            <div className="mt-2 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, workAtHeight: true }))}
+                className={`rounded-lg border-2 py-4 text-center font-display text-base font-bold uppercase tracking-wide transition ${
+                  form.workAtHeight === true ? 'border-clay bg-clay text-white' : 'border-slate-200 text-slate-500 hover:border-clay hover:text-clay'
+                }`}
+              >
+                Oui
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, workAtHeight: false }))}
+                className={`rounded-lg border-2 py-4 text-center font-display text-base font-bold uppercase tracking-wide transition ${
+                  form.workAtHeight === false ? 'border-brand bg-brand text-white' : 'border-slate-200 text-slate-500 hover:border-brand hover:text-brand'
+                }`}
+              >
+                Non
+              </button>
+            </div>
+          </div>
+        )}
 
         {error && <p className="rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
 

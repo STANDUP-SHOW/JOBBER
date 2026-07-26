@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useAgencyAuth } from '../../../lib/agency-auth-context';
 import { agencyApi } from '../../../lib/agencyApi';
 import MissionCountdown from '../../../components/admin/MissionCountdown';
 import PlanningPicker from '../../../components/admin/PlanningPicker';
 import EmbaucherEmployePicker from '../../../components/admin/EmbaucherEmployePicker';
+import MissionInfoBadges from '../../../components/admin/MissionInfoBadges';
 
 export default function MissionsAgenceEnCoursPage() {
   const { token } = useAgencyAuth();
@@ -54,8 +56,11 @@ export default function MissionsAgenceEnCoursPage() {
         {missions?.map((m) => (
           <div key={m.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4">
             <div>
-              <div className="font-medium text-ink">{m.category?.icon} {m.title}</div>
+              <div className="font-medium text-ink">
+                {m.category?.icon} <Link href={`/admin/missions/${m.id}`} className="hover:underline">{m.title}</Link>
+              </div>
               <div className="text-sm text-slate-500">{m.client?.firstName} {m.client?.lastName} · {m.client?.phone}</div>
+              <MissionInfoBadges mission={m} />
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <MissionCountdown desiredDate={m.desiredDate} />
