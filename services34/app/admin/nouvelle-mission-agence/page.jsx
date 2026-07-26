@@ -7,6 +7,7 @@ import { api } from '../../../lib/api';
 import RecurringDatesEditor from '../../../components/admin/RecurringDatesEditor';
 import MissionExtraFields from '../../../components/admin/MissionExtraFields';
 import AddressAutocomplete from '../../../components/AddressAutocomplete';
+import TraiterEnAgenceSheet from '../../../components/admin/TraiterEnAgenceSheet';
 
 function emptyDate() {
   return { date: '', startTime: '09:00', hours: 2, endTime: '11:00' };
@@ -30,7 +31,8 @@ export default function NouvelleMissionAgencePage() {
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [rateDrafts, setRateDrafts] = useState({});
+  const [sheetFor, setSheetFor] = useState(null);
+  const [sheetError, setSheetError] = useState('');
 
   const [form, setForm] = useState(emptyForm());
   const selectedCategory = categories.find((c) => c.id === form.categoryId);
@@ -84,12 +86,13 @@ export default function NouvelleMissionAgencePage() {
     catch (err) { setError(err.message); } finally { setBusy(false); }
   }
 
-  async function traiterEnAgence(id) {
-    const hourlyRate = Number(rateDrafts[id]);
-    if (!hourlyRate || hourlyRate <= 0) { setError('Indiquez un tarif horaire valide.'); return; }
-    setBusy(true);
-    try { await agencyApi.missionAgence(id, { hourlyRate }, token); await refresh(); }
-    catch (err) { setError(err.message); } finally { setBusy(false); }
+  async function traiterEnAgence(hourlyRate, extraFees) {
+    setBusy(true); setSheetError('');
+    try {
+      await agencyApi.missionAgence(sheetFor, { hourlyRate, extraFees }, token);
+      setSheetFor(null);
+      await refresh();
+    } catch (err) { setSheetError(err.message); } finally { setBusy(false); }
   }
 
   return (
@@ -184,21 +187,30 @@ export default function NouvelleMissionAgencePage() {
             </div>
             <div className="mt-1 text-sm text-slate-500">{m.address} · {m.estimatedHours} h · {m.visibility === 'PUBLIC' ? 'Publiée sur Jobber' : 'Non publiée'}</div>
 
-            {m.visibility !== 'PUBLIC' && (
+            {m.visibility !== 'PUBLIC' && m.status === 'OPEN' && (
               <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">
                 <button type="button" disabled={busy} onClick={() => publish(m.id)} className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark disabled:opacity-60">
                   Publier sur Jobber
                 </button>
                 <span className="text-xs text-slate-400">ou</span>
-                <input type="number" min={5} placeholder="Tarif €/h" value={rateDrafts[m.id] || ''} onChange={(e) => setRateDrafts((d) => ({ ...d, [m.id]: e.target.value }))} className="w-28 rounded-md border border-slate-200 px-2 py-2 text-sm" />
-                <button type="button" disabled={busy} onClick={() => traiterEnAgence(m.id)} className="rounded-md border border-brand px-4 py-2 text-sm font-medium text-brand hover:bg-brand-light disabled:opacity-60">
-                  Traité en agence
+                <button type="button" disabled={busy} onClick={() => setSheetFor(m.id)} className="rounded-md border border-brand px-4 py-2 text-sm font-medium text-brand hover:bg-brand-light disabled:opacity-60">
+                  Traiter en agence
                 </button>
               </div>
             )}
           </div>
         ))}
       </div>
+
+      {sheetFor && (
+        <TraiterEnAgenceSheet
+          mission={missions.find((m) => m.id === sheetFor)}
+          busy={busy}
+          error={sheetError}
+          onClose={() => { setSheetFor(null); setSheetError(''); }}
+          onSubmit={traiterEnAgence}
+        />
+      )}
 
       {!showForm && (
         <button

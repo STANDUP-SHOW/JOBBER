@@ -5,14 +5,16 @@ import Link from 'next/link';
 import { useAgencyAuth } from '../../lib/agency-auth-context';
 import { agencyApi } from '../../lib/agencyApi';
 import MissionInfoBadges from '../../components/admin/MissionInfoBadges';
+import TraiterEnAgenceSheet from '../../components/admin/TraiterEnAgenceSheet';
 
 export default function DemandesRecuesPage() {
   const { token } = useAgencyAuth();
   const [missions, setMissions] = useState(null);
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState(null);
-  const [rateDrafts, setRateDrafts] = useState({});
   const [view, setView] = useState('liste');
+  const [sheetFor, setSheetFor] = useState(null);
+  const [sheetError, setSheetError] = useState('');
 
   async function refresh() {
     try {
@@ -31,14 +33,13 @@ export default function DemandesRecuesPage() {
     } catch (err) { setError(err.message); } finally { setBusyId(null); }
   }
 
-  async function missionAgence(id) {
-    const hourlyRate = Number(rateDrafts[id]);
-    if (!hourlyRate || hourlyRate <= 0) { setError('Indiquez un tarif horaire valide pour la mission agence.'); return; }
-    setBusyId(id);
+  async function missionAgence(hourlyRate, extraFees) {
+    setBusyId(sheetFor); setSheetError('');
     try {
-      await agencyApi.missionAgence(id, { hourlyRate }, token);
+      await agencyApi.missionAgence(sheetFor, { hourlyRate, extraFees }, token);
+      setSheetFor(null);
       await refresh();
-    } catch (err) { setError(err.message); } finally { setBusyId(null); }
+    } catch (err) { setSheetError(err.message); } finally { setBusyId(null); }
   }
 
   return (
@@ -113,18 +114,10 @@ export default function DemandesRecuesPage() {
                   Publier sur Jobber
                 </button>
                 <span className="text-xs text-slate-400">ou</span>
-                <input
-                  type="number"
-                  min={5}
-                  placeholder="Tarif €/h"
-                  value={rateDrafts[m.id] || ''}
-                  onChange={(e) => setRateDrafts((d) => ({ ...d, [m.id]: e.target.value }))}
-                  className="w-28 rounded-md border border-slate-200 px-2 py-2 text-sm"
-                />
                 <button
                   type="button"
                   disabled={busyId === m.id}
-                  onClick={() => missionAgence(m.id)}
+                  onClick={() => setSheetFor(m.id)}
                   className="rounded-md border border-brand px-4 py-2 text-sm font-medium text-brand hover:bg-brand-light disabled:opacity-60"
                 >
                   Mission Agence
@@ -133,6 +126,16 @@ export default function DemandesRecuesPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {sheetFor && (
+        <TraiterEnAgenceSheet
+          mission={missions.find((m) => m.id === sheetFor)}
+          busy={busyId === sheetFor}
+          error={sheetError}
+          onClose={() => { setSheetFor(null); setSheetError(''); }}
+          onSubmit={missionAgence}
+        />
       )}
     </div>
   );
