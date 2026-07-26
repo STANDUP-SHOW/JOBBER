@@ -16,6 +16,17 @@ export default function AddressAutocomplete({
 }) {
   const inputRef = useRef(null);
   const autocompleteRef = useRef(null);
+  // The Google listener below is attached once and never re-attached (see
+  // the autocompleteRef guard), so it must never close over onChange/onSelect
+  // directly — that would freeze them at whatever the form looked like the
+  // moment the Places script finished loading. Reading through refs instead
+  // means the listener always calls whichever onChange/onSelect is current,
+  // so selecting a suggestion merges into the form's latest state instead of
+  // overwriting everything back to that first render's (empty) values.
+  const onChangeRef = useRef(onChange);
+  const onSelectRef = useRef(onSelect);
+  onChangeRef.current = onChange;
+  onSelectRef.current = onSelect;
 
   const { isLoaded } = useJsApiLoader({
     id: 'services34-google-maps',
@@ -35,8 +46,8 @@ export default function AddressAutocomplete({
     autocomplete.addListener('place_changed', () => {
       const place = autocomplete.getPlace();
       const address = place.formatted_address || inputRef.current.value;
-      onChange?.(address);
-      onSelect?.({
+      onChangeRef.current?.(address);
+      onSelectRef.current?.({
         address,
         lat: place.geometry?.location?.lat(),
         lng: place.geometry?.location?.lng(),
