@@ -26,7 +26,7 @@ export default function ConciergeriePage() {
         { icon: '🔑', title: 'Gestion des clés', desc: "Remise et récupération des clés, ouverture pour un artisan ou un livreur en votre absence." },
         { icon: '🏠', title: 'Surveillance régulière', desc: "Passages réguliers dans votre résidence secondaire pour vérifier que tout est en ordre." },
         { icon: '🧳', title: 'Accueil des locataires', desc: "Pour vos locations saisonnières : accueil des voyageurs, état des lieux d'entrée et de sortie." },
-        { icon: '🪪', title: 'Des agents de confiance', desc: "Chaque agent Services 34 est identifié et intervient au nom de l'entreprise." },
+        { icon: '🔑', title: 'Des agents fiables et discrets', desc: "Chaque agent conciergerie est habitué à la gestion de résidences secondaires et intervient en toute discrétion, y compris en votre absence." },
       ]}
       tasks={[
         { name: 'Gestion complète (location saisonnière clé en main)', href: '/conciergerie/gestion-complete', icon: '🏡' },

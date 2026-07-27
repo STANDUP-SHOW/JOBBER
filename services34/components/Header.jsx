@@ -29,7 +29,7 @@ export default function Header() {
             {/* Category prefix (e.g. "Conciergerie ") only shows once there's
                 room for it — on narrow screens it can push "34" onto its own
                 line and split the wordmark awkwardly. */}
-            <span className="hidden sm:inline">{brand.prefix}</span>
+            <span className="hidden sm:inline" style={{ color: brand.color }}>{brand.prefix}</span>
             <span style={{ color: SERVICES34_DARK_BLUE }}>Services</span>{' '}
             <span style={{ color: brand.prefix ? brand.color : SERVICES34_GOLD }}>34</span>
           </span>

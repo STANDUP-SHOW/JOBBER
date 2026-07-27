@@ -24,7 +24,7 @@ export default function JardinagePage() {
       guarantees={[
         { icon: '🌱', title: 'Entretien complet', desc: "De la simple tonte à l'entretien saisonnier complet, nos agents s'adaptent à la taille de votre extérieur." },
         { icon: '🧰', title: 'Matériel professionnel', desc: "Nos agents interviennent avec leur propre matériel (tondeuse, taille-haie, débroussailleuse…)." },
-        { icon: '🪪', title: 'Des agents de confiance', desc: "Chaque agent Services 34 est identifié et intervient au nom de l'entreprise." },
+        { icon: '🌿', title: 'Des agents expérimentés', desc: "Chaque jardinier connaît les essences et le climat du littoral biterrois, et vous conseille sur l'entretien le mieux adapté à votre extérieur." },
         { icon: '📍', title: 'Un service local', desc: "Nous intervenons exclusivement à Béziers, Agde, Vias, Marseillan et dans les communes du pourtour biterrois." },
       ]}
       tasks={[
