@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import LogoMark, { SERVICES34_DARK_BLUE, SERVICES34_GOLD } from './Logo';
+import LogoMark, { SERVICES34_DARK_BLUE } from './Logo';
 import { CATEGORY_COLORS } from '../lib/categoryColors';
 
 export default function CategoryShowcase({ category, label, image, pitch, href, reverse = false }) {
@@ -22,7 +22,7 @@ export default function CategoryShowcase({ category, label, image, pitch, href, 
             <span className="font-brand text-lg font-extrabold uppercase tracking-tight drop-shadow-sm">
               <span style={{ color }}>{label}</span>{' '}
               <span style={{ color: SERVICES34_DARK_BLUE }}>Services</span>{' '}
-              <span style={{ color: SERVICES34_GOLD }}>34</span>
+              <span style={{ color }}>34</span>
             </span>
           </div>
         </div>

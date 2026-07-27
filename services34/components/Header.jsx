@@ -31,7 +31,7 @@ export default function Header() {
                 line and split the wordmark awkwardly. */}
             <span className="hidden sm:inline">{brand.prefix}</span>
             <span style={{ color: SERVICES34_DARK_BLUE }}>Services</span>{' '}
-            <span style={{ color: SERVICES34_GOLD }}>34</span>
+            <span style={{ color: brand.prefix ? brand.color : SERVICES34_GOLD }}>34</span>
           </span>
         </Link>
 
