@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { SERVICES34_DARK_BLUE } from './Logo';
 
 const SERVICES = [
@@ -7,6 +8,19 @@ const SERVICES = [
   ['Jardinage', '/jardinage'],
   ['Piscine', '/piscine'],
   ['Conciergerie', '/conciergerie'],
+];
+
+const AREA_LOGOS = [
+  ['/images/footer/beziers-mediterranee.webp', 'Agglomération Béziers Méditerranée'],
+  ['/images/footer/vias.png', 'Vias Méditerranée'],
+  ['/images/footer/marseillan.jpg', 'Marseillan'],
+  ['/images/footer/agde.webp', 'Agde, Archipel de vie'],
+  ['/images/footer/agglo-herault-mediterranee.png', "L'Agglo Hérault Méditerranée"],
+];
+
+const LABEL_LOGOS = [
+  ['/images/footer/services-a-la-personne.png', 'Services à la personne'],
+  ['/images/footer/charte-qualite.jpeg', 'Charte nationale qualité Services à la personne'],
 ];
 
 export default function Footer() {
@@ -52,6 +66,20 @@ export default function Footer() {
             <p className="mt-2 text-sm text-slate-500">
               Béziers · Agde · Vias · Marseillan et les communes environnantes, dans un rayon de 50 km.
             </p>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              {AREA_LOGOS.map(([src, alt]) => (
+                <div key={src} className="relative h-9 w-16">
+                  <Image src={src} alt={alt} fill className="object-contain" sizes="64px" />
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              {LABEL_LOGOS.map(([src, alt]) => (
+                <div key={src} className="relative h-10 w-24">
+                  <Image src={src} alt={alt} fill className="object-contain" sizes="96px" />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
         <p className="mt-8 text-center text-xs text-slate-400">© {new Date().getFullYear()} Services 34</p>
