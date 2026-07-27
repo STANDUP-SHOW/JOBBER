@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { SERVICES34_DARK_BLUE } from './Logo';
 
 const SERVICES = [
   ['Bricolage', '/bricolage'],
@@ -11,6 +12,34 @@ const SERVICES = [
 export default function Footer() {
   return (
     <footer className="mt-16 border-t border-slate-200 bg-white">
+      <div className="mx-auto max-w-6xl px-6 pt-10">
+        <div className="rounded-lg bg-[#f8a703] px-6 py-6" style={{ color: SERVICES34_DARK_BLUE }}>
+          <div className="font-display text-lg font-bold">Nous contacter</div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <Link href="/compte" className="flex items-start gap-3 hover:opacity-80">
+              <span className="text-xl leading-none">💬</span>
+              <span>
+                <span className="block text-sm font-semibold">Messagerie du site</span>
+                <span className="block text-sm">Échange de messages via mon compte</span>
+              </span>
+            </Link>
+            <a href="mailto:contact@service34.fr" className="flex items-start gap-3 hover:opacity-80">
+              <span className="text-xl leading-none">✉️</span>
+              <span>
+                <span className="block text-sm font-semibold">Email</span>
+                <span className="block text-sm">contact@service34.fr</span>
+              </span>
+            </a>
+            <a href="tel:+33746476968" className="flex items-start gap-3 hover:opacity-80">
+              <span className="text-xl leading-none">📞</span>
+              <span>
+                <span className="block text-sm font-semibold">Téléphone</span>
+                <span className="block text-sm">07 46 47 69 68</span>
+              </span>
+            </a>
+          </div>
+        </div>
+      </div>
       <div className="mx-auto max-w-6xl px-6 py-10">
         <div className="grid gap-8 sm:grid-cols-3">
           <div>
