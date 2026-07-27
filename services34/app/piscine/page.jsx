@@ -24,7 +24,7 @@ export default function PiscinePage() {
       guarantees={[
         { icon: '🏊', title: 'Entretien régulier', desc: "Passage hebdomadaire ou selon vos besoins : nettoyage du bassin, contrôle et équilibrage de l'eau." },
         { icon: '🔧', title: 'Remise en état', desc: "Après l'hiver ou une période sans entretien, nos agents remettent votre bassin en service." },
-        { icon: '🪪', title: 'Des agents de confiance', desc: "Chaque agent Services 34 est identifié et intervient au nom de l'entreprise." },
+        { icon: '🧪', title: 'Des agents spécialisés', desc: "Chaque agent piscine maîtrise le traitement de l'eau et l'entretien des équipements, pour un bassin sain toute la saison." },
         { icon: '📍', title: 'Un service local', desc: "Idéal pour les résidences secondaires du littoral — Agde, Vias, Marseillan — même en votre absence." },
       ]}
       tasks={[

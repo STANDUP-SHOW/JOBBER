@@ -24,7 +24,7 @@ export default function MenagePage() {
       guarantees={[
         { icon: '🔁', title: 'Ponctuel ou régulier', desc: "Un grand ménage avant un événement ou un passage chaque semaine, à vous de choisir la fréquence." },
         { icon: '🧴', title: 'Vos produits ou les nôtres', desc: "Précisez si vous préférez que l'agent utilise vos produits d'entretien ou apporte les siens." },
-        { icon: '🪪', title: 'Des agents de confiance', desc: "Chaque agent Services 34 est identifié et intervient au nom de l'entreprise." },
+        { icon: '🧽', title: 'Des agents formés', desc: "Chaque agent de ménage maîtrise les bons gestes et les bons produits pour un résultat impeccable à chaque passage." },
         { icon: '📍', title: 'Un service local', desc: "Nous intervenons exclusivement à Béziers, Agde, Vias, Marseillan et dans les communes du pourtour biterrois." },
       ]}
       tasks={[

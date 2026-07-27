@@ -24,19 +24,6 @@ export default function ServiceCategoryPage({ category, eyebrow, title, intro, g
       </section>
 
       <section className="mt-16">
-        <h2 className="text-center font-display text-2xl font-semibold text-ink">Pourquoi passer par Services 34</h2>
-        <div className="mt-8 grid gap-6 sm:grid-cols-2">
-          {guarantees.map((g) => (
-            <div key={g.title} className="rounded-lg border border-slate-200 bg-white p-5">
-              <span className="text-2xl">{g.icon}</span>
-              <div className="mt-2 font-display text-lg font-semibold text-ink">{g.title}</div>
-              <p className="mt-1 text-sm text-slate-500">{g.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="mt-16">
         <h2 className="text-center font-display text-2xl font-semibold text-ink">Nos prestations</h2>
         <p className="mx-auto mt-1 max-w-md text-center text-sm text-slate-400">Cliquez sur une prestation pour en savoir plus.</p>
         <div className="mx-auto mt-8 grid max-w-4xl grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
@@ -57,6 +44,19 @@ export default function ServiceCategoryPage({ category, eyebrow, title, intro, g
               </Tag>
             );
           })}
+        </div>
+      </section>
+
+      <section className="mt-16">
+        <h2 className="text-center font-display text-2xl font-semibold text-ink">Pourquoi passer par Services 34</h2>
+        <div className="mt-8 grid gap-6 sm:grid-cols-2">
+          {guarantees.map((g) => (
+            <div key={g.title} className="rounded-lg border border-slate-200 bg-white p-5">
+              <span className="text-2xl">{g.icon}</span>
+              <div className="mt-2 font-display text-lg font-semibold text-ink">{g.title}</div>
+              <p className="mt-1 text-sm text-slate-500">{g.desc}</p>
+            </div>
+          ))}
         </div>
       </section>
 

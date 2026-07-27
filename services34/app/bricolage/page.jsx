@@ -24,7 +24,7 @@ export default function BricolagePage() {
       guarantees={[
         { icon: '🧰', title: 'Des agents équipés', desc: "Nos agents se déplacent avec leur propre outillage professionnel — vous n'avez rien à fournir." },
         { icon: '📋', title: 'Un devis avant intervention', desc: "Le tarif est validé avant le début des travaux, sans mauvaise surprise sur la facture." },
-        { icon: '🪪', title: 'Des agents de confiance', desc: "Chaque agent Services 34 est identifié et intervient au nom de l'entreprise, jamais en son nom propre." },
+        { icon: '🎓', title: 'Des agents qualifiés', desc: "Chaque agent bricoleur dispose d'un savoir-faire technique solide et d'une expérience métier confirmée, pour un travail soigné dès le premier passage." },
         { icon: '📍', title: 'Un service local', desc: "Nous intervenons exclusivement à Béziers, Agde, Vias, Marseillan et dans les communes du pourtour biterrois." },
       ]}
       tasks={[
