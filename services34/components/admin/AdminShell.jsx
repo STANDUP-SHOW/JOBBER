@@ -14,6 +14,7 @@ const NAV = [
   { href: '/admin/missions-jobber-en-cours', label: 'Missions Jobber en cours' },
   { href: '/admin/missions-jobber-terminees', label: 'Missions Jobber terminées' },
   { href: '/admin/factures-jobber', label: 'Mes factures Jobber' },
+  { href: '/admin/missions-agence-propositions', label: 'Propositions en attente' },
   { href: '/admin/missions-agence-en-cours', label: 'Missions Agence en cours' },
   { href: '/admin/missions-agence-terminees', label: 'Missions Agence terminées' },
   { href: '/admin/factures-agence', label: 'Mes factures Agence' },

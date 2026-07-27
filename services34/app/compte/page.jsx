@@ -71,23 +71,34 @@ export default function ComptePage() {
         )}
 
         <div className="mt-4 space-y-3">
-          {missions?.map((m) => (
-            <div key={m.id} className="rounded-lg border border-slate-200 bg-white p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="font-medium text-ink">
-                    {m.category?.icon} {m.title}
+          {missions?.map((m) => {
+            const hasPendingProposal = m.offers?.length > 0;
+            return (
+              <Link
+                key={m.id}
+                href={`/compte/missions/${m.id}`}
+                className="block rounded-lg border border-slate-200 bg-white p-4 hover:border-brand"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="font-medium text-ink">
+                      {m.category?.icon} {m.title}
+                    </div>
+                    <div className="mt-0.5 text-sm text-slate-500">
+                      {new Date(m.desiredDate).toLocaleDateString('fr-FR')} · {m.estimatedHours} h
+                    </div>
                   </div>
-                  <div className="mt-0.5 text-sm text-slate-500">
-                    {new Date(m.desiredDate).toLocaleDateString('fr-FR')} · {m.estimatedHours} h
-                  </div>
+                  <span
+                    className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
+                      hasPendingProposal ? 'bg-accent-light text-accent-dark' : 'bg-slate-100 text-slate-600'
+                    }`}
+                  >
+                    {hasPendingProposal ? 'Proposition reçue' : STATUS_LABELS[m.status] || m.status}
+                  </span>
                 </div>
-                <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-                  {STATUS_LABELS[m.status] || m.status}
-                </span>
-              </div>
-            </div>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       </section>
     </div>

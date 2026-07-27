@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { agencyApi } from '../../lib/agencyApi';
 
 // Mirrors EXTRA_FEE_TYPES in backend/src/routes/agency-admin.routes.js — keep in sync.
 const EXTRA_FEE_TYPES = {
@@ -12,13 +13,34 @@ const EXTRA_FEE_TYPES = {
   wasteDisposal: 'Frais de déchetterie',
 };
 
-export default function TraiterEnAgenceSheet({ mission, busy, error, onClose, onSubmit }) {
+export default function TraiterEnAgenceSheet({ mission, token, busy, error, onClose, onSubmit }) {
   const [rate, setRate] = useState(15);
+  const [hours, setHours] = useState(mission.estimatedHours);
   const [wantsExtraFees, setWantsExtraFees] = useState(null);
   const [checked, setChecked] = useState({});
   const [amounts, setAmounts] = useState({});
+  const [travelInfo, setTravelInfo] = useState(null);
 
-  const hours = mission.estimatedHours;
+  // Frais de route (2€ flat) and frais de carburant (distance-based) are
+  // pre-filled automatically from "Départ agence" so the agency doesn't
+  // have to look up or type them in — still editable in case of a GPS
+  // mismatch or special case.
+  useEffect(() => {
+    agencyApi
+      .travelFees(mission.id, token)
+      .then((info) => {
+        setTravelInfo(info);
+        setChecked((c) => ({ ...c, displacement: true, ...(info.fuelFee != null ? { fuel: true } : {}) }));
+        setAmounts((a) => ({
+          ...a,
+          displacement: info.displacementFee,
+          ...(info.fuelFee != null ? { fuel: info.fuelFee } : {}),
+        }));
+        setWantsExtraFees((w) => (w === null ? true : w));
+      })
+      .catch(() => {});
+  }, [mission.id, token]);
+
   const extraFeesTotal = Object.keys(EXTRA_FEE_TYPES).reduce(
     (sum, key) => sum + (checked[key] ? Number(amounts[key]) || 0 : 0),
     0,
@@ -27,6 +49,13 @@ export default function TraiterEnAgenceSheet({ mission, busy, error, onClose, on
 
   function adjust(delta) {
     setRate((r) => Math.max(5, r + delta));
+  }
+
+  // The agency can revise the client's requested hours upward only — the
+  // job might realistically need more time, but never less than what the
+  // client asked for.
+  function increaseHours() {
+    setHours((h) => h + 0.5);
   }
 
   function toggleFee(key) {
@@ -39,7 +68,7 @@ export default function TraiterEnAgenceSheet({ mission, busy, error, onClose, on
           .filter(([key]) => checked[key] && Number(amounts[key]) > 0)
           .map(([key]) => ({ key, amount: Number(amounts[key]) }))
       : [];
-    onSubmit(rate, extraFees);
+    onSubmit(rate, extraFees, hours);
   }
 
   return (
@@ -75,14 +104,36 @@ export default function TraiterEnAgenceSheet({ mission, busy, error, onClose, on
 
         <div className="mt-6 grid grid-cols-2 gap-3">
           <div className="rounded-lg bg-slate-50 p-4 text-center">
-            <div className="text-xs text-slate-500">Durée estimée</div>
-            <div className="mt-1 text-lg font-semibold text-ink">{hours} h</div>
+            <div className="text-xs text-slate-500">
+              Durée{hours > mission.estimatedHours ? ' (révisée)' : ' demandée'}
+            </div>
+            <div className="mt-1 flex items-center justify-center gap-2">
+              <span className="text-lg font-semibold text-ink">{hours} h</span>
+              <button
+                type="button"
+                onClick={increaseHours}
+                aria-label="Augmenter la durée"
+                title="Augmenter la durée (jamais en dessous de la demande du client)"
+                className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-sm font-bold text-white hover:bg-brand-dark"
+              >
+                ↑
+              </button>
+            </div>
+            {hours > mission.estimatedHours && (
+              <div className="mt-0.5 text-xs text-slate-400">Demande initiale : {mission.estimatedHours} h</div>
+            )}
           </div>
           <div className="rounded-lg bg-slate-50 p-4 text-center">
             <div className="text-xs text-slate-500">Total facturé au client</div>
             <div className="mt-1 text-lg font-semibold text-ink">{total} €</div>
           </div>
         </div>
+
+        {travelInfo?.distanceKm != null && (
+          <p className="mt-4 text-center text-xs text-slate-400">
+            {travelInfo.originLabel} → client : {travelInfo.distanceKm} km ({travelInfo.roundTripKm} km aller-retour) — frais de route et de carburant pré-remplis ci-dessous
+          </p>
+        )}
 
         <div className="mt-6 rounded-lg border border-slate-200 p-4">
           <p className="text-sm font-medium text-ink">Avez-vous des options payantes à ajouter ?</p>

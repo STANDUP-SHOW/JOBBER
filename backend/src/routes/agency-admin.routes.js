@@ -12,6 +12,8 @@ const prisma = require('../config/prisma');
 const { signToken, verifyToken } = require('../utils/jwt');
 const { REFUSAL_REASONS_JOBBER, generateCorporateCode } = require('../utils/agency');
 const { geocodeAddress, haversineDistanceKm } = require('../services/geocodingService');
+const { getOneWayDistanceKm, AGENCY_DEPARTURE_ADDRESS } = require('../services/distanceService');
+const { sendAgenceProposalEmail } = require('../services/emailService');
 
 const router = express.Router();
 
@@ -301,51 +303,84 @@ const EXTRA_FEE_TYPES = {
 const agenceOfferSchema = z.object({
   hourlyRate: z.number().positive(),
   extraFees: z.array(z.object({ key: z.enum(Object.keys(EXTRA_FEE_TYPES)), amount: z.number().positive() })).optional().default([]),
+  // The agency may revise the client's originally requested hours upward
+  // when pricing the quote (e.g. the job realistically needs more time),
+  // but never reduce them — enforced below against mission.estimatedHours.
+  hours: z.number().positive().optional(),
 });
 
-// "Mission Agence" — the agency itself takes the mission, without ever
-// publishing it to Jobber. The agency decides internally to handle it and
-// bills the real client directly (no platform fee, unlike the Jobber path)
-// — so this confirms the mission immediately (offer + booking created
-// already ACCEPTED/SCHEDULED) rather than leaving a pending offer that
-// would require the original requester to separately accept it on
-// jobber.city. Without this the mission never satisfies "Missions Agence
-// en cours"'s booking.providerId === agency.id filter.
-router.post('/missions/:id/agence', async (req, res, next) => {
+// Flat "frais de route" (1€ aller + 1€ retour) added to every Mission
+// Agence quote, plus a distance-based "frais de carburant" — both computed
+// from the fixed agency departure address via Google Distance Matrix, so
+// the agency doesn't have to type them in by hand each time.
+const DISPLACEMENT_FEE = 2;
+const FUEL_RATE_PER_100KM = 15; // ~7L/100km
+
+router.get('/missions/:id/travel-fees', async (req, res, next) => {
   try {
-    const { hourlyRate, extraFees: extraFeesInput } = agenceOfferSchema.parse(req.body);
     const mission = await prisma.mission.findUnique({ where: { id: req.params.id } });
     if (!mission || mission.corporateAgencyId !== req.agency.id) return res.status(404).json({ error: 'Demande introuvable' });
 
+    const oneWayKm = await getOneWayDistanceKm(mission.address);
+    const roundTripKm = oneWayKm != null ? oneWayKm * 2 : null;
+    const fuelFee = roundTripKm != null ? round2((roundTripKm / 100) * FUEL_RATE_PER_100KM) : null;
+
+    res.json({
+      originLabel: 'Départ agence',
+      originAddress: AGENCY_DEPARTURE_ADDRESS,
+      distanceKm: oneWayKm != null ? round2(oneWayKm) : null,
+      roundTripKm: roundTripKm != null ? round2(roundTripKm) : null,
+      displacementFee: DISPLACEMENT_FEE,
+      fuelFee,
+    });
+  } catch (err) { next(err); }
+});
+
+// "Mission Agence" — the agency itself takes the mission, without ever
+// publishing it to Jobber, and bills the real client directly (no platform
+// fee, unlike the Jobber path). Unlike a normal jobber application, this
+// still leaves the offer PENDING rather than confirming immediately: the
+// real client must review and accept the quote themselves (see
+// offers.routes.js's /:id/accept, which creates the fee-free booking once
+// they do) — so the mission only reaches "Missions Agence en cours" after
+// that acceptance, not the moment this offer is sent.
+router.post('/missions/:id/agence', async (req, res, next) => {
+  try {
+    const { hourlyRate, extraFees: extraFeesInput, hours } = agenceOfferSchema.parse(req.body);
+    const mission = await prisma.mission.findUnique({
+      where: { id: req.params.id },
+      include: { client: { select: { email: true, firstName: true } } },
+    });
+    if (!mission || mission.corporateAgencyId !== req.agency.id) return res.status(404).json({ error: 'Demande introuvable' });
+    if (hours != null && hours < mission.estimatedHours) {
+      return res.status(400).json({ error: 'Les heures ne peuvent être qu\'augmentées par rapport à la demande du client, jamais réduites' });
+    }
+
     const extraFees = extraFeesInput.map((f) => ({ key: f.key, label: EXTRA_FEE_TYPES[f.key], amount: f.amount }));
     const extraFeesTotal = extraFees.reduce((sum, f) => sum + f.amount, 0);
-    const totalAmount = round2(hourlyRate * mission.estimatedHours + extraFeesTotal);
+    const finalHours = hours ?? mission.estimatedHours;
+    const totalAmount = round2(hourlyRate * finalHours + extraFeesTotal);
+
     const offer = await prisma.offer.create({
-      data: { missionId: mission.id, providerId: req.agency.id, hourlyRate, status: 'ACCEPTED', extraFees: extraFees.length ? extraFees : undefined },
+      data: {
+        missionId: mission.id,
+        providerId: req.agency.id,
+        hourlyRate,
+        hours: hours ?? undefined,
+        extraFees: extraFees.length ? extraFees : undefined,
+      },
     });
-    const [booking] = await prisma.$transaction([
-      prisma.booking.create({
-        data: {
-          missionId: mission.id,
-          offerId: offer.id,
-          clientId: mission.clientId,
-          providerId: req.agency.id,
-          scheduledDate: mission.desiredDate,
-          hours: mission.estimatedHours,
-          hourlyRate,
-          totalAmount,
-          status: 'SCHEDULED',
-          payment: {
-            create: {
-              amount: totalAmount, platformFee: 0, managerFee: 0, providerFee: 0,
-              feeWaived: true, providerPayout: totalAmount, status: 'HELD_IN_ESCROW',
-            },
-          },
-        },
-      }),
-      prisma.mission.update({ where: { id: mission.id }, data: { status: 'ASSIGNED' } }),
-    ]);
-    res.status(201).json({ offer, booking });
+
+    const compteUrl = `${process.env.SERVICES34_URL || 'https://services34.fr'}/compte/missions/${mission.id}`;
+    sendAgenceProposalEmail(mission.client.email, {
+      clientFirstName: mission.client.firstName,
+      missionTitle: mission.title,
+      total: totalAmount,
+      date: mission.desiredDate,
+      url: compteUrl,
+    }).catch(() => {});
+
+    res.status(201).json({ offer });
   } catch (err) {
     if (err.code === 'P2002') { err.status = 409; err.expose = true; err.message = 'Une offre agence existe déjà pour cette demande'; }
     if (err.name === 'ZodError') { err.status = 400; err.expose = true; err.message = err.errors[0].message; }
@@ -526,6 +561,32 @@ router.get('/missions/agence/en-cours', async (req, res, next) => {
         category: true, planning: true,
         booking: { include: { provider: { select: { firstName: true, lastName: true } } } },
         client: { select: { firstName: true, lastName: true, phone: true } },
+        ...MISSION_BADGES_INCLUDE,
+      },
+      orderBy: { desiredDate: 'asc' },
+    });
+    res.json({ missions });
+  } catch (err) { next(err); }
+});
+
+// Missions where the agency has sent a "Mission Agence" quote but the real
+// client hasn't accepted it yet — these no longer show in "Demandes
+// reçues" (which excludes missions with any offer) but don't reach
+// "Missions Agence en cours" either (mission.status only becomes ASSIGNED
+// once the client accepts), so without this list they'd be invisible to
+// the agency while awaiting a response.
+router.get('/missions/agence/propositions-en-attente', async (req, res, next) => {
+  try {
+    const missions = await prisma.mission.findMany({
+      where: {
+        corporateAgencyId: req.agency.id,
+        status: 'OPEN',
+        offers: { some: { providerId: req.agency.id, status: 'PENDING' } },
+      },
+      include: {
+        category: true,
+        client: { select: { firstName: true, lastName: true, phone: true } },
+        offers: { where: { providerId: req.agency.id }, orderBy: { createdAt: 'desc' }, take: 1 },
         ...MISSION_BADGES_INCLUDE,
       },
       orderBy: { desiredDate: 'asc' },

@@ -579,6 +579,11 @@ model Offer {
   provider    User        @relation("ProviderOffers", fields: [providerId], references: [id])
   hourlyRate  Float
   extraFees   Json?       // [{ key: 'displacement', label: 'Frais de route - Déplacement', amount: 15 }, ...] — optional paid options the jobber adds to their offer, see EXTRA_FEE_TYPES in offers.routes.js
+  // Only set on "Mission Agence" offers, where the agency may revise the
+  // client's originally requested hours upward (never downward) when
+  // pricing the quote. Null means "use mission.estimatedHours", which is
+  // always the case for normal marketplace offers.
+  hours       Float?
   message     String?
   status      OfferStatus @default(PENDING)
   refusalReason String?
