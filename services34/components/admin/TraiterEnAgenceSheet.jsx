@@ -21,19 +21,23 @@ export default function TraiterEnAgenceSheet({ mission, token, busy, error, onCl
   const [amounts, setAmounts] = useState({});
   const [travelInfo, setTravelInfo] = useState(null);
 
-  // Frais de route (2€ flat) and frais de carburant (distance-based) are
-  // pre-filled automatically from "Départ agence" so the agency doesn't
-  // have to look up or type them in — still editable in case of a GPS
-  // mismatch or special case.
+  // Frais de route (1€/km aller simple) and frais de carburant
+  // (distance-based) are pre-filled automatically from "Départ agence" so
+  // the agency doesn't have to look up or type them in — still editable in
+  // case of a GPS mismatch or special case.
   useEffect(() => {
     agencyApi
       .travelFees(mission.id, token)
       .then((info) => {
         setTravelInfo(info);
-        setChecked((c) => ({ ...c, displacement: true, ...(info.fuelFee != null ? { fuel: true } : {}) }));
+        setChecked((c) => ({
+          ...c,
+          ...(info.displacementFee != null ? { displacement: true } : {}),
+          ...(info.fuelFee != null ? { fuel: true } : {}),
+        }));
         setAmounts((a) => ({
           ...a,
-          displacement: info.displacementFee,
+          ...(info.displacementFee != null ? { displacement: info.displacementFee } : {}),
           ...(info.fuelFee != null ? { fuel: info.fuelFee } : {}),
         }));
         setWantsExtraFees((w) => (w === null ? true : w));
@@ -131,7 +135,7 @@ export default function TraiterEnAgenceSheet({ mission, token, busy, error, onCl
 
         {travelInfo?.distanceKm != null && (
           <p className="mt-4 text-center text-xs text-slate-400">
-            {travelInfo.originLabel} → client : {travelInfo.distanceKm} km ({travelInfo.roundTripKm} km aller-retour) — frais de route et de carburant pré-remplis ci-dessous
+            {travelInfo.originLabel} → client : {travelInfo.distanceKm} km aller simple ({travelInfo.roundTripKm} km aller-retour) — frais de route (1 €/km aller) et de carburant (aller-retour) pré-remplis ci-dessous
           </p>
         )}
 
