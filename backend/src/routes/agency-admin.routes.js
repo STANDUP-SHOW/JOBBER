@@ -309,11 +309,11 @@ const agenceOfferSchema = z.object({
   hours: z.number().positive().optional(),
 });
 
-// Flat "frais de route" (1€ aller + 1€ retour) added to every Mission
-// Agence quote, plus a distance-based "frais de carburant" — both computed
-// from the fixed agency departure address via Google Distance Matrix, so
-// the agency doesn't have to type them in by hand each time.
-const DISPLACEMENT_FEE = 2;
+// "Frais de route" — 1€ per one-way km from the fixed agency departure
+// address (not round-trip: that priced out too expensive) — plus a
+// distance-based "frais de carburant" on the round trip. Both computed via
+// Google Distance Matrix so the agency doesn't have to type them in by hand.
+const DISPLACEMENT_RATE_PER_KM = 1;
 const FUEL_RATE_PER_100KM = 15; // ~7L/100km
 
 router.get('/missions/:id/travel-fees', async (req, res, next) => {
@@ -323,6 +323,7 @@ router.get('/missions/:id/travel-fees', async (req, res, next) => {
 
     const oneWayKm = await getOneWayDistanceKm(mission.address);
     const roundTripKm = oneWayKm != null ? oneWayKm * 2 : null;
+    const displacementFee = oneWayKm != null ? round2(oneWayKm * DISPLACEMENT_RATE_PER_KM) : null;
     const fuelFee = roundTripKm != null ? round2((roundTripKm / 100) * FUEL_RATE_PER_100KM) : null;
 
     res.json({
@@ -330,7 +331,7 @@ router.get('/missions/:id/travel-fees', async (req, res, next) => {
       originAddress: AGENCY_DEPARTURE_ADDRESS,
       distanceKm: oneWayKm != null ? round2(oneWayKm) : null,
       roundTripKm: roundTripKm != null ? round2(roundTripKm) : null,
-      displacementFee: DISPLACEMENT_FEE,
+      displacementFee,
       fuelFee,
     });
   } catch (err) { next(err); }
