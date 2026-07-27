@@ -33,10 +33,10 @@ export default function DemandesRecuesPage() {
     } catch (err) { setError(err.message); } finally { setBusyId(null); }
   }
 
-  async function missionAgence(hourlyRate, extraFees) {
+  async function missionAgence(hourlyRate, extraFees, hours) {
     setBusyId(sheetFor); setSheetError('');
     try {
-      await agencyApi.missionAgence(sheetFor, { hourlyRate, extraFees }, token);
+      await agencyApi.missionAgence(sheetFor, { hourlyRate, extraFees, hours }, token);
       setSheetFor(null);
       await refresh();
     } catch (err) { setSheetError(err.message); } finally { setBusyId(null); }
@@ -131,6 +131,7 @@ export default function DemandesRecuesPage() {
       {sheetFor && (
         <TraiterEnAgenceSheet
           mission={missions.find((m) => m.id === sheetFor)}
+          token={token}
           busy={busyId === sheetFor}
           error={sheetError}
           onClose={() => { setSheetFor(null); setSheetError(''); }}

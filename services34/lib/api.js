@@ -28,6 +28,8 @@ export const api = {
   categories: () => request('/categories'),
   createMission: (payload, token) => request('/missions', { method: 'POST', body: payload, token }),
   myMissions: (userId, token) => request(`/missions?clientId=${userId}`, { token }),
+  mission: (id, token) => request(`/missions/${id}`, { token }),
+  acceptOffer: (offerId, token) => request(`/offers/${offerId}/accept`, { method: 'POST', token }),
 
   startConversation: (payload, token) => request('/messages/conversations', { method: 'POST', body: payload, token }),
   conversation: (id, token) => request(`/messages/conversations/${id}`, { token }),

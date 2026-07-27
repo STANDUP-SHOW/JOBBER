@@ -146,7 +146,48 @@ router.post('/:id/accept', requireAuth, async (req, res, next) => {
     if (offer.status !== 'PENDING') return res.status(400).json({ error: 'Cette offre n\'est plus disponible' });
 
     const extraFeesTotal = (offer.extraFees || []).reduce((sum, f) => sum + f.amount, 0);
-    const totalAmount = round2(offer.hourlyRate * offer.mission.estimatedHours + extraFeesTotal);
+
+    // A "Mission Agence" offer — the corporate agency itself, quoting its
+    // own real client directly — never carries Jobber's platform fee, and
+    // may have revised the requested hours upward (offer.hours). Every
+    // other offer (a jobber applying on the open marketplace) keeps the
+    // standard manager/provider fee logic below, using the mission's own
+    // estimatedHours as always.
+    const isAgenceOffer = !!offer.mission.corporateAgencyId && offer.providerId === offer.mission.corporateAgencyId;
+    const hours = isAgenceOffer ? (offer.hours ?? offer.mission.estimatedHours) : offer.mission.estimatedHours;
+    const totalAmount = round2(offer.hourlyRate * hours + extraFeesTotal);
+
+    if (isAgenceOffer) {
+      const [booking] = await prisma.$transaction([
+        prisma.booking.create({
+          data: {
+            missionId: offer.missionId,
+            offerId: offer.id,
+            clientId: req.user.id,
+            providerId: offer.providerId,
+            scheduledDate: offer.mission.desiredDate,
+            hours,
+            hourlyRate: offer.hourlyRate,
+            totalAmount,
+            status: 'SCHEDULED',
+            payment: {
+              create: {
+                amount: totalAmount, platformFee: 0, managerFee: 0, providerFee: 0,
+                feeWaived: true, providerPayout: totalAmount, status: 'HELD_IN_ESCROW',
+              },
+            },
+          },
+        }),
+        prisma.mission.update({ where: { id: offer.missionId }, data: { status: 'ASSIGNED' } }),
+        prisma.offer.update({ where: { id: offer.id }, data: { status: 'ACCEPTED' } }),
+        prisma.offer.updateMany({
+          where: { missionId: offer.missionId, id: { not: offer.id }, status: 'PENDING' },
+          data: { status: 'REJECTED' },
+        }),
+      ]);
+      return res.status(201).json({ booking, feeWaived: true, quotaExceeded: false, plan: null, providerFeeWaived: false });
+    }
+
     const isCompanyClient = req.user.accountKind === 'COMPANY';
 
     const [managerSub, providerSub] = await Promise.all([

@@ -26,6 +26,8 @@ export const agencyApi = {
   missionDetail: (missionId, token) => request(`/missions/${missionId}`, { token }),
   publishToJobber: (missionId, token) => request(`/missions/${missionId}/publish-to-jobber`, { method: 'POST', token }),
   missionAgence: (missionId, payload, token) => request(`/missions/${missionId}/agence`, { method: 'POST', body: payload, token }),
+  travelFees: (missionId, token) => request(`/missions/${missionId}/travel-fees`, { token }),
+  missionsPropositionsEnAttente: (token) => request('/missions/agence/propositions-en-attente', { token }),
 
   createAgencyMission: (payload, token) => request('/missions', { method: 'POST', body: payload, token }),
   missionsNouvelleAgence: (token) => request('/missions/nouvelle-agence', { token }),

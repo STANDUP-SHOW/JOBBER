@@ -86,10 +86,10 @@ export default function NouvelleMissionAgencePage() {
     catch (err) { setError(err.message); } finally { setBusy(false); }
   }
 
-  async function traiterEnAgence(hourlyRate, extraFees) {
+  async function traiterEnAgence(hourlyRate, extraFees, hours) {
     setBusy(true); setSheetError('');
     try {
-      await agencyApi.missionAgence(sheetFor, { hourlyRate, extraFees }, token);
+      await agencyApi.missionAgence(sheetFor, { hourlyRate, extraFees, hours }, token);
       setSheetFor(null);
       await refresh();
     } catch (err) { setSheetError(err.message); } finally { setBusy(false); }
@@ -196,7 +196,17 @@ export default function NouvelleMissionAgencePage() {
               ) : null;
             })()}
 
-            {m.visibility !== 'PUBLIC' && m.status === 'OPEN' && (
+            {(() => {
+              const agenceOffer = m.offers?.find((o) => o.providerId === agency?.id);
+              if (!agenceOffer || m.status !== 'OPEN') return null;
+              return (
+                <div className="mt-1 text-xs font-semibold text-accent-dark">
+                  Proposition envoyée — {agenceOffer.hourlyRate} €/h — en attente d'acceptation du client
+                </div>
+              );
+            })()}
+
+            {m.visibility !== 'PUBLIC' && m.status === 'OPEN' && !m.offers?.some((o) => o.providerId === agency?.id) && (
               <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">
                 <button type="button" disabled={busy} onClick={() => publish(m.id)} className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark disabled:opacity-60">
                   Publier sur Jobber
@@ -214,6 +224,7 @@ export default function NouvelleMissionAgencePage() {
       {sheetFor && (
         <TraiterEnAgenceSheet
           mission={missions.find((m) => m.id === sheetFor)}
+          token={token}
           busy={busy}
           error={sheetError}
           onClose={() => { setSheetFor(null); setSheetError(''); }}

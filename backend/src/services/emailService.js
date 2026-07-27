@@ -27,4 +27,31 @@ async function sendPasswordResetEmail(to, resetUrl) {
   }
 }
 
-module.exports = { sendPasswordResetEmail };
+async function sendAgenceProposalEmail(to, { clientFirstName, missionTitle, total, date, url }) {
+  if (!resend) {
+    console.warn('RESEND_API_KEY not set — skipping agence proposal email. Total:', total, 'URL:', url);
+    return;
+  }
+
+  const formattedDate = new Date(date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  const { data, error } = await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `Votre devis pour "${missionTitle}" est prêt`,
+    html: `
+      <p>Bonjour ${clientFirstName || ''},</p>
+      <p>Nous avons préparé une proposition pour votre demande <strong>"${missionTitle}"</strong>, prévue le ${formattedDate}.</p>
+      <p><strong>Montant total : ${total} €</strong></p>
+      <p><a href="${url}">Consultez le devis complet et confirmez sur votre compte</a></p>
+    `,
+  });
+
+  if (error) {
+    console.error('Resend failed to send agence proposal email:', JSON.stringify(error));
+  } else {
+    console.log('Agence proposal email sent via Resend, id:', data?.id);
+  }
+}
+
+module.exports = { sendPasswordResetEmail, sendAgenceProposalEmail };

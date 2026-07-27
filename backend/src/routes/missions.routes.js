@@ -208,6 +208,10 @@ router.get('/', optionalAuth, async (req, res, next) => {
         category: true, service: true, client: { select: { id: true, firstName: true, avatarUrl: true, accountKind: true, companyType: true, companyName: true } },
         corporateAgency: { select: { companyName: true } },
         _count: { select: { offers: true } }, requiredEquipment: { include: { equipment: true } },
+        // Only fetched for a client browsing their own "mes missions" — lets
+        // the front-end show a "proposition reçue" quote card without a
+        // second request per mission.
+        offers: isOwnMissionsLookup ? { where: { status: 'PENDING' }, select: { id: true, status: true, hourlyRate: true, hours: true, extraFees: true } } : undefined,
       },
       orderBy: { createdAt: 'desc' },
     });
