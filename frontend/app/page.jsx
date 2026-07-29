@@ -31,7 +31,7 @@ export default async function HomePage() {
         <div className="flex items-center justify-center gap-2">
           <Logo className="h-14 w-14 md:h-16 md:w-16" />
           <div className="font-display text-6xl font-bold tracking-tight text-moss md:text-7xl">
-            Job<span className="text-ochre">b</span>er
+            Job<span className="text-ochre">b</span>er<span className="text-ochre">+</span>
           </div>
         </div>
         <span className="mt-4 block font-display text-base font-bold uppercase tracking-wide text-moss">L'humain au service de l'humain</span>
