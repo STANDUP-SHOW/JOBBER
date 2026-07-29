@@ -6,6 +6,7 @@ import MissionCard from '../components/MissionCard';
 import { SEO_CATEGORIES } from '../lib/seoCategories';
 import { SEO_LESSON_CATEGORIES } from '../lib/seoLessonCategories';
 import Logo from '../components/Logo';
+import Wordmark from '../components/Wordmark';
 import AudienceBlock from '../components/AudienceBlock';
 
 async function getData() {
@@ -30,9 +31,7 @@ export default async function HomePage() {
       <section className="py-6 text-center">
         <div className="flex items-center justify-center gap-2">
           <Logo className="h-14 w-14 md:h-16 md:w-16" />
-          <div className="font-display text-6xl font-bold tracking-tight text-moss md:text-7xl">
-            Job<span className="text-ochre">b</span>er<span className="text-ochre">+</span>
-          </div>
+          <Wordmark className="h-12 md:h-14" />
         </div>
         <span className="mt-4 block font-display text-base font-bold uppercase tracking-wide text-moss">L'humain au service de l'humain</span>
         <h1 className="mx-auto mt-3 max-w-2xl font-display text-4xl font-semibold leading-[1.1] text-ink md:text-5xl">

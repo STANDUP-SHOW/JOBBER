@@ -1,6 +1,6 @@
 import { SITE_URL, SITE_NAME } from '../../lib/seo';
 
-const title = 'Jobber en toute confiance';
+const title = 'Jobber+ en toute confiance';
 const description = "Vérification d'identité, paiement sécurisé, avis vérifiés : découvrez les garanties qui protègent demandeurs et jobbers sur Jobber.";
 
 export const metadata = {
