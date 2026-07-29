@@ -24,6 +24,7 @@ export const metadata = {
     type: 'website',
   },
   robots: { index: true, follow: true },
+  verification: { google: 'OYz2W5F36T0DWWvWddL9dHp9D1dHKFSR1IwsWzG0aJw' },
 };
 
 const organizationJsonLd = {
