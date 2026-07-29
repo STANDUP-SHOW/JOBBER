@@ -69,7 +69,7 @@ export default function InvoiceDetailPage() {
         <div className="flex items-start justify-between">
           <div>
             <div className="font-display text-2xl font-bold text-moss">Jobber</div>
-            <div className="mt-1 text-xs text-slate-400">jobber.city</div>
+            <div className="mt-1 text-xs text-slate-400">jobberplus.fr</div>
           </div>
           <div className="text-right">
             <div className="font-display text-lg font-semibold text-ink">FACTURE</div>

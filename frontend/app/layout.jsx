@@ -15,6 +15,11 @@ export const metadata = {
     'femme de ménage', 'bricolage', 'électricien', 'jardinier', 'plombier', 'baby-sitter',
     'aide à domicile', 'déménagement', 'services à domicile', 'trouver un prestataire',
   ],
+  // jobber.city serves the exact same app as a secondary/annex domain — the
+  // canonical tag on every page (this default plus each page's own
+  // alternates.canonical) tells search engines to consolidate ranking
+  // signals on jobberplus.fr instead of splitting them across both domains.
+  alternates: { canonical: SITE_URL },
   openGraph: {
     title: `${SITE_NAME} — Services à domicile partout en France`,
     description,
