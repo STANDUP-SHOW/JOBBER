@@ -3,7 +3,7 @@ import Link from 'next/link';
 const LEGAL_LINKS = [
   ['Conditions générales', '/conditions-generales'],
   ['Mentions légales', '/mentions-legales'],
-  ['Jobber en toute confiance', '/confiance'],
+  ['Jobber+ en toute confiance', '/confiance'],
   ['Politique de confidentialité', '/confidentialite'],
 ];
 
@@ -18,7 +18,7 @@ export default function Footer() {
             </Link>
           ))}
         </div>
-        <p className="mt-4 text-center text-xs text-slate-400">© {new Date().getFullYear()} Jobber</p>
+        <p className="mt-4 text-center text-xs text-slate-400">© {new Date().getFullYear()} Jobber+</p>
       </div>
     </footer>
   );

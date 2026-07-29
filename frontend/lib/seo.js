@@ -7,4 +7,4 @@
 // so search engines consolidate ranking signals there instead of splitting
 // them across both domains.
 export const SITE_URL = 'https://jobberplus.fr';
-export const SITE_NAME = 'Jobber';
+export const SITE_NAME = 'Jobber+';
