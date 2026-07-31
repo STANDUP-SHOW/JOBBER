@@ -22,6 +22,20 @@ const multiselect = (key, label, options) => ({ key, label, type: 'multiselect',
 // long list (e.g. 64 beauty treatments) reads as sections instead of one
 // undifferentiated wall of checkboxes.
 const multiselectGroups = (key, label, groups) => ({ key, label, type: 'multiselect', groups });
+// Wraps a field so the form only shows it once another field's answer
+// matches (e.g. a "si oui, précisez" dropdown that appears only once the
+// "nécessite un CACES ?" checkbox is ticked).
+const when = (showIfKey, field) => ({ ...field, showIf: { key: showIfKey, equals: true } });
+
+const CACES_REFERENCES = [
+  'CACES 1 – Transpalette / préparateur de commandes', 'CACES 2 – Chariot élévateur (< 6 t)',
+  'CACES 3 – Chariot élévateur (≥ 6 t)', 'CACES 4 – Chariot à mât rétractable',
+  'CACES 5 – Chariot à prise latérale', 'CACES 6 – Conduite sans levage / déplacement', 'Autre',
+];
+const CONSTRUCTION_EQUIPMENT = [
+  'Mini-pelle', 'Pelleteuse', 'Chargeuse', 'Bulldozer', 'Tractopelle', 'Nacelle élévatrice',
+  'Grue de chantier', 'Compacteur / rouleau', 'Chariot télescopique', 'Autre',
+];
 
 const SURFACE_M2 = (label = 'Surface') => num('surfaceM2', label, 'm²');
 const WALL_TYPES = ['Béton', 'Placo', 'Brique', 'Bois', 'Autre'];
@@ -398,6 +412,10 @@ const SERVICE_FIELDS = {
     ]),
     wasteDisposal('Le jobber devra-t-il évacuer les gravats et déchets de chantier en déchèterie ?'),
   ],
+  'maconnerie-conduite-d-engin': [
+    bool('requiresEquipment', "Utilisation d'engin de chantier"),
+    when('requiresEquipment', select('equipmentType', 'Engin de chantier', CONSTRUCTION_EQUIPMENT)),
+  ],
 
   // --- Conciergerie ---
   'conciergerie-surveillance-de-residence-secondaire': [num('visitFrequencyDays', 'Fréquence des passages souhaitée', 'jours')],
@@ -433,6 +451,10 @@ const SERVICE_FIELDS = {
   'manutention-emballage': [num('boxesCount', 'Nombre de cartons estimé')],
   'manutention-rangement': [SURFACE_M2()],
   'manutention-chargement-dechargement': [text('itemsList', 'Nature des objets à charger/décharger')],
+  'manutention-cariste': [
+    bool('requiresCaces', "Utilisation d'engins de manutention nécessitant un CACES"),
+    when('requiresCaces', select('cacesType', 'Référence CACES', CACES_REFERENCES)),
+  ],
 
   // --- Bien être ---
   'bien-etre-massage': [

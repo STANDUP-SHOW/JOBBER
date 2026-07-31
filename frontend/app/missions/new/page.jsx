@@ -237,16 +237,19 @@ function NewMissionForm() {
           <div className="rounded-lg border border-slate-200 bg-white p-4">
             <span className="text-sm font-semibold text-ink">Précisions sur « {selectedService.name} »</span>
             <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {detailFields.map((field) => (
-                <DetailField
-                  key={field.key}
-                  field={field}
-                  value={form.details[field.key]}
-                  onChange={(v) => setDetail(field.key, v)}
-                  otherValue={form.details[`${field.key}Precision`]}
-                  onOtherChange={(v) => setDetail(`${field.key}Precision`, v)}
-                />
-              ))}
+              {detailFields.map((field) => {
+                if (field.showIf && form.details[field.showIf.key] !== field.showIf.equals) return null;
+                return (
+                  <DetailField
+                    key={field.key}
+                    field={field}
+                    value={form.details[field.key]}
+                    onChange={(v) => setDetail(field.key, v)}
+                    otherValue={form.details[`${field.key}Precision`]}
+                    onOtherChange={(v) => setDetail(`${field.key}Precision`, v)}
+                  />
+                );
+              })}
             </div>
           </div>
         )}
