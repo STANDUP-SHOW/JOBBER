@@ -8,6 +8,34 @@ import { useAuth } from '../../lib/auth-context';
 import StarRating from '../../components/StarRating';
 import PaymentModal from '../../components/PaymentModal';
 
+const STATUS_LABELS = {
+  SCHEDULED: 'Programmée',
+  IN_PROGRESS: 'En cours',
+  AWAITING_VALIDATION: 'En attente de validation',
+  COMPLETED: 'Terminée',
+  CANCELLED: 'Annulée',
+  DISPUTED: 'Litige',
+};
+
+function CountdownToStart({ date }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(id);
+  }, []);
+  const diffMs = new Date(date).getTime() - now;
+  if (diffMs <= 0) return <span className="text-xs font-medium text-ochre-dark">Peut démarrer</span>;
+  const totalMinutes = Math.floor(diffMs / 60000);
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const minutes = totalMinutes % 60;
+  const parts = [];
+  if (days > 0) parts.push(`${days} j`);
+  if (days > 0 || hours > 0) parts.push(`${hours} h`);
+  parts.push(`${minutes} min`);
+  return <span className="text-xs font-medium text-slate-500">Démarre dans {parts.join(' ')}</span>;
+}
+
 export default function DashboardPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -63,12 +91,15 @@ export default function DashboardPage() {
             <div key={b.id} className="rounded-lg border border-slate-200 bg-white p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-display text-lg font-medium text-ink">{b.mission?.title}</div>
+                  <Link href={`/missions/${b.mission?.id}`} className="font-display text-lg font-medium text-ink hover:text-moss hover:underline">
+                    {b.mission?.title}
+                  </Link>
                   <div className="text-sm text-slate-500">
                     {b.hours} h × {b.hourlyRate} €/h = <strong>{b.totalAmount} €</strong> · {new Date(b.scheduledDate).toLocaleDateString('fr-FR')}
                   </div>
+                  {b.status === 'SCHEDULED' && <div className="mt-1"><CountdownToStart date={b.scheduledDate} /></div>}
                 </div>
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">{b.status}</span>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">{STATUS_LABELS[b.status] || b.status}</span>
               </div>
 
               {b.payment && (
@@ -77,6 +108,14 @@ export default function DashboardPage() {
                   {isClient && ` — vous payez ${b.payment.amount} €${b.payment.feeWaived ? ' (sans frais, abonnement actif)' : ` (dont ${b.payment.managerFee} € de frais)`}`}
                   {!isClient && ` — vous touchez ${b.payment.providerPayout} € (frais ${b.payment.providerFee} €)`}
                 </div>
+              )}
+
+              {b.status === 'AWAITING_VALIDATION' && (
+                <p className="mt-3 rounded-md bg-ochre-light px-3 py-2 text-sm text-ochre-dark">
+                  {isClient
+                    ? 'Le jobber indique que la mission est terminée — merci de valider.'
+                    : 'En attente de la validation du client.'}
+                </p>
               )}
 
               <div className="mt-4 flex flex-wrap gap-2">
@@ -91,7 +130,10 @@ export default function DashboardPage() {
                 {!isClient && b.status === 'SCHEDULED' && (
                   <ActionButton busy={busy} onClick={() => act(b.id, () => api.startBooking(b.id, token))}>Marquer comme démarrée</ActionButton>
                 )}
-                {isClient && b.status === 'IN_PROGRESS' && (
+                {!isClient && b.status === 'IN_PROGRESS' && (
+                  <ActionButton busy={busy} onClick={() => act(b.id, () => api.markBookingDone(b.id, token))}>Marquer comme terminée</ActionButton>
+                )}
+                {isClient && b.status === 'AWAITING_VALIDATION' && (
                   <ActionButton busy={busy} onClick={() => act(b.id, () => api.completeBooking(b.id, token))}>Valider la mission terminée</ActionButton>
                 )}
                 {isClient && b.status === 'COMPLETED' && b.payment?.status !== 'RELEASED' && (

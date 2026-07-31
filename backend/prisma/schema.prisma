@@ -54,6 +54,9 @@ enum OfferStatus {
 enum BookingStatus {
   SCHEDULED
   IN_PROGRESS
+  // Jobber has marked the work done — awaiting the client's validation
+  // before it flips to COMPLETED (see PATCH /bookings/:id/mark-done).
+  AWAITING_VALIDATION
   COMPLETED
   CANCELLED
   DISPUTED

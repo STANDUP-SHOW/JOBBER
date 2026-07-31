@@ -44,6 +44,7 @@ export const api = {
 
   myBookings: (token) => request('/bookings/mine', { token }),
   startBooking: (id, token) => request(`/bookings/${id}/start`, { method: 'PATCH', token }),
+  markBookingDone: (id, token) => request(`/bookings/${id}/mark-done`, { method: 'PATCH', token }),
   completeBooking: (id, token) => request(`/bookings/${id}/complete`, { method: 'PATCH', token }),
 
   createPaymentIntent: (bookingId, token) => request(`/payments/${bookingId}/create-intent`, { method: 'POST', token }),
