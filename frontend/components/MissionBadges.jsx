@@ -27,6 +27,11 @@ export default function MissionBadges({ mission, className = '' }) {
 
   return (
     <div className={`flex flex-wrap items-center gap-1.5 ${className}`}>
+      {mission.isGetMission && (
+        <span className="rounded-full bg-green-600 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-white">
+          GET Mission
+        </span>
+      )}
       {mission.type === 'LESSON' && (
         <span className="rounded-full bg-purple-600 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-white">
           Cours

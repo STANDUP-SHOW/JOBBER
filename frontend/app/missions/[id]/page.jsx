@@ -249,6 +249,15 @@ export default function MissionDetailPage() {
     } catch (err) { setOfferError(err.message); } finally { setBusy(false); }
   }
 
+  async function claimGetMission() {
+    if (!user) return router.push('/auth/login');
+    setBusy(true); setError('');
+    try {
+      await api.claimGetMission(id, token);
+      router.push('/dashboard');
+    } catch (err) { setError(err.message); setBusy(false); await refresh(); }
+  }
+
   async function acceptOffer(offerId) {
     setBusy(true); setError('');
     try {
@@ -298,8 +307,17 @@ export default function MissionDetailPage() {
         <div className="mt-5 flex items-start justify-between gap-3">
           <h1 className="font-display text-2xl font-semibold text-ink">{mission.title}</h1>
           <div className="shrink-0 text-right">
-            <div className="font-display text-2xl font-bold text-ink">~{indicativePrice} €</div>
-            <div className="text-xs text-slate-400">estimation</div>
+            {mission.isGetMission ? (
+              <>
+                <div className="font-display text-2xl font-bold text-green-600">{mission.getMissionPrice} €</div>
+                <div className="text-xs text-slate-400">tarif fixe</div>
+              </>
+            ) : (
+              <>
+                <div className="font-display text-2xl font-bold text-ink">~{indicativePrice} €</div>
+                <div className="text-xs text-slate-400">estimation</div>
+              </>
+            )}
           </div>
         </div>
 
@@ -384,12 +402,22 @@ export default function MissionDetailPage() {
             >
               Ignorer
             </button>
-            <button
-              onClick={openApply}
-              className="flex-1 rounded-full bg-moss py-3.5 text-sm font-semibold text-white hover:bg-moss-dark"
-            >
-              Postuler →
-            </button>
+            {mission.isGetMission ? (
+              <button
+                onClick={claimGetMission}
+                disabled={busy}
+                className="flex-1 rounded-full bg-green-600 py-3.5 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-60"
+              >
+                {busy ? 'Un instant…' : 'GET MISSION →'}
+              </button>
+            ) : (
+              <button
+                onClick={openApply}
+                className="flex-1 rounded-full bg-moss py-3.5 text-sm font-semibold text-white hover:bg-moss-dark"
+              >
+                Postuler →
+              </button>
+            )}
           </div>
         )}
 

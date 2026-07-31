@@ -84,6 +84,8 @@ function NewMissionForm() {
     requiredPpe: [],
     requiresMachine: false,
     requiredMachines: [],
+    isGetMission: false,
+    getMissionPrice: 100,
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -177,6 +179,7 @@ function NewMissionForm() {
           recurrenceUnit: isRecurring ? form.recurrenceUnit : undefined,
           requiredPpe: form.ppeProvidedByCompany ? form.requiredPpe : [],
           requiredMachines: form.requiresMachine ? form.requiredMachines : [],
+          getMissionPrice: form.isGetMission ? Number(form.getMissionPrice) : undefined,
         },
         token
       );
@@ -584,6 +587,58 @@ function NewMissionForm() {
                     {item}
                   </label>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {isCompany && !isLessonMode && (
+          <div className="rounded-lg border border-slate-200 bg-white p-4">
+            <span className="text-sm font-semibold text-ink">Publier en GET Mission ?</span>
+            <p className="mt-1 text-sm text-slate-500">
+              Fixez un tarif intégral non négociable pour toute la mission. Le premier jobber qui coche toutes vos
+              conditions peut la prendre instantanément — premier arrivé, premier servi.
+            </p>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, isGetMission: true }))}
+                className={`rounded-lg border-2 py-3 text-center font-display text-base font-bold uppercase tracking-wide transition ${
+                  form.isGetMission ? 'border-green-600 bg-green-600 text-white' : 'border-slate-200 text-slate-500 hover:border-green-600 hover:text-green-600'
+                }`}
+              >
+                Oui
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, isGetMission: false }))}
+                className={`rounded-lg border-2 py-3 text-center font-display text-base font-bold uppercase tracking-wide transition ${
+                  !form.isGetMission ? 'border-moss bg-moss text-white' : 'border-slate-200 text-slate-500 hover:border-moss hover:text-moss'
+                }`}
+              >
+                Non
+              </button>
+            </div>
+
+            {form.isGetMission && (
+              <div className="mt-5 flex items-center justify-center gap-6">
+                <button
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, getMissionPrice: Math.max(10, Number(f.getMissionPrice) - 5) }))}
+                  aria-label="Diminuer le tarif"
+                  className="flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-2xl font-semibold text-white hover:bg-green-700"
+                >
+                  −
+                </button>
+                <span className="min-w-[9rem] text-center font-display text-4xl font-bold text-ink">{form.getMissionPrice} €</span>
+                <button
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, getMissionPrice: Number(f.getMissionPrice) + 5 }))}
+                  aria-label="Augmenter le tarif"
+                  className="flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-2xl font-semibold text-white hover:bg-green-700"
+                >
+                  +
+                </button>
               </div>
             )}
           </div>

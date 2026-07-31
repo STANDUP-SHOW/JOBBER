@@ -35,6 +35,7 @@ export const api = {
   },
   getMission: (id) => request(`/missions/${id}`),
   cancelMission: (id, token) => request(`/missions/${id}/cancel`, { method: 'PATCH', token }),
+  claimGetMission: (id, token) => request(`/missions/${id}/get`, { method: 'POST', token }),
 
   createOffer: (payload, token) => request('/offers', { method: 'POST', body: payload, token }),
   acceptOffer: (offerId, token) => request(`/offers/${offerId}/accept`, { method: 'POST', token }),
