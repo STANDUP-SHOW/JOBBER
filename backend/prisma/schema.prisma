@@ -476,6 +476,11 @@ model Mission {
   requiredPpe                String[]  @default([])
   requiresMachine            Boolean?
   requiredMachines           String[]  @default([])
+  // "GET Mission": the company fixes the mission's total price up front —
+  // non-negotiable, no offers/candidature. The first jobber to GET it is
+  // assigned immediately (see POST /api/missions/:id/get).
+  isGetMission               Boolean   @default(false)
+  getMissionPrice            Float?
   // Answers to the selected service's detailFields (e.g. { hedgeHeightM: 1.5,
   // hedgeLengthM: 12 }) — keyed by field key, shape defined per-service.
   details        Json?

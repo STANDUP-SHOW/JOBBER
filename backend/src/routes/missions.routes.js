@@ -4,6 +4,7 @@ const prisma = require('../config/prisma');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { geocodeAddress, jitterCoordinate, haversineDistanceKm } = require('../services/geocodingService');
 const { generateCorporateCode } = require('../utils/agency');
+const { finalizeBooking, round2 } = require('../services/bookingService');
 
 const router = express.Router();
 
@@ -100,6 +101,10 @@ const createMissionSchema = z.object({
   requiredPpe: z.array(z.string()).optional().default([]),
   requiresMachine: z.boolean().optional(),
   requiredMachines: z.array(z.string()).optional().default([]),
+  // "GET Mission" — the company fixes the mission's total price up front;
+  // stripped server-side below for individual accounts.
+  isGetMission: z.boolean().optional().default(false),
+  getMissionPrice: z.number().positive().optional(),
 });
 
 // Categories where a mission moves something/someone from A to B — the form
@@ -129,6 +134,13 @@ router.post('/', requireAuth, async (req, res, next) => {
       data.requiredPpe = [];
       data.requiresMachine = undefined;
       data.requiredMachines = [];
+      data.isGetMission = false;
+      data.getMissionPrice = undefined;
+    }
+    if (!data.isGetMission) {
+      data.getMissionPrice = undefined;
+    } else if (!data.getMissionPrice) {
+      return res.status(400).json({ error: 'Le tarif de la GET Mission est requis' });
     }
     // A corporate agency's own white-label site (e.g. services34.fr) is
     // identified by the request's Origin — never trusted from the request
@@ -277,6 +289,63 @@ router.patch('/:id/cancel', requireAuth, async (req, res, next) => {
       data: { status: 'CANCELLED' },
     });
     res.json({ mission: updated });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// A jobber "GETs" a GET Mission — the company fixed the total price up
+// front (mission.getMissionPrice), non-negotiable, no candidature. First
+// jobber to hit this endpoint wins the mission; whoever comes after gets a
+// 409. Creates an Offer (ACCEPTED, to satisfy Booking's required offerId)
+// and a Booking the same way an accepted offer normally would.
+router.post('/:id/get', requireAuth, async (req, res, next) => {
+  try {
+    if (req.user.accountKind === 'COMPANY') {
+      return res.status(403).json({ error: 'Un compte entreprise ne peut pas prendre une mission' });
+    }
+    const mission = await prisma.mission.findUnique({ where: { id: req.params.id } });
+    if (!mission) return res.status(404).json({ error: 'Mission introuvable' });
+    if (!mission.isGetMission || mission.getMissionPrice == null) {
+      return res.status(400).json({ error: "Cette mission n'est pas une GET Mission" });
+    }
+    if (mission.clientId === req.user.id) {
+      return res.status(400).json({ error: 'Vous ne pouvez pas prendre votre propre mission' });
+    }
+
+    // Atomically claim it: only the request that flips status OPEN -> ASSIGNED
+    // succeeds — first jobber in wins, everyone after gets a 409.
+    const claim = await prisma.mission.updateMany({
+      where: { id: mission.id, status: 'OPEN' },
+      data: { status: 'ASSIGNED' },
+    });
+    if (claim.count === 0) {
+      return res.status(409).json({ error: 'Cette mission a déjà été prise par un autre jobber' });
+    }
+
+    try {
+      const totalAmount = mission.getMissionPrice;
+      const hourlyRate = round2(totalAmount / mission.estimatedHours);
+
+      const offer = await prisma.offer.create({
+        data: { missionId: mission.id, providerId: req.user.id, hourlyRate, status: 'ACCEPTED' },
+      });
+
+      const result = await finalizeBooking({
+        offer,
+        mission,
+        clientId: mission.clientId,
+        clientAccountKind: 'COMPANY', // GET Missions are only ever published by company accounts
+        totalAmount,
+      });
+
+      res.status(201).json(result);
+    } catch (err) {
+      // Release the claim so the mission doesn't get stuck ASSIGNED with no
+      // booking if something failed after we'd already flipped its status.
+      await prisma.mission.update({ where: { id: mission.id }, data: { status: 'OPEN' } }).catch(() => {});
+      throw err;
+    }
   } catch (err) {
     next(err);
   }
