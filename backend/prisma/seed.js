@@ -172,7 +172,8 @@ const CATEGORIES = [
     'Kit de coloration', 'Papillotes pour mèches/balayage', 'Fer à lisser', 'Cape de coiffure',
     'Pinces et épingles à cheveux',
   ] },
-  { name: 'Maçonnerie', slug: 'maconnerie', icon: '🧱', services: [
+  { name: 'Bâtiment', slug: 'batiment', icon: '🧱', services: [
+    'Maçonnerie',
     'Monter un mur', 'Crépi extérieur', 'Terrassement', 'Dalle béton', 'Construction extension ou garage',
     'Pose de carrelage extérieur', 'Pose de pavés et dallage', 'Muret et clôture', 'Réparation de fissures', 'Démolition',
     'Plaquiste', 'Conduite d\'engin',

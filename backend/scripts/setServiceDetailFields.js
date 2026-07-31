@@ -415,27 +415,36 @@ const SERVICE_FIELDS = {
     ]),
   ],
 
-  // --- Maçonnerie ---
-  'maconnerie-monter-un-mur': [
+  // --- Bâtiment ---
+  'batiment-maconnerie': [
+    SURFACE_M2(),
+    multiselect('tasks', 'Précisions', [
+      'Monter un mur', 'Crépi / enduit extérieur', 'Terrassement', 'Coulage de dalle béton',
+      'Construction extension ou garage', 'Pose de carrelage extérieur', 'Pose de pavés et dallage',
+      'Muret et clôture', 'Réparation de fissures', 'Démolition', 'Autre',
+    ]),
+    wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?'),
+  ],
+  'batiment-monter-un-mur': [
     SURFACE_M2(), select('wallType', 'Type de mur', MASONRY_WALL_TYPES),
     wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?'),
   ],
-  'maconnerie-crepi-exterieur': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?')],
-  'maconnerie-terrassement': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?')],
-  'maconnerie-dalle-beton': [
+  'batiment-crepi-exterieur': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?')],
+  'batiment-terrassement': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?')],
+  'batiment-dalle-beton': [
     SURFACE_M2(), num('thicknessCm', 'Épaisseur', 'cm'),
     wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?'),
   ],
-  'maconnerie-construction-extension-ou-garage': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?')],
-  'maconnerie-pose-de-carrelage-exterieur': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?')],
-  'maconnerie-pose-de-paves-et-dallage': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?')],
-  'maconnerie-muret-et-cloture': [
+  'batiment-construction-extension-ou-garage': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?')],
+  'batiment-pose-de-carrelage-exterieur': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?')],
+  'batiment-pose-de-paves-et-dallage': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?')],
+  'batiment-muret-et-cloture': [
     num('lengthM', 'Longueur', 'm'), num('heightM', 'Hauteur', 'm'),
     wasteDisposal('Le jobber devra-t-il évacuer les gravats en déchèterie ?'),
   ],
-  'maconnerie-reparation-de-fissures': [num('crackCount', 'Nombre de fissures')],
-  'maconnerie-demolition': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les gravats et déchets de chantier en déchèterie ?')],
-  'maconnerie-plaquiste': [
+  'batiment-reparation-de-fissures': [num('crackCount', 'Nombre de fissures')],
+  'batiment-demolition': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les gravats et déchets de chantier en déchèterie ?')],
+  'batiment-plaquiste': [
     SURFACE_M2(),
     multiselect('tasks', 'Précisions', [
       'Pose de cloisons et faux plafonds', 'Enduit, lissage et jointage', "Installation d'éléments techniques",
@@ -443,7 +452,7 @@ const SERVICE_FIELDS = {
     ]),
     wasteDisposal('Le jobber devra-t-il évacuer les gravats et déchets de chantier en déchèterie ?'),
   ],
-  'maconnerie-conduite-d-engin': [
+  'batiment-conduite-d-engin': [
     bool('requiresEquipment', "Utilisation d'engin de chantier"),
     when('requiresEquipment', select('equipmentType', 'Engin de chantier', CONSTRUCTION_EQUIPMENT)),
   ],
