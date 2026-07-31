@@ -390,6 +390,14 @@ const SERVICE_FIELDS = {
   ],
   'maconnerie-reparation-de-fissures': [num('crackCount', 'Nombre de fissures')],
   'maconnerie-demolition': [SURFACE_M2(), wasteDisposal('Le jobber devra-t-il évacuer les gravats et déchets de chantier en déchèterie ?')],
+  'maconnerie-plaquiste': [
+    SURFACE_M2(),
+    multiselect('tasks', 'Précisions', [
+      'Pose de cloisons et faux plafonds', 'Enduit, lissage et jointage', "Installation d'éléments techniques",
+      'Isolation thermique ou phonique', 'Travail décoratif', 'Préparation des volumes', 'Autre',
+    ]),
+    wasteDisposal('Le jobber devra-t-il évacuer les gravats et déchets de chantier en déchèterie ?'),
+  ],
 
   // --- Conciergerie ---
   'conciergerie-surveillance-de-residence-secondaire': [num('visitFrequencyDays', 'Fréquence des passages souhaitée', 'jours')],
