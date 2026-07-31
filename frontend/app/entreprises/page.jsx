@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { SITE_URL, SITE_NAME } from '../../lib/seo';
 import { SEO_CITIES } from '../../lib/seoCities';
+import InterimComparator from '../../components/InterimComparator';
 
 const title = 'Recrutez à la tâche, pas à durée déterminée — Jobber Entreprise';
 const description =
@@ -61,6 +62,14 @@ export default function EntreprisesPage() {
           </Link>
           <Link href="/missions/new" className="rounded-md border border-moss/30 bg-white px-6 py-3 font-medium text-moss hover:border-moss">
             Publier un premier besoin
+          </Link>
+        </div>
+        <div className="mt-4">
+          <Link
+            href="#comparateur-interim"
+            className="inline-block rounded-md bg-ink px-8 py-4 text-base font-bold uppercase tracking-wide text-white hover:bg-ink/90"
+          >
+            Tarif intérim : comparaison
           </Link>
         </div>
       </section>
@@ -149,6 +158,18 @@ export default function EntreprisesPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      </section>
+
+      <section id="comparateur-interim" className="mx-auto mt-16 max-w-lg scroll-mt-24">
+        <h2 className="text-center font-display text-2xl font-semibold text-ink">Combien vous coûte vraiment un intérimaire ?</h2>
+        <p className="mx-auto mt-3 max-w-md text-center text-sm text-slate-600">
+          Le tarif facturé par une agence d'intérim inclut un coefficient multiplicateur (salaire, IFM, congés
+          payés, charges patronales, marge de l'agence). Comparez-le au coût d'une mission Jobber+ au même tarif
+          horaire.
+        </p>
+        <div className="mt-6">
+          <InterimComparator />
         </div>
       </section>
 
