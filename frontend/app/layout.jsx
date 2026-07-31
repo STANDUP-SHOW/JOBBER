@@ -1,5 +1,6 @@
 import './globals.css';
 import { AuthProvider } from '../lib/auth-context';
+import Header from '../components/Header';
 import BottomNav from '../components/BottomNav';
 import Footer from '../components/Footer';
 import { SITE_URL, SITE_NAME } from '../lib/seo';
@@ -55,6 +56,7 @@ export default function RootLayout({ children }) {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
         <AuthProvider>
+          <Header />
           <main className="mx-auto max-w-6xl px-6 pt-6">{children}</main>
           <Footer />
           <BottomNav />
