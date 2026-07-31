@@ -53,7 +53,7 @@ export default function TeachLessonsPage() {
   if (!user) return null;
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="max-w-xl">
       <Link href="/account" className="text-sm font-medium text-moss">← Mon compte</Link>
       <h1 className="mt-3 font-display text-2xl font-semibold text-ink">Donner des cours</h1>
       <p className="mt-1 text-sm text-slate-500">

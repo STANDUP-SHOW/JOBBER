@@ -12,7 +12,7 @@ export const metadata = {
 
 export default function MentionsLegalesPage() {
   return (
-    <div className="mx-auto max-w-2xl pb-16">
+    <div className="max-w-2xl pb-16">
       <span className="label-eyebrow text-moss">Informations légales</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Mentions légales</h1>
 

@@ -46,7 +46,7 @@ export default function ProviderProfilePage() {
   const profile = provider.providerProfile;
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="max-w-2xl">
       <div className="flex items-center gap-4">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-moss-light font-display text-2xl text-moss-dark">
           {provider.firstName?.[0]}{provider.lastName?.[0]}

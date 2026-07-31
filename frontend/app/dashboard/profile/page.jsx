@@ -168,7 +168,7 @@ export default function ProviderProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="max-w-xl">
       <span className="label-eyebrow text-moss">Mon profil</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Profil jobber</h1>
       <p className="mt-1 text-sm text-slate-500">Ces informations sont visibles par les clients et déterminent les missions qui vous sont proposées.</p>

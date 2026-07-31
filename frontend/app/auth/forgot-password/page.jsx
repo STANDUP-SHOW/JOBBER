@@ -24,7 +24,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="max-w-md">
       <span className="label-eyebrow text-moss">Mot de passe oublié</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Réinitialiser votre mot de passe</h1>
       <p className="mt-1 text-sm text-slate-500">

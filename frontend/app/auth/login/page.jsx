@@ -44,7 +44,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="max-w-md">
       <span className="label-eyebrow text-moss">Connexion</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Bon retour</h1>
 

@@ -7,7 +7,7 @@ export default function JobberPlusPage() {
   const { user } = useAuth();
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="max-w-xl">
       <Link href="/account" className="text-sm font-medium text-moss">← Mon compte</Link>
 
       <span className="label-eyebrow text-moss">Espace CORPORATE</span>

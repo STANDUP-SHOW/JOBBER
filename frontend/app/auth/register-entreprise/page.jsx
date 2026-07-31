@@ -41,7 +41,7 @@ export default function RegisterEntreprisePage() {
   }
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="max-w-md">
       <span className="label-eyebrow text-moss">Créer un compte</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Ouvrir un compte entreprise</h1>
       <p className="mt-1 text-sm text-slate-500">Recrutez à la tâche, légalement, sur devis et facture.</p>

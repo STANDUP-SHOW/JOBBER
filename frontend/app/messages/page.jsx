@@ -22,7 +22,7 @@ export default function MessagesListPage() {
   if (!user) return null;
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="max-w-2xl">
       <span className="label-eyebrow text-moss">Messagerie</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Conversations</h1>
 
