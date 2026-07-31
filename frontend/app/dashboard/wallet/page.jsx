@@ -168,7 +168,7 @@ export default function WalletPage() {
   const canPayout = bankLast4 && payoutsEnabled && walletBalance > 0 && !payoutBusy;
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="max-w-xl">
       <div className="flex items-center gap-3">
         <button type="button" onClick={() => router.back()} aria-label="Retour" className="text-ink">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">

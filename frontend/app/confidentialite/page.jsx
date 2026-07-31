@@ -12,7 +12,7 @@ export const metadata = {
 
 export default function ConfidentialitePage() {
   return (
-    <div className="mx-auto max-w-2xl pb-16">
+    <div className="max-w-2xl pb-16">
       <span className="label-eyebrow text-moss">Vos données</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Politique de confidentialité</h1>
       <p className="mt-3 text-sm text-slate-500">Dernière mise à jour : 23 juillet 2026.</p>

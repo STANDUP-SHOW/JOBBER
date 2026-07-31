@@ -32,7 +32,7 @@ export default function MyReviewsPage() {
   const avg = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) : 0;
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="max-w-xl">
       <Link href="/account" className="text-sm text-slate-400 hover:text-moss">← Mon compte</Link>
       <span className="mt-4 block label-eyebrow text-moss">Espace Jobber</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Mes évaluations</h1>

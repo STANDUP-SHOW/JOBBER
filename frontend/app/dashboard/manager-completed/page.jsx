@@ -43,7 +43,7 @@ export default function ManagerCompletedPage() {
   if (!user) return null;
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="max-w-xl">
       <Link href="/account" className="text-sm text-slate-400 hover:text-moss">← Mon compte</Link>
       <span className="mt-4 block label-eyebrow text-moss">Espace Manager</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Missions terminées</h1>

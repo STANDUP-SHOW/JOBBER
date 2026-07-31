@@ -37,7 +37,7 @@ export default function MyOffersPage() {
   if (!user) return null;
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="max-w-xl">
       <span className="label-eyebrow text-moss">Mes offres</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Mes candidatures</h1>
       <p className="mt-1 text-sm text-slate-500">Missions auxquelles vous avez postulé, avec le tarif proposé.</p>

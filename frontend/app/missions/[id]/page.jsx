@@ -279,7 +279,7 @@ export default function MissionDetailPage() {
     const isTransportMission = mission.dropoffAddress && mission.dropoffLat != null && mission.dropoffLng != null;
 
     return (
-      <div className="mx-auto max-w-2xl">
+      <div className="max-w-2xl">
         <button onClick={() => router.back()} className="flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-ink">
           ← Retour
         </button>
@@ -408,7 +408,7 @@ export default function MissionDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="max-w-2xl">
       <span className="label-eyebrow text-moss">{mission.category?.name}</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">{mission.title}</h1>
       <MissionBadges mission={mission} className="mt-2" />

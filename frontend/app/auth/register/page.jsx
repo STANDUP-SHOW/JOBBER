@@ -52,7 +52,7 @@ function RegisterForm() {
   }
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="max-w-md">
       <span className="label-eyebrow text-moss">Créer un compte</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Rejoindre Jobber</h1>
       <p className="mt-1 text-sm text-slate-500">Un seul compte pour publier vos besoins et proposer vos services.</p>

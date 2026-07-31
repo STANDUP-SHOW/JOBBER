@@ -68,7 +68,7 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="max-w-xl">
       <span className="label-eyebrow text-moss">Mon compte</span>
 
       <div className="mt-4">

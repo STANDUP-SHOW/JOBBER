@@ -38,7 +38,7 @@ function GoogleCallback() {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-md">
+      <div className="max-w-md">
         <p className="rounded-md bg-clay/10 px-4 py-3 text-sm text-clay">{error}</p>
         <p className="mt-4 text-center text-sm text-slate-500">
           <a href="/auth/login" className="font-medium text-moss hover:underline">Retour à la connexion</a>
