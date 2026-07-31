@@ -254,7 +254,7 @@ export default function MissionDetailPage() {
     setBusy(true); setError('');
     try {
       await api.claimGetMission(id, token);
-      router.push('/dashboard');
+      router.push('/account');
     } catch (err) { setError(err.message); setBusy(false); await refresh(); }
   }
 
@@ -267,7 +267,7 @@ export default function MissionDetailPage() {
         setBusy(false);
         return;
       }
-      router.push(`/dashboard`);
+      router.push('/account');
     } catch (err) { setError(err.message); setBusy(false); }
   }
 

@@ -43,7 +43,7 @@ function RegisterForm() {
         referralCode: referralCode || undefined,
       });
       login(token, user);
-      router.push('/dashboard');
+      router.push('/account');
     } catch (err) {
       setError(err.message);
     } finally {

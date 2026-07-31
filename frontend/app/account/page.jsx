@@ -145,6 +145,7 @@ export default function AccountPage() {
       {!isCompany && (
         <Section title="Espace Jobber">
           <Row href="/dashboard/profile" icon="🛠️" label="Mon profil Jobber" sublabel="Zone d'intervention, tarif, catégories" />
+          <Row href="/dashboard" icon="📅" label="Dashboard missions réservées" sublabel="Vos missions à venir et en cours, avec le compte à rebours" />
           <Row href="/missions" icon="🔎" label="Missions disponibles" sublabel="Parcourir les besoins près de chez vous" />
           <Row href="/dashboard/offers" icon="📨" label="Mes offres" sublabel="Missions auxquelles vous avez postulé" />
           <Row href="/dashboard/jobber-history" icon="🗂️" label="Historique de missions" />

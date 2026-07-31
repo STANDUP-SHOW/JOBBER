@@ -20,6 +20,8 @@ export default function MissionsPage() {
   const [categories, setCategories] = useState([]);
   const [missions, setMissions] = useState([]);
   const [categoryId, setCategoryId] = useState('');
+  const [posterFilter, setPosterFilter] = useState('ALL'); // ALL | INDIVIDUAL | COMPANY
+  const [getOnly, setGetOnly] = useState(false);
   const [view, setView] = useState('list');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -47,6 +49,14 @@ export default function MissionsPage() {
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [categoryId, token, user?.address, user?.providerProfile?.radiusKm]);
+
+  const filteredMissions = missions
+    .filter((m) => {
+      if (posterFilter === 'INDIVIDUAL') return m.client?.accountKind !== 'COMPANY';
+      if (posterFilter === 'COMPANY') return m.client?.accountKind === 'COMPANY';
+      return true;
+    })
+    .filter((m) => !getOnly || m.isGetMission);
 
   return (
     <div>
@@ -103,21 +113,55 @@ export default function MissionsPage() {
         </div>
       </div>
 
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex rounded-md border border-slate-200 bg-white p-1 text-sm font-medium">
+          {[
+            ['ALL', 'Les deux'],
+            ['INDIVIDUAL', 'Particuliers'],
+            ['COMPANY', 'Pro / Entreprises & Corporate'],
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setPosterFilter(value)}
+              className={`rounded px-3 py-1.5 ${posterFilter === value ? 'bg-moss text-paper' : 'text-slate-500 hover:text-ink'}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <label className="flex items-center gap-2.5 text-sm font-medium text-ink">
+          GET Mission uniquement
+          <button
+            type="button"
+            role="switch"
+            aria-checked={getOnly}
+            onClick={() => setGetOnly((v) => !v)}
+            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${getOnly ? 'bg-green-600' : 'bg-slate-300'}`}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${getOnly ? 'translate-x-6' : 'translate-x-1'}`}
+            />
+          </button>
+        </label>
+      </div>
+
       {error && <p className="mt-4 rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
 
       {loading && <p className="mt-6 text-slate-400">Chargement…</p>}
 
-      {!loading && view === 'list' && missions.length === 0 && (
-        <p className="mt-6 text-slate-400">Aucune mission ouverte pour le moment.</p>
+      {!loading && view === 'list' && filteredMissions.length === 0 && (
+        <p className="mt-6 text-slate-400">Aucune mission ne correspond à ces filtres.</p>
       )}
 
-      {!loading && view === 'list' && missions.length > 0 && (
+      {!loading && view === 'list' && filteredMissions.length > 0 && (
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {missions.map((mission) => <MissionCard key={mission.id} mission={mission} />)}
+          {filteredMissions.map((mission) => <MissionCard key={mission.id} mission={mission} />)}
         </div>
       )}
 
-      {!loading && view === 'map' && <MissionsMap missions={missions} providerZone={providerZone} />}
+      {!loading && view === 'map' && <MissionsMap missions={filteredMissions} providerZone={providerZone} />}
     </div>
   );
 }
