@@ -35,7 +35,7 @@ function LoginForm() {
     try {
       const { token, user } = await api.login(form);
       login(token, user);
-      router.push('/dashboard');
+      router.push('/account');
     } catch (err) {
       setError(err.message);
     } finally {

@@ -29,7 +29,7 @@ function GoogleCallback() {
     api.me(token)
       .then(({ user }) => {
         login(token, user);
-        router.replace('/dashboard');
+        router.replace('/account');
       })
       .catch(() => {
         setError('La connexion Google a échoué. Réessayez.');
