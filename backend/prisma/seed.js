@@ -195,6 +195,13 @@ const CATEGORIES = [
     'Ordinateur portable', 'Accès aux identifiants (hébergeur, CMS)', 'Charte graphique existante (si disponible)',
     'Accès aux comptes réseaux sociaux',
   ] },
+  { name: 'Cuisine', slug: 'cuisine', icon: '👨‍🍳', services: [
+    'Chef', 'Cuisinier', 'Second de cuisine', 'Commis', 'Grillardin', 'Plonge', 'Serveur',
+    'Nettoyage cuisine', 'Nettoyage salle',
+  ], equipment: [
+    'Couteaux de cuisine', 'Tablier', 'Toque / charlotte', 'Plaque de cuisson mobile', 'Robot pâtissier',
+    'Mixeur plongeant', 'Trancheuse', 'Thermomètre de cuisine', 'Gants anti-coupure', 'Plateaux de service',
+  ] },
 ];
 
 async function main() {
