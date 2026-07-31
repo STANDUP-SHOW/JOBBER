@@ -146,6 +146,9 @@ export default function DevenirJobberPage() {
           notamment sur les missions publiées par les entreprises qui recrutent en récurrent — un moyen simple de
           vous démarquer et de gagner en visibilité, mission après mission.
         </p>
+        <Link href="/travailler-avec-les-entreprises" className="mt-4 inline-block text-sm font-medium text-ochre-dark hover:underline">
+          Comment fonctionnent les missions Entreprises et Corporate →
+        </Link>
       </section>
 
       <section className="mx-auto mt-16 max-w-2xl text-center">
