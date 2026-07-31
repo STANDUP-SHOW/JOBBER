@@ -174,6 +174,7 @@ const CATEGORIES = [
   { name: 'Maçonnerie', slug: 'maconnerie', icon: '🧱', services: [
     'Monter un mur', 'Crépi extérieur', 'Terrassement', 'Dalle béton', 'Construction extension ou garage',
     'Pose de carrelage extérieur', 'Pose de pavés et dallage', 'Muret et clôture', 'Réparation de fissures', 'Démolition',
+    'Plaquiste',
   ], equipment: [
     'Bétonnière', 'Truelle et taloche', 'Niveau à bulle / laser', 'Fil à plomb', 'Auge de maçon',
     'Brouette de chantier', 'Règle de maçon', 'Coffrage bois', 'Pelle et pioche', 'Marteau-piqueur',
