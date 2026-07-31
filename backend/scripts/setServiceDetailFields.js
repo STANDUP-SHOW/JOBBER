@@ -36,6 +36,37 @@ const CONSTRUCTION_EQUIPMENT = [
   'Mini-pelle', 'Pelleteuse', 'Chargeuse', 'Bulldozer', 'Tractopelle', 'Nacelle élévatrice',
   'Grue de chantier', 'Compacteur / rouleau', 'Chariot télescopique', 'Autre',
 ];
+const CUISINE_STYLES_GROUPS = [
+  { title: 'Cuisine française', options: [
+    'Cuisine traditionnelle française', 'Gastronomique / étoilée', 'Bistronomie', 'Brasserie', 'Terroir / régionale',
+  ] },
+  { title: 'Poissons, viandes & grillades', options: [
+    'Poissons et fruits de mer', 'Viandes grillées / grill', 'Rôtisserie', 'Barbecue',
+  ] },
+  { title: 'Cuisine italienne', options: ['Pizza', 'Pâtes', 'Cuisine italienne traditionnelle', 'Trattoria'] },
+  { title: 'Cuisine asiatique', options: [
+    'Cuisine chinoise', 'Cuisine japonaise / sushi', 'Cuisine thaïlandaise', 'Cuisine vietnamienne',
+    'Cuisine coréenne', 'Wok',
+  ] },
+  { title: 'Moyen-Orient & Méditerranée', options: [
+    'Cuisine libanaise', 'Kebab / grec', 'Cuisine turque', 'Cuisine marocaine / tajine', 'Couscous',
+    'Cuisine tunisienne / algérienne',
+  ] },
+  { title: 'Cuisine indienne', options: ['Cuisine indienne', 'Curry', 'Tandoori'] },
+  { title: 'Amériques', options: [
+    'Tacos / cuisine mexicaine', 'Burger', 'Cuisine américaine / diner', 'Cuisine sud-américaine',
+    'Cuisine créole / antillaise',
+  ] },
+  { title: 'Cuisine européenne', options: ['Cuisine espagnole / tapas', 'Cuisine portugaise', 'Cuisine grecque', 'Cuisine allemande'] },
+  { title: 'Régimes spécifiques', options: [
+    'Cuisine végétarienne', 'Cuisine végane', 'Cuisine bio / healthy', 'Cuisine sans gluten',
+  ] },
+  { title: 'Autres formats', options: [
+    'Brunch / petit-déjeuner', 'Pâtisserie / boulangerie', 'Traiteur / événementiel', 'Street food', 'Fast food',
+    'Cuisine fusion / du monde', 'Autre',
+  ] },
+];
+const cuisineStyles = () => multiselectGroups('cuisineStyles', 'Style de cuisine', CUISINE_STYLES_GROUPS);
 
 const SURFACE_M2 = (label = 'Surface') => num('surfaceM2', label, 'm²');
 const WALL_TYPES = ['Béton', 'Placo', 'Brique', 'Bois', 'Autre'];
@@ -535,6 +566,15 @@ const SERVICE_FIELDS = {
   'transport-trajet-aeroport-ou-gare': [num('passengersCount', 'Nombre de passagers'), num('luggageCount', 'Nombre de bagages')],
   'transport-covoiturage-regulier': [num('passengersCount', 'Nombre de passagers')],
   'transport-transport-de-courses': [num('bagsCount', 'Nombre de sacs estimé')],
+
+  // --- Cuisine ---
+  'cuisine-chef': [cuisineStyles()],
+  'cuisine-cuisinier': [cuisineStyles()],
+  'cuisine-second-de-cuisine': [cuisineStyles()],
+  'cuisine-commis': [cuisineStyles()],
+  'cuisine-grillardin': [cuisineStyles()],
+  'cuisine-nettoyage-cuisine': [SURFACE_M2()],
+  'cuisine-nettoyage-salle': [SURFACE_M2()],
 };
 
 async function main() {
