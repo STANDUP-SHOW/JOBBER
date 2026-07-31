@@ -92,6 +92,23 @@ export default async function HomePage() {
       />
 
       <AudienceBlock
+        eyebrow="Jobber pour les Entreprises"
+        title="Devenez Jobber Pro, accédez à plus de missions."
+        description="Les entreprises et nos partenaires Corporate publient des missions professionnelles sur Jobber+. Avec le badge Jobber+ PRO vous y accédez — et pour certaines, la mission est pour vous en un clic."
+        sectionClass="border border-ochre/30 bg-ochre-light"
+        eyebrowClass="text-ochre-dark"
+        points={[
+          { icon: '🪪', title: 'Badge Jobber+ PRO', desc: 'Renseignez votre numéro SIRET pour y accéder.' },
+          { icon: '📈', title: 'Plus de missions', desc: 'Des missions professionnelles, en plus des missions entre particuliers.' },
+          { icon: '⚡', title: 'GET Mission', desc: 'Un tarif fixé à l\'avance, premier arrivé premier servi : décrochez la mission en un clic.' },
+        ]}
+        buttons={[
+          { href: '/auth/register', label: 'Devenez Jobber Pro', variant: 'primary' },
+          { href: '/travailler-avec-les-entreprises', label: 'En savoir plus', variant: 'outline' },
+        ]}
+      />
+
+      <AudienceBlock
         eyebrow="Vous voulez apprendre un métier pour Jobber ?"
         title="Apprenez avec un pro, on passe direct à la pratique."
         description="Vous souhaitez apprendre ? Bonne nouvelle ! Sur Jobber, vous apprenez avec un pro. Demandez des cours de jardinage, de ménage, d'électricité, de plomberie… nos jobbers viennent chez vous vous apprendre !"
