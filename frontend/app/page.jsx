@@ -52,6 +52,7 @@ export default async function HomePage() {
         ]}
         buttons={[
           { href: '/missions/new', label: 'Publier un besoin', variant: 'moss' },
+          { href: '/particulier-employeur', label: 'En savoir plus', variant: 'outline' },
         ]}
       />
 

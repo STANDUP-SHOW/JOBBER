@@ -62,6 +62,11 @@ export default function DevenirJobberPage() {
           ou un artisan traditionnel. Côté jobbers, c'est la liberté de travailler quand on veut, sur les missions
           de son choix.
         </p>
+        <div className="mt-4 text-center">
+          <Link href="/guide-du-jobbing" className="text-sm font-medium text-ochre-dark hover:underline">
+            Plus d'infos : le guide complet du jobbing →
+          </Link>
+        </div>
       </section>
 
       <section className="mx-auto mt-16 max-w-2xl">
