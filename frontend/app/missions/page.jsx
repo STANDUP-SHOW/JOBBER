@@ -116,7 +116,7 @@ export default function MissionsPage() {
       <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex rounded-md border border-slate-200 bg-white p-1 text-sm font-medium">
           {[
-            ['ALL', 'Les deux'],
+            ['ALL', 'Tout afficher'],
             ['INDIVIDUAL', 'Particuliers'],
             ['COMPANY', 'Pro / Entreprises & Corporate'],
           ].map(([value, label]) => (
