@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../lib/AuthContext';
 import { apiFetch, mediaUrl } from '../../lib/api';
+import { getCroppedImageBlob } from '../../lib/cropImage';
+import PhotoCropModal from '../../components/PhotoCropModal';
 
 const MAX_PHOTOS = 20;
 
@@ -17,6 +19,7 @@ export default function ProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  const [cropSrc, setCropSrc] = useState(null);
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
@@ -43,13 +46,13 @@ export default function ProfilePage() {
     }
   };
 
-  const uploadPhoto = async (file) => {
+  const uploadPhoto = async (blob) => {
     if (photos.length >= MAX_PHOTOS) return setError(`Maximum ${MAX_PHOTOS} photos.`);
     setUploading(true);
     setError('');
     try {
       const fd = new FormData();
-      fd.append('photo', file);
+      fd.append('photo', blob, 'photo.jpg');
       const { photo } = await apiFetch('/api/photos', { method: 'POST', body: fd });
       setPhotos((p) => [...p, photo]);
     } catch (err) {
@@ -57,6 +60,22 @@ export default function ProfilePage() {
     } finally {
       setUploading(false);
     }
+  };
+
+  const onFileSelected = (file) => {
+    if (!file) return;
+    setCropSrc(URL.createObjectURL(file));
+  };
+
+  const closeCrop = () => {
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
+  };
+
+  const confirmCrop = async (croppedAreaPixels) => {
+    const blob = await getCroppedImageBlob(cropSrc, croppedAreaPixels);
+    closeCrop();
+    await uploadPhoto(blob);
   };
 
   const deletePhoto = async (id) => {
@@ -99,11 +118,11 @@ export default function ProfilePage() {
             {uploading ? 'Envoi...' : 'Ajouter une photo'}
             <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
               disabled={uploading}
-              onChange={(e) => e.target.files[0] && uploadPhoto(e.target.files[0])} />
+              onChange={(e) => { onFileSelected(e.target.files[0]); e.target.value = ''; }} />
           </label>
         </div>
         <p className="text-xs text-neutral-500">
-          Chaque photo est vérifiée par la modération avant d'apparaître publiquement.
+          Chaque photo est recadrée avant envoi, puis vérifiée par la modération avant d'apparaître publiquement.
         </p>
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
           {photos.map((p) => (
@@ -122,6 +141,10 @@ export default function ProfilePage() {
           ))}
         </div>
       </section>
+
+      {cropSrc && (
+        <PhotoCropModal imageSrc={cropSrc} onCancel={closeCrop} onConfirm={confirmCrop} />
+      )}
     </div>
   );
 }
