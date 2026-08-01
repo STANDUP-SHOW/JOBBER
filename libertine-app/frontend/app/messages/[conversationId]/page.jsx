@@ -14,6 +14,9 @@ export default function ConversationPage() {
   const [otherProfile, setOtherProfile] = useState(null);
   const [distanceKm, setDistanceKm] = useState(null);
   const [text, setText] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestError, setSuggestError] = useState('');
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -56,6 +59,23 @@ export default function ConversationPage() {
       body: JSON.stringify({ content }),
     });
     setMessages((m) => (m.find((x) => x.id === message.id) ? m : [...m, message]));
+    setSuggestions([]);
+  };
+
+  const suggest = async () => {
+    setSuggesting(true);
+    setSuggestError('');
+    try {
+      const { suggestions } = await apiFetch('/api/ai/conversation-suggestions', {
+        method: 'POST',
+        body: JSON.stringify({ conversationId }),
+      });
+      setSuggestions(suggestions);
+    } catch (err) {
+      setSuggestError(err.message);
+    } finally {
+      setSuggesting(false);
+    }
   };
 
   return (
@@ -85,10 +105,28 @@ export default function ConversationPage() {
         ))}
         <div ref={bottomRef} />
       </div>
-      <form onSubmit={send} className="flex gap-2 pt-2 border-t border-neutral-800">
-        <input className="input" placeholder="Votre message..." value={text} onChange={(e) => setText(e.target.value)} />
-        <button className="btn-primary">Envoyer</button>
-      </form>
+
+      <div className="pt-2 border-t border-neutral-800">
+        <button type="button" onClick={suggest} disabled={suggesting}
+          className="text-xs text-brand-400 hover:text-brand-300 disabled:opacity-50 mb-2">
+          {suggesting ? 'Génération...' : '✨ Suggestions IA'}
+        </button>
+        {suggestError && <p className="text-xs text-red-400 mb-2">{suggestError}</p>}
+        {suggestions.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-2">
+            {suggestions.map((s, i) => (
+              <button key={i} type="button" onClick={() => { setText(s); setSuggestions([]); }}
+                className="text-xs bg-neutral-800 hover:bg-neutral-700 rounded-lg px-3 py-1.5 text-left">
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+        <form onSubmit={send} className="flex gap-2">
+          <input className="input" placeholder="Votre message..." value={text} onChange={(e) => setText(e.target.value)} />
+          <button className="btn-primary">Envoyer</button>
+        </form>
+      </div>
     </div>
   );
 }

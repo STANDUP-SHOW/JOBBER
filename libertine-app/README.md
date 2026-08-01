@@ -33,6 +33,11 @@ Zod (validation), Multer (upload photos), Next.js App Router, Tailwind CSS.
 | Messagerie temps réel (Socket.io) | ✅ |
 | Signalement de profil + blocage | ✅ |
 | Back-office modération (photos, signalements, bannissement) (`/admin`) | ✅ |
+| Recadrage photo avant envoi | ✅ |
+| Distance approximative (arrondie, ville à ville) entre profils déjà matchés | ✅ |
+| Badges de réputation (ancienneté, taux de réponse, "membre exemplaire") — calculés sur des données existantes, sans IA | ✅ |
+| Score de qualité de profil + suggestions d'amélioration — règles déterministes, sans IA | ✅ |
+| Assistant IA de conversation (suggestions de messages via l'API Claude, optionnel) | ✅ |
 | Vérification d'identité forte (KYC), paiement, notifications e-mail | ⏳ non inclus |
 
 ## ⚠️ À faire avant toute mise en production
