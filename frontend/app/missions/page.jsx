@@ -72,9 +72,11 @@ export default function MissionsPage() {
 
       {user && user.accountKind !== 'COMPANY' && (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-moss px-4 py-3.5">
-          <p className="text-sm font-medium text-ochre">
-            Ici n'apparaissent que les missions correspondant à vos compétences. Si vous voulez voir plus de
-            missions, cochez plus de cases dans votre profil jobber.
+          <p>
+            <span className="block font-bold text-ochre">Pour voir plus de missions, complétez votre profil !</span>
+            <span className="mt-0.5 block text-sm font-medium text-white">
+              Sont affichées uniquement les missions qui correspondent à vos capacités.
+            </span>
           </p>
           <Link href="/dashboard/profile" className="shrink-0 rounded-md bg-white px-4 py-2 text-sm font-medium text-ink hover:bg-slate-100">
             Compléter mon profil
@@ -111,6 +113,16 @@ export default function MissionsPage() {
             Vue carte
           </button>
         </div>
+      </div>
+
+      <div className="mt-4 rounded-lg bg-green-600 px-4 py-3.5">
+        <p className="font-bold text-white">
+          GET MISSION : prenez la mission, elle est pour vous si vous remplissez les conditions demandées, et
+          acceptez son tarif fixe tout inclus non négociable.
+        </p>
+        <p className="mt-1 text-sm font-normal text-white/90">
+          Sélectionnez « GET Mission uniquement » ci-dessous pour trier.
+        </p>
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
