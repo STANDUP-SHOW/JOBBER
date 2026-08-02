@@ -673,14 +673,17 @@ function NewMissionForm() {
                 <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">{BADGE_CATEGORY_LABELS[cat]}</span>
                 <div className="mt-1.5 grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
                   {keys.map((key) => (
-                    <label key={key} className="flex items-center gap-2.5 text-sm text-ink">
+                    <label key={key} className="flex items-start gap-2.5 text-sm text-ink">
                       <input
                         type="checkbox"
                         checked={form.requiredBadges.includes(key)}
                         onChange={() => toggleRequiredBadge(key)}
-                        className="h-4 w-4 shrink-0 rounded border-slate-300 accent-moss"
+                        className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 accent-moss"
                       />
-                      <span>{BADGE_CATALOG[key].icon} {BADGE_CATALOG[key].label}</span>
+                      <span>
+                        <span className="font-medium">{BADGE_CATALOG[key].icon} {BADGE_CATALOG[key].name}</span>
+                        <span className="block text-xs text-slate-400">{BADGE_CATALOG[key].label}</span>
+                      </span>
                     </label>
                   ))}
                 </div>

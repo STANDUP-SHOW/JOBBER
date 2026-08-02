@@ -8,6 +8,7 @@ import ApplyOfferSheet from '../../../components/ApplyOfferSheet';
 import StarRating from '../../../components/StarRating';
 import MissionRouteMap from '../../../components/MissionRouteMap';
 import MissionBadges from '../../../components/MissionBadges';
+import RequiredBadgesPanel from '../../../components/RequiredBadgesPanel';
 import { VEHICLES } from '../../../components/VehicleIcon';
 import MechanicVehicleIcon, { MECHANIC_VEHICLE_TYPES } from '../../../components/MechanicVehicleIcon';
 
@@ -366,6 +367,8 @@ export default function MissionDetailPage() {
             </InfoRow>
           )}
         </div>
+
+        <RequiredBadgesPanel requiredBadges={mission.requiredBadges} />
 
         {mission.photos?.length > 0 && (
           <div className="mt-5 flex gap-2 overflow-x-auto">

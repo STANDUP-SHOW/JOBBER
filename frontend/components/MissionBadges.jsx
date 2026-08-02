@@ -88,14 +88,11 @@ export default function MissionBadges({ mission, className = '' }) {
       {(mission.requiredBadges || []).map((key) => {
         const badge = BADGE_CATALOG[key];
         if (!badge) return null;
+        // Icon only on tiles/maps — the full name + description shows on
+        // the mission detail page (see RequiredBadgesPanel), not here.
         return (
-          <span
-            key={key}
-            title={badge.label}
-            className="flex items-center gap-1 rounded-full bg-blue-600 px-2.5 py-0.5 text-xs font-bold text-yellow-300"
-          >
-            <span>{badge.icon}</span>
-            {badge.label}
+          <span key={key} title={`${badge.name} — ${badge.label}`} className="text-lg leading-none">
+            {badge.icon}
           </span>
         );
       })}

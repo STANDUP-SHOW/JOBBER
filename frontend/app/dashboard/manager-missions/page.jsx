@@ -13,6 +13,7 @@ export default function ManagerMissionsPage() {
   const router = useRouter();
   const [tab, setTab] = useState('ongoing');
   const [bookings, setBookings] = useState([]);
+  const [openMissions, setOpenMissions] = useState([]);
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
@@ -26,8 +27,16 @@ export default function ManagerMissionsPage() {
     if (!token) return;
     setLoading(true);
     try {
-      const [{ bookings }, { offers }] = await Promise.all([api.myBookings(token), api.receivedOffers(token)]);
+      const [{ bookings }, { offers }, { missions }] = await Promise.all([
+        api.myBookings(token),
+        api.receivedOffers(token),
+        api.listMissions({ clientId: user.id }, token),
+      ]);
       setBookings(bookings.filter((b) => b.clientId === user.id && ONGOING_STATUSES.includes(b.status) && b.payment?.status !== 'RELEASED'));
+      // A just-published mission has no booking yet (still awaiting jobber
+      // candidatures) — without this it would never show up anywhere in
+      // "Suivi de missions" until someone applies and gets accepted.
+      setOpenMissions(missions.filter((m) => m.status === 'OPEN'));
       setOffers(offers);
     } catch (err) { setError(err.message); }
     finally { setLoading(false); }
@@ -52,7 +61,7 @@ export default function ManagerMissionsPage() {
 
       <div className="mt-6 flex gap-2 border-b border-slate-200">
         <TabButton active={tab === 'ongoing'} onClick={() => setTab('ongoing')}>
-          Missions en cours {bookings.length > 0 && `(${bookings.length})`}
+          Missions en cours {(bookings.length + openMissions.length) > 0 && `(${bookings.length + openMissions.length})`}
         </TabButton>
         <TabButton active={tab === 'offers'} onClick={() => setTab('offers')}>
           Offres reçues {offers.length > 0 && `(${offers.length})`}
@@ -64,7 +73,18 @@ export default function ManagerMissionsPage() {
 
       {!loading && tab === 'ongoing' && (
         <div className="mt-6 space-y-3">
-          {bookings.length === 0 && <EmptyState text="Aucune mission en cours pour le moment." />}
+          {bookings.length === 0 && openMissions.length === 0 && <EmptyState text="Aucune mission en cours pour le moment." />}
+          {openMissions.map((m) => (
+            <Link key={m.id} href={`/missions/${m.id}`} className="block rounded-lg border border-slate-200 bg-white p-4 hover:border-moss hover:shadow-md">
+              <div className="flex items-center justify-between">
+                <div className="font-display text-base font-semibold text-ink">{m.title}</div>
+                <span className="rounded-full bg-ochre-light px-2.5 py-0.5 text-xs font-medium text-ochre-dark">En attente d'offres</span>
+              </div>
+              <div className="mt-1 text-sm text-slate-500">
+                {m.estimatedHours} h · {new Date(m.desiredDate).toLocaleDateString('fr-FR')} · {m._count?.offers ?? 0} candidature{(m._count?.offers ?? 0) > 1 ? 's' : ''}
+              </div>
+            </Link>
+          ))}
           {bookings.map((b) => (
             <Link key={b.id} href="/dashboard" className="block rounded-lg border border-slate-200 bg-white p-4 hover:border-moss hover:shadow-md">
               <div className="flex items-center justify-between">

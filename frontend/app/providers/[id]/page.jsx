@@ -94,10 +94,10 @@ export default function ProviderProfilePage() {
               <span
                 key={key}
                 title={badge.label}
-                className="flex items-center gap-1 rounded-full bg-blue-600 px-2.5 py-1 text-xs font-bold text-yellow-300"
+                className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${badge.color.bg} ${badge.color.text}`}
               >
                 <span>{badge.icon}</span>
-                {badge.label}
+                {badge.name}
               </span>
             );
           })}
