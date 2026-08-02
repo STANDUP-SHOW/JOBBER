@@ -24,10 +24,16 @@ const extraFeeSchema = z.object({
   amount: z.number().positive(),
 });
 
+const slotSchema = z.object({ date: z.string(), startTime: z.string() });
+
 const createOfferSchema = z.object({
   missionId: z.string(),
   hourlyRate: z.number().positive(),
   extraFees: z.array(extraFeeSchema).optional().default([]),
+  // Alternative date/time slots the jobber proposes instead of the client's
+  // originally requested date — only meaningful (and only accepted below)
+  // when the mission itself is datesFlexible.
+  proposedSlots: z.array(slotSchema).max(2).optional(),
 });
 
 // Apply to a mission ("postuler") — any account can candidater, including
@@ -45,6 +51,9 @@ router.post('/', requireAuth, async (req, res, next) => {
     if (mission.clientId === req.user.id) {
       return res.status(400).json({ error: 'Vous ne pouvez pas postuler à votre propre mission' });
     }
+    if (data.proposedSlots?.length && !mission.datesFlexible) {
+      return res.status(400).json({ error: 'Les dates ne sont pas flexibles' });
+    }
 
     // Labels are resolved server-side from the fixed catalog rather than trusted
     // from the client, so a tampered payload can't inject arbitrary text.
@@ -56,6 +65,7 @@ router.post('/', requireAuth, async (req, res, next) => {
         providerId: req.user.id,
         hourlyRate: data.hourlyRate,
         extraFees: extraFees.length > 0 ? extraFees : undefined,
+        proposedSlots: data.proposedSlots?.length ? data.proposedSlots : undefined,
       },
     });
 
@@ -117,6 +127,8 @@ router.get('/received', requireAuth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+const chosenSlotSchema = z.object({ date: z.string(), startTime: z.string(), scheduledDate: z.string() });
+
 // Mission owner accepts an offer -> creates Booking, marks mission ASSIGNED, rejects other offers
 router.post('/:id/accept', requireAuth, async (req, res, next) => {
   try {
@@ -124,6 +136,23 @@ router.post('/:id/accept', requireAuth, async (req, res, next) => {
     if (!offer) return res.status(404).json({ error: 'Offre introuvable' });
     if (offer.mission.clientId !== req.user.id) return res.status(403).json({ error: 'Non autorisé' });
     if (offer.status !== 'PENDING') return res.status(400).json({ error: 'Cette offre n\'est plus disponible' });
+
+    // When the jobber proposed alternative slots (mission was datesFlexible
+    // and they declined the client's original date), the client must pick
+    // one here — it becomes the mission's actual date/time going forward.
+    let mission = offer.mission;
+    if (offer.proposedSlots?.length) {
+      const parsed = chosenSlotSchema.safeParse(req.body.chosenSlot);
+      if (!parsed.success) return res.status(400).json({ error: 'Veuillez choisir un créneau proposé par le jobber' });
+      const chosenSlot = parsed.data;
+      const isValidSlot = offer.proposedSlots.some((s) => s.date === chosenSlot.date && s.startTime === chosenSlot.startTime);
+      if (!isValidSlot) return res.status(400).json({ error: 'Créneau invalide' });
+
+      [mission] = await prisma.$transaction([
+        prisma.mission.update({ where: { id: offer.missionId }, data: { desiredDate: new Date(chosenSlot.scheduledDate) } }),
+        prisma.offer.update({ where: { id: offer.id }, data: { chosenSlot } }),
+      ]);
+    }
 
     const extraFeesTotal = (offer.extraFees || []).reduce((sum, f) => sum + f.amount, 0);
 
@@ -133,8 +162,8 @@ router.post('/:id/accept', requireAuth, async (req, res, next) => {
     // other offer (a jobber applying on the open marketplace) keeps the
     // standard manager/provider fee logic below, using the mission's own
     // estimatedHours as always.
-    const isAgenceOffer = !!offer.mission.corporateAgencyId && offer.providerId === offer.mission.corporateAgencyId;
-    const hours = isAgenceOffer ? (offer.hours ?? offer.mission.estimatedHours) : offer.mission.estimatedHours;
+    const isAgenceOffer = !!mission.corporateAgencyId && offer.providerId === mission.corporateAgencyId;
+    const hours = isAgenceOffer ? (offer.hours ?? mission.estimatedHours) : mission.estimatedHours;
     const totalAmount = round2(offer.hourlyRate * hours + extraFeesTotal);
 
     if (isAgenceOffer) {
@@ -145,7 +174,7 @@ router.post('/:id/accept', requireAuth, async (req, res, next) => {
             offerId: offer.id,
             clientId: req.user.id,
             providerId: offer.providerId,
-            scheduledDate: offer.mission.desiredDate,
+            scheduledDate: mission.desiredDate,
             hours,
             hourlyRate: offer.hourlyRate,
             totalAmount,
@@ -170,7 +199,7 @@ router.post('/:id/accept', requireAuth, async (req, res, next) => {
 
     const result = await finalizeBooking({
       offer,
-      mission: offer.mission,
+      mission,
       clientId: req.user.id,
       clientAccountKind: req.user.accountKind,
       totalAmount,

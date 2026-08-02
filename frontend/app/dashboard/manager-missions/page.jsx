@@ -37,7 +37,7 @@ export default function ManagerMissionsPage() {
 
   async function accept(offerId) {
     setBusyId(offerId); setError('');
-    try { await api.acceptOffer(offerId, token); await refresh(); }
+    try { await api.acceptOffer(offerId, undefined, token); await refresh(); }
     catch (err) { setError(err.message); }
     finally { setBusyId(null); }
   }

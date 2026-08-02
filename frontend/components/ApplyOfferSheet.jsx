@@ -12,7 +12,14 @@ const EXTRA_FEE_TYPES = {
   wasteDisposal: 'Frais de déchetterie',
 };
 
+function emptySlot() {
+  return { date: '', startTime: '09:00' };
+}
+
 export default function ApplyOfferSheet({ mission, defaultRate = 15, busy, error, onClose, onSubmit }) {
+  const [step, setStep] = useState('confirm'); // confirm -> [propose] -> rate
+  const [notFlexibleAlert, setNotFlexibleAlert] = useState(false);
+  const [slots, setSlots] = useState([emptySlot()]);
   const [rate, setRate] = useState(defaultRate);
   const [wantsExtraFees, setWantsExtraFees] = useState(null); // null = not answered yet
   const [checked, setChecked] = useState({});
@@ -24,6 +31,8 @@ export default function ApplyOfferSheet({ mission, defaultRate = 15, busy, error
     0,
   );
   const total = (rate * hours + extraFeesTotal).toFixed(2).replace(/\.00$/, '');
+  const missionDateLabel = new Date(mission.desiredDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  const missionTimeLabel = new Date(mission.desiredDate).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
   function adjust(delta) {
     setRate((r) => Math.max(5, r + delta));
@@ -33,13 +42,113 @@ export default function ApplyOfferSheet({ mission, defaultRate = 15, busy, error
     setChecked((c) => ({ ...c, [key]: !c[key] }));
   }
 
+  function confirmDate(confirmed) {
+    if (confirmed) { setStep('rate'); return; }
+    if (!mission.datesFlexible) { setNotFlexibleAlert(true); return; }
+    setNotFlexibleAlert(false);
+    setStep('propose');
+  }
+
+  function updateSlot(index, field, value) {
+    setSlots((s) => s.map((slot, i) => (i === index ? { ...slot, [field]: value } : slot)));
+  }
+
+  const validSlots = slots.filter((s) => s.date && s.startTime);
+
   function submit() {
     const extraFees = wantsExtraFees
       ? Object.entries(EXTRA_FEE_TYPES)
           .filter(([key]) => checked[key] && Number(amounts[key]) > 0)
           .map(([key]) => ({ key, amount: Number(amounts[key]) }))
       : [];
-    onSubmit(rate, extraFees);
+    onSubmit(rate, extraFees, step === 'rate' && validSlots.length ? validSlots : undefined);
+  }
+
+  if (step === 'confirm') {
+    return (
+      <div className="fixed inset-0 z-[1300] flex items-end justify-center bg-ink/40" onClick={onClose}>
+        <div className="w-full max-w-lg rounded-t-2xl bg-white p-6 pb-8" onClick={(e) => e.stopPropagation()}>
+          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-slate-200" />
+          <h2 className="text-center font-display text-lg font-semibold text-ink">Confirmez-vous la date et l'heure ?</h2>
+          <p className="mt-3 text-center text-base text-ink">
+            Le client a fixé cette mission au <strong>{missionDateLabel}</strong> à <strong>{missionTimeLabel}</strong>.
+          </p>
+          {notFlexibleAlert && (
+            <p className="mt-3 rounded-md bg-clay/10 px-3 py-2 text-center text-sm text-clay">Les dates ne sont pas flexibles.</p>
+          )}
+          <div className="mt-6 grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => confirmDate(true)}
+              className="rounded-lg border-2 border-moss bg-moss py-3 font-display text-base font-bold uppercase tracking-wide text-white"
+            >
+              Oui
+            </button>
+            <button
+              type="button"
+              onClick={() => confirmDate(false)}
+              className="rounded-lg border-2 border-slate-200 py-3 font-display text-base font-bold uppercase tracking-wide text-slate-500 hover:border-clay hover:text-clay"
+            >
+              Non
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === 'propose') {
+    return (
+      <div className="fixed inset-0 z-[1300] flex items-end justify-center bg-ink/40" onClick={onClose}>
+        <div className="w-full max-w-lg rounded-t-2xl bg-white p-6 pb-8" onClick={(e) => e.stopPropagation()}>
+          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-slate-200" />
+          <h2 className="text-center font-display text-lg font-semibold text-ink">Proposez vos disponibilités</h2>
+          <p className="mt-2 text-center text-sm text-slate-500">Les dates étant flexibles, proposez jusqu'à 2 créneaux au client.</p>
+
+          <div className="mt-5 space-y-4">
+            {slots.map((slot, i) => (
+              <div key={i} className="grid grid-cols-2 gap-3">
+                <label className="block">
+                  <span className="text-xs font-medium text-slate-500">Date</span>
+                  <input
+                    type="date" value={slot.date}
+                    onChange={(e) => updateSlot(i, 'date', e.target.value)}
+                    className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-xs font-medium text-slate-500">Heure</span>
+                  <input
+                    type="time" value={slot.startTime}
+                    onChange={(e) => updateSlot(i, 'startTime', e.target.value)}
+                    className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-moss"
+                  />
+                </label>
+              </div>
+            ))}
+          </div>
+
+          {slots.length < 2 && (
+            <button
+              type="button"
+              onClick={() => setSlots((s) => [...s, emptySlot()])}
+              className="mt-3 text-sm font-medium text-moss hover:underline"
+            >
+              + Ajouter une autre disponibilité
+            </button>
+          )}
+
+          <button
+            type="button"
+            disabled={validSlots.length === 0}
+            onClick={() => setStep('rate')}
+            className="mt-6 w-full rounded-full bg-moss py-4 text-base font-semibold text-white hover:bg-moss-dark disabled:opacity-60"
+          >
+            Continuer
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -148,8 +257,14 @@ export default function ApplyOfferSheet({ mission, defaultRate = 15, busy, error
         </button>
 
         <p className="mt-3 text-center text-xs text-slate-400">
-          En confirmant, vous vous engagez à être disponible le{' '}
-          <strong>{new Date(mission.desiredDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</strong>.
+          {validSlots.length > 0 ? (
+            <>En confirmant, vous proposez vos disponibilités au client — la mission sera fixée sur le créneau qu'il choisira.</>
+          ) : (
+            <>
+              En confirmant, vous vous engagez à être disponible le{' '}
+              <strong>{new Date(mission.desiredDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</strong>.
+            </>
+          )}
         </p>
       </div>
     </div>

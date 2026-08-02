@@ -597,6 +597,12 @@ model Offer {
   message     String?
   status      OfferStatus @default(PENDING)
   refusalReason String?
+  // Set only when the jobber declined the client's originally requested
+  // date/time on a datesFlexible mission — up to 2 alternative slots
+  // ([{ date: 'YYYY-MM-DD', startTime: 'HH:MM' }, ...]) the client then
+  // picks from when accepting (see chosenSlot below and POST /:id/accept).
+  proposedSlots Json?
+  chosenSlot    Json?
   createdAt   DateTime    @default(now())
 
   @@unique([missionId, providerId])

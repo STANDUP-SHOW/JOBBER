@@ -38,7 +38,7 @@ export const api = {
   claimGetMission: (id, token) => request(`/missions/${id}/get`, { method: 'POST', token }),
 
   createOffer: (payload, token) => request('/offers', { method: 'POST', body: payload, token }),
-  acceptOffer: (offerId, token) => request(`/offers/${offerId}/accept`, { method: 'POST', token }),
+  acceptOffer: (offerId, chosenSlot, token) => request(`/offers/${offerId}/accept`, { method: 'POST', body: chosenSlot ? { chosenSlot } : undefined, token }),
   myOffers: (token) => request('/offers/mine', { token }),
   receivedOffers: (token) => request('/offers/received', { token }),
 

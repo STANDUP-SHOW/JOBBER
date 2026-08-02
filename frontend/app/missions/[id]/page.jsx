@@ -223,6 +223,7 @@ export default function MissionDetailPage() {
   const [offerError, setOfferError] = useState('');
   const [busy, setBusy] = useState(false);
   const [quotaNotice, setQuotaNotice] = useState(null);
+  const [selectedSlots, setSelectedSlots] = useState({}); // offerId -> slot index
 
   async function refresh() {
     const { mission } = await api.getMission(id);
@@ -240,10 +241,10 @@ export default function MissionDetailPage() {
     setSheetOpen(true);
   }
 
-  async function applyToMission(hourlyRate, extraFees) {
+  async function applyToMission(hourlyRate, extraFees, proposedSlots) {
     setBusy(true); setOfferError('');
     try {
-      await api.createOffer({ missionId: id, hourlyRate, extraFees }, token);
+      await api.createOffer({ missionId: id, hourlyRate, extraFees, proposedSlots }, token);
       await refresh();
       setSheetOpen(false);
     } catch (err) { setOfferError(err.message); } finally { setBusy(false); }
@@ -258,10 +259,16 @@ export default function MissionDetailPage() {
     } catch (err) { setError(err.message); setBusy(false); await refresh(); }
   }
 
-  async function acceptOffer(offerId) {
+  async function acceptOffer(offerId, slot) {
+    let chosenSlot;
+    if (slot) {
+      const [year, month, day] = slot.date.split('-').map(Number);
+      const [hour, minute] = slot.startTime.split(':').map(Number);
+      chosenSlot = { date: slot.date, startTime: slot.startTime, scheduledDate: new Date(year, month - 1, day, hour, minute).toISOString() };
+    }
     setBusy(true); setError('');
     try {
-      const { quotaExceeded } = await api.acceptOffer(offerId, token);
+      const { quotaExceeded } = await api.acceptOffer(offerId, chosenSlot, token);
       if (quotaExceeded) {
         setQuotaNotice('Vous avez dépassé votre quota de missions sans frais ce mois-ci : les frais standards s\'appliquent sur cette mission.');
         setBusy(false);
@@ -490,39 +497,74 @@ export default function MissionDetailPage() {
         </h2>
         <div className="mt-3 space-y-3">
           {mission.offers?.length === 0 && <p className="text-sm text-slate-400">Aucune candidature pour l'instant.</p>}
-          {mission.offers?.map((offer) => (
-            <div key={offer.id} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-ink">{offer.provider.firstName} {offer.provider.lastName?.[0]}.</span>
-                  {offer.provider.providerProfile?.ratingCount > 0 && (
-                    <span className="flex items-center gap-1 text-xs text-slate-500">
-                      <StarRating value={offer.provider.providerProfile.ratingAverage} size={12} />
-                      {offer.provider.providerProfile.ratingAverage.toFixed(1)} ({offer.provider.providerProfile.ratingCount})
-                    </span>
+          {mission.offers?.map((offer) => {
+            const hasProposedSlots = offer.status === 'PENDING' && offer.proposedSlots?.length > 0;
+            const selectedIndex = selectedSlots[offer.id];
+            return (
+              <div key={offer.id} className="rounded-lg border border-slate-200 bg-white p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-ink">{offer.provider.firstName} {offer.provider.lastName?.[0]}.</span>
+                      {offer.provider.providerProfile?.ratingCount > 0 && (
+                        <span className="flex items-center gap-1 text-xs text-slate-500">
+                          <StarRating value={offer.provider.providerProfile.ratingAverage} size={12} />
+                          {offer.provider.providerProfile.ratingAverage.toFixed(1)} ({offer.provider.providerProfile.ratingCount})
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-sm text-slate-500">{offer.hourlyRate} €/h {offer.message ? `— "${offer.message}"` : ''}</div>
+                    {offer.extraFees?.length > 0 && (
+                      <ul className="mt-1 space-y-0.5 text-xs text-slate-500">
+                        {offer.extraFees.map((f) => (
+                          <li key={f.key}>+ {f.label} : {f.amount} €</li>
+                        ))}
+                      </ul>
+                    )}
+                    <div className="text-xs text-slate-400 mt-1">Statut : {offer.status}</div>
+                  </div>
+                  {offer.status === 'PENDING' && mission.status === 'OPEN' && !hasProposedSlots && (
+                    <button
+                      disabled={busy}
+                      onClick={() => acceptOffer(offer.id)}
+                      className="shrink-0 rounded-md bg-moss px-4 py-2 text-sm font-medium text-white hover:bg-moss-dark disabled:opacity-60"
+                    >
+                      Accepter
+                    </button>
                   )}
                 </div>
-                <div className="text-sm text-slate-500">{offer.hourlyRate} €/h {offer.message ? `— "${offer.message}"` : ''}</div>
-                {offer.extraFees?.length > 0 && (
-                  <ul className="mt-1 space-y-0.5 text-xs text-slate-500">
-                    {offer.extraFees.map((f) => (
-                      <li key={f.key}>+ {f.label} : {f.amount} €</li>
-                    ))}
-                  </ul>
+
+                {hasProposedSlots && (
+                  <div className="mt-3 rounded-md bg-ochre-light p-3">
+                    <p className="text-sm font-medium text-ochre-dark">
+                      Vos dates étant flexibles, le jobber vous propose {offer.proposedSlots.length} créneau{offer.proposedSlots.length > 1 ? 'x' : ''} : veuillez choisir.
+                    </p>
+                    <div className="mt-2 space-y-1.5">
+                      {offer.proposedSlots.map((slot, i) => (
+                        <label key={i} className="flex items-center gap-2 text-sm text-ink">
+                          <input
+                            type="radio"
+                            name={`slot-${offer.id}`}
+                            checked={selectedIndex === i}
+                            onChange={() => setSelectedSlots((s) => ({ ...s, [offer.id]: i }))}
+                            className="h-4 w-4 accent-moss"
+                          />
+                          {new Date(`${slot.date}T${slot.startTime}`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} à {slot.startTime}
+                        </label>
+                      ))}
+                    </div>
+                    <button
+                      disabled={busy || selectedIndex == null}
+                      onClick={() => acceptOffer(offer.id, offer.proposedSlots[selectedIndex])}
+                      className="mt-3 w-full rounded-md bg-moss py-2 text-sm font-medium text-white hover:bg-moss-dark disabled:opacity-60"
+                    >
+                      Confirmer ce créneau et accepter l'offre
+                    </button>
+                  </div>
                 )}
-                <div className="text-xs text-slate-400 mt-1">Statut : {offer.status}</div>
               </div>
-              {offer.status === 'PENDING' && mission.status === 'OPEN' && (
-                <button
-                  disabled={busy}
-                  onClick={() => acceptOffer(offer.id)}
-                  className="rounded-md bg-moss px-4 py-2 text-sm font-medium text-white hover:bg-moss-dark disabled:opacity-60"
-                >
-                  Accepter
-                </button>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
     </div>
