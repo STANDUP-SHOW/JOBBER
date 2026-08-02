@@ -29,6 +29,19 @@ export default async function HomePage() {
 
   return (
     <div>
+      <section className="py-6 text-center">
+        <div className="flex items-center justify-center gap-2">
+          <Logo className="h-14 w-14 md:h-16 md:w-16" />
+          <Wordmark className="h-12 md:h-14" />
+        </div>
+        <p className="mt-4 font-display text-base font-bold text-blue-600">
+          L'<span className="text-yellow-500">humain</span> au service de l'humain,
+        </p>
+        <p className="font-display text-base font-bold text-blue-600">
+          Le <span className="text-yellow-500">pro</span> au service des pros.
+        </p>
+      </section>
+
       <section className="mt-4 rounded-lg border-2 border-blue-600 bg-blue-50 px-5 py-4 text-sm text-ink md:px-6">
         <div className="flex flex-col items-center gap-3 text-center">
           <div className="flex flex-wrap items-center justify-center gap-2">
@@ -39,7 +52,7 @@ export default async function HomePage() {
               Ouverture le 15/09/2026
             </span>
           </div>
-          <p className="max-w-2xl leading-snug">
+          <p className="max-w-2xl text-balance text-base leading-snug">
             <strong>Bienvenue sur la nouvelle plateforme Jobber+ !</strong> Cette version est en bêta-test en ligne
             depuis le 01/08/2026, elle nous permet d'effectuer les derniers réglages — les missions affichées sont
             des missions test.
@@ -51,7 +64,7 @@ export default async function HomePage() {
       <section className="mt-4 flex flex-col items-center gap-4 rounded-lg border-2 border-moss bg-moss-light px-6 py-6 text-center md:flex-row md:justify-between md:text-left">
         <div>
           <div className="font-display text-xl font-bold text-ink">Cadeau de naissance de plateforme</div>
-          <p className="mt-1 text-sm text-ink">
+          <p className="mt-1 text-balance text-base text-ink">
             Les jobbers peuvent déjà s'inscrire et profiter de notre offre cadeau de naissance Jobber+ : Carte
             JobberGold — les 20 premières missions sans aucun frais de plateforme !
           </p>
@@ -60,17 +73,6 @@ export default async function HomePage() {
           En savoir plus
           <span className="font-bold text-ochre">+</span>
         </Link>
-      </section>
-
-      <section className="py-6 text-center">
-        <div className="flex items-center justify-center gap-2">
-          <Logo className="h-14 w-14 md:h-16 md:w-16" />
-          <Wordmark className="h-12 md:h-14" />
-        </div>
-        <span className="mt-4 block font-display text-base font-bold uppercase tracking-wide text-moss">L'humain au service de l'humain</span>
-        <h1 className="mx-auto mt-3 max-w-2xl font-display text-4xl font-semibold leading-[1.1] text-ink md:text-5xl">
-          Un coup de main de confiance, <span className="text-moss">à deux clics</span>.
-        </h1>
       </section>
 
       <AudienceBlock
@@ -93,10 +95,10 @@ export default async function HomePage() {
       <section className="mt-6 flex flex-col items-center gap-4 rounded-lg border-2 border-moss bg-moss-light px-6 py-6 text-center md:flex-row md:justify-between md:text-left">
         <div>
           <div className="font-display text-xl font-bold text-ink">Crédit d'impôt !</div>
-          <p className="mt-1 text-sm text-ink">
+          <p className="mt-1 text-base text-ink">
             50 % de la prestation réalisée sur Jobber est remboursée par l'État.
           </p>
-          <p className="mt-0.5 text-sm text-moss-dark">Voir les services éligibles au crédit d'impôt →</p>
+          <p className="mt-0.5 text-base text-moss-dark">Voir les services éligibles au crédit d'impôt →</p>
         </div>
         <Link href="/credit-impot" className="inline-flex shrink-0 items-center gap-2 rounded-md bg-moss px-5 py-3 font-medium text-paper hover:bg-moss-dark">
           En savoir plus
@@ -162,11 +164,11 @@ export default async function HomePage() {
       />
 
       <section className="mt-16 rounded-lg border border-ink/10 bg-ink px-6 py-10 text-center md:px-10">
-        <p className="mx-auto max-w-2xl font-display text-2xl font-semibold leading-snug text-white md:text-3xl">
+        <p className="mx-auto max-w-2xl text-balance font-display text-2xl font-semibold leading-snug text-white md:text-3xl">
           Avec Jobber, les tarifs sont transparents et identiques à toutes les missions. Jobber est la plateforme la
           moins chère en France pour les mises en relations de prestations de service.
         </p>
-        <p className="mx-auto mt-3 max-w-2xl text-sm font-bold text-ochre">
+        <p className="mx-auto mt-3 max-w-2xl text-balance text-base font-bold text-ochre">
           La version gratuite de Jobber donne accès à toutes les fonctionnalités de la plateforme.
         </p>
         <Link href="/frais" className="mt-6 inline-block rounded-md bg-white px-6 py-3 font-medium text-ink hover:bg-slate-100">
@@ -196,7 +198,7 @@ export default async function HomePage() {
       <section className="mt-16 flex flex-col items-center gap-4 rounded-lg border-2 border-moss bg-moss-light px-6 py-6 text-center md:flex-row md:justify-between md:text-left">
         <div>
           <div className="font-display text-xl font-bold text-ink">Développez votre secteur géographique</div>
-          <p className="mt-1 text-sm text-ink">
+          <p className="mt-1 text-balance text-base text-ink">
             Ne vous prenez plus la tête : utilisez une plateforme corporate.
           </p>
         </div>
@@ -215,7 +217,7 @@ export default async function HomePage() {
 
       <section className="mt-16">
         <h2 className="font-display text-2xl font-semibold text-ink">Nos services, partout en France</h2>
-        <p className="mt-1 text-sm text-slate-500">Trouvez le bon professionnel près de chez vous, quel que soit votre besoin.</p>
+        <p className="mt-1 text-base text-slate-500">Trouvez le bon professionnel près de chez vous, quel que soit votre besoin.</p>
         <div className="mt-5 flex flex-wrap gap-2">
           {Object.entries(SEO_CATEGORIES).map(([slug, s]) => (
             <Link
@@ -231,7 +233,7 @@ export default async function HomePage() {
 
       <section className="mt-16">
         <h2 className="font-display text-2xl font-semibold text-ink">Nos cours, partout en France</h2>
-        <p className="mt-1 text-sm text-slate-500">Apprenez en pratique avec un pro, directement chez vous.</p>
+        <p className="mt-1 text-base text-slate-500">Apprenez en pratique avec un pro, directement chez vous.</p>
         <div className="mt-5 flex flex-wrap gap-2">
           {Object.entries(SEO_LESSON_CATEGORIES).map(([slug, s]) => (
             <Link
@@ -297,22 +299,22 @@ export default async function HomePage() {
             />
           </div>
           <div className="p-6 md:p-10">
-            <h2 className="font-display text-xl font-semibold text-ink">
+            <h2 className="text-balance font-display text-xl font-semibold text-ink">
               Déchetterie, recyclage, gravats et encombrants
             </h2>
-            <p className="mt-3 text-sm text-slate-700">
+            <p className="mt-3 text-balance text-base text-slate-700">
               Ce qui est peu connu : les déchèteries municipales sont financées par la taxe d'enlèvement des ordures
               ménagères, payée par les particuliers — pas par les professionnels. Un artisan ou un jobber
               professionnel qui dépose des déchets liés à une prestation doit donc s'acquitter d'une redevance
               spéciale, avec un pass professionnel dédié. Et oui, cela vaut aussi pour les déchets verts.
             </p>
-            <p className="mt-3 text-sm text-slate-700">
+            <p className="mt-3 text-balance text-base text-slate-700">
               Ce coût recouvre plusieurs éléments pour le professionnel : le temps du trajet jusqu'à la déchèterie,
               son carburant, l'usage de son véhicule professionnel, et une facturation au poids ou au volume selon
               le type de déchet — souvent plusieurs dizaines d'euros la tonne, avec des tarifs qui varient d'une
               commune à l'autre.
             </p>
-            <p className="mt-3 text-sm font-medium text-ink">
+            <p className="mt-3 text-balance text-base font-medium text-ink">
               Ne soyez donc pas surpris si un jobber professionnel ajoute des frais de déchetterie à son offre : ce
               n'est pas une majoration arbitraire, c'est un coût réel qu'il doit couvrir pour évacuer vos déchets
               dans les règles.

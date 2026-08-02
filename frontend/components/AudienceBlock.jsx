@@ -32,8 +32,8 @@ export default function AudienceBlock({
     <section className={`mt-16 grid items-center gap-10 rounded-lg p-6 md:grid-cols-2 md:p-10 ${sectionClass}`}>
       <div className={reverse ? 'md:order-2' : ''}>
         <span className={`block font-display text-base font-bold uppercase tracking-wide ${eyebrowClass}`}>{eyebrow}</span>
-        <h2 className="mt-3 font-display text-3xl font-semibold leading-[1.1] text-ink md:text-4xl">{title}</h2>
-        <p className="mt-3 max-w-md text-sm text-slate-700">{description}</p>
+        <h2 className="mt-3 text-balance font-display text-3xl font-semibold leading-[1.1] text-ink md:text-4xl">{title}</h2>
+        <p className="mt-3 max-w-md text-balance text-base text-slate-700">{description}</p>
         <div className="mt-6 flex flex-wrap gap-3">
           {buttons.map((b) => (
             <Link
@@ -54,7 +54,7 @@ export default function AudienceBlock({
               <span className="text-2xl">{p.icon}</span>
               <div>
                 <div className="font-medium text-ink">{p.title}</div>
-                <div className="text-sm text-slate-500">{p.desc}</div>
+                <div className="text-balance text-sm text-slate-500">{p.desc}</div>
               </div>
             </li>
           ))}
