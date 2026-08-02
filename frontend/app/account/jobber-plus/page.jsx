@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { useAuth } from '../../../lib/auth-context';
+import AccountBackButton from '../../../components/AccountBackButton';
 
 export default function JobberPlusPage() {
   const { user } = useAuth();
 
   return (
     <div className="max-w-xl">
-      <Link href="/account" className="text-sm font-medium text-moss">← Mon compte</Link>
+      <AccountBackButton />
 
       <span className="label-eyebrow text-moss">Espace CORPORATE</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Jobber+</h1>

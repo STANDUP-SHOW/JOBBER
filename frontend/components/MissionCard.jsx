@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import MissionBadges from './MissionBadges';
+import DistanceBadge from './DistanceBadge';
 
 const STATUS_LABEL = {
   OPEN: { text: 'Ouverte', cls: 'bg-moss-light text-moss-dark' },
@@ -29,8 +30,9 @@ export default function MissionCard({ mission }) {
   return (
     <Link
       href={`/missions/${mission.id}`}
-      className="block overflow-hidden rounded-lg border border-slate-200 bg-white transition hover:border-moss hover:shadow-md"
+      className="relative block overflow-hidden rounded-lg border border-slate-200 bg-white transition hover:border-moss hover:shadow-md"
     >
+      <DistanceBadge distanceKm={mission.distanceKm} />
       <div className="flex items-start gap-3 p-4">
         {mission.photos?.[0] ? (
           <img src={mission.photos[0]} alt="" className="h-12 w-12 shrink-0 rounded-md object-cover" />

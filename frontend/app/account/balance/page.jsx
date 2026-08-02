@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
+import AccountBackButton from '../../../components/AccountBackButton';
 
 function dateHeader(date) {
   const label = new Date(date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -39,7 +40,7 @@ export default function BalancePage() {
 
   return (
     <div className="max-w-xl">
-      <Link href="/account" className="text-sm font-medium text-moss">← Mon compte</Link>
+      <AccountBackButton />
       <h1 className="mt-3 font-display text-2xl font-semibold text-ink">Mon solde</h1>
 
       <div className="mt-4 text-center">

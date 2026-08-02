@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 import { uploadImage } from '../../../lib/cloudinary';
+import AccountBackButton from '../../../components/AccountBackButton';
 
 const STATUS_LABEL = {
   PENDING: { text: 'En cours de vérification', cls: 'bg-ochre-light text-ochre-dark' },
@@ -52,7 +53,7 @@ export default function DiplomasPage() {
 
   return (
     <div className="max-w-xl">
-      <Link href="/account" className="text-sm text-slate-400 hover:text-moss">← Mon compte</Link>
+      <AccountBackButton />
       <span className="mt-4 block label-eyebrow text-moss">Espace Formation</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Mes diplômes et titres professionnels</h1>
       <p className="mt-1 text-sm text-slate-500">Ajoutez une photo ou un scan de vos diplômes — ils seront vérifiés par notre équipe.</p>

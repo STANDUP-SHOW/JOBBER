@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAgencyAuth } from '../../../lib/agency-auth-context';
 import { agencyApi } from '../../../lib/agencyApi';
 import MissionInfoBadges from '../../../components/admin/MissionInfoBadges';
+import DistanceBadge from '../../../components/admin/DistanceBadge';
 
 export default function OffresJobberPage() {
   const { token } = useAgencyAuth();
@@ -61,7 +62,8 @@ export default function OffresJobberPage() {
           const extraFeesTotal = (o.extraFees || []).reduce((sum, f) => sum + f.amount, 0);
           const total = o.hourlyRate * o.mission.estimatedHours + extraFeesTotal;
           return (
-            <div key={o.id} className="rounded-lg border border-slate-200 bg-white p-5 print:break-inside-avoid">
+            <div key={o.id} className="relative rounded-lg border border-slate-200 bg-white p-5 print:break-inside-avoid">
+              <DistanceBadge distanceKm={o.mission.distanceKm} />
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="font-display text-base font-semibold text-ink">

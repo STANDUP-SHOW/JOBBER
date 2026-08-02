@@ -8,6 +8,7 @@ import MissionCountdown from '../../../components/admin/MissionCountdown';
 import PlanningPicker from '../../../components/admin/PlanningPicker';
 import EmbaucherEmployePicker from '../../../components/admin/EmbaucherEmployePicker';
 import MissionInfoBadges from '../../../components/admin/MissionInfoBadges';
+import DistanceBadge from '../../../components/admin/DistanceBadge';
 
 export default function MissionsAgenceEnCoursPage() {
   const { token, agency } = useAgencyAuth();
@@ -99,7 +100,8 @@ export default function MissionsAgenceEnCoursPage() {
 
       <div className="mt-6 space-y-3">
         {visible.map((m) => (
-          <div key={m.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4">
+          <div key={m.id} className="relative flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4">
+            <DistanceBadge distanceKm={m.distanceKm} />
             <div>
               <div className="font-medium text-ink">
                 {m.category?.icon} <Link href={`/admin/missions/${m.id}`} className="hover:underline">{m.title}</Link>

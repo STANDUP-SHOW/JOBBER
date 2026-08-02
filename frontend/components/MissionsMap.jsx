@@ -5,6 +5,7 @@ import { GoogleMap, Marker, Circle, useJsApiLoader } from '@react-google-maps/ap
 import Link from 'next/link';
 import { GOOGLE_MAPS_LIBRARIES } from '../lib/googleMapsLibraries';
 import MissionBadges from './MissionBadges';
+import DistanceBadge from './DistanceBadge';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 const MISSION_ZOOM = 16;
@@ -132,8 +133,9 @@ export default function MissionsMap({ missions, providerZone }) {
 
             <Link
               href={`/missions/${active.id}`}
-              className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white p-4 shadow-lg"
+              className="relative min-w-0 flex-1 rounded-lg border border-slate-200 bg-white p-4 shadow-lg"
             >
+              <DistanceBadge distanceKm={active.distanceKm} />
               <span className="label-eyebrow text-moss">{active.category?.name}</span>
               <div className="mt-1 truncate font-display text-lg font-medium text-ink">{active.title}</div>
               <MissionBadges mission={active} className="mt-1.5" />

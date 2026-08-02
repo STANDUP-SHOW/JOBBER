@@ -8,6 +8,7 @@ import RecurringDatesEditor from '../../../components/admin/RecurringDatesEditor
 import MissionExtraFields from '../../../components/admin/MissionExtraFields';
 import AddressAutocomplete from '../../../components/AddressAutocomplete';
 import TraiterEnAgenceSheet from '../../../components/admin/TraiterEnAgenceSheet';
+import DistanceBadge from '../../../components/admin/DistanceBadge';
 
 function emptyDate() {
   return { date: '', startTime: '09:00', hours: 2, endTime: '11:00' };
@@ -178,7 +179,8 @@ export default function NouvelleMissionAgencePage() {
         {missions === null && <p className="text-sm text-slate-400">Chargement…</p>}
         {missions?.length === 0 && !showForm && <p className="text-sm text-slate-400">Aucune mission agence créée pour l'instant.</p>}
         {missions?.map((m) => (
-          <div key={m.id} className="rounded-lg border border-slate-200 bg-white p-5">
+          <div key={m.id} className="relative rounded-lg border border-slate-200 bg-white p-5">
+            <DistanceBadge distanceKm={m.distanceKm} />
             <div className="flex items-center gap-2">
               <span className="text-xl">{m.category?.icon}</span>
               <span className="font-display text-base font-semibold text-ink">{m.title}</span>

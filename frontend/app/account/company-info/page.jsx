@@ -7,6 +7,7 @@ import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 import { isValidSiret } from '../../../lib/siret';
 import AddressAutocomplete from '../../../components/AddressAutocomplete';
+import AccountBackButton from '../../../components/AccountBackButton';
 
 export default function CompanyInfoPage() {
   const { user, token, login, loading: authLoading } = useAuth();
@@ -64,7 +65,7 @@ export default function CompanyInfoPage() {
 
   return (
     <div className="max-w-xl">
-      <Link href="/account" className="text-sm font-medium text-moss">← Mon compte</Link>
+      <AccountBackButton />
       <h1 className="mt-3 font-display text-2xl font-semibold text-ink">Informations Entreprise</h1>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-4">

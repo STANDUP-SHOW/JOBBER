@@ -8,6 +8,7 @@ import { SEO_LESSON_CATEGORIES } from '../lib/seoLessonCategories';
 import Logo from '../components/Logo';
 import Wordmark from '../components/Wordmark';
 import AudienceBlock from '../components/AudienceBlock';
+import LaunchCountdown from '../components/LaunchCountdown';
 
 async function getData() {
   try {
@@ -28,6 +29,30 @@ export default async function HomePage() {
 
   return (
     <div>
+      <section className="mt-4 rounded-lg border-2 border-blue-600 bg-blue-50 px-5 py-4 text-sm text-ink md:px-6">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <span className="rounded-md bg-blue-600 px-3 py-1 text-xs font-bold uppercase tracking-wide text-yellow-300">
+              Version bêta
+            </span>
+            <span className="rounded-md bg-blue-600 px-3 py-1 text-xs font-bold uppercase tracking-wide text-yellow-300">
+              Ouverture le 15/09/2026
+            </span>
+          </div>
+          <p className="max-w-2xl leading-snug">
+            <strong>Bienvenue sur la nouvelle plateforme Jobber+ !</strong> Cette version est en bêta-test en ligne
+            depuis le 01/08/2026, elle nous permet d'effectuer les derniers réglages — les missions affichées sont
+            des missions test. Mais les jobbers peuvent déjà s'inscrire et profiter de notre{' '}
+            <strong>offre cadeau de naissance Jobber+</strong> : les 20 premières missions sans aucun frais de
+            plateforme, vous encaissez ce que le client paie.{' '}
+            <Link href="/offre-lancement" className="font-semibold text-moss underline underline-offset-2 hover:text-moss-dark">
+              En savoir plus →
+            </Link>
+          </p>
+          <LaunchCountdown />
+        </div>
+      </section>
+
       <section className="py-6 text-center">
         <div className="flex items-center justify-center gap-2">
           <Logo className="h-14 w-14 md:h-16 md:w-16" />

@@ -238,12 +238,19 @@ router.get('/', optionalAuth, async (req, res, next) => {
           missions = missions.filter((m) => allowedCategoryIds.has(m.categoryId));
         }
         if (profile.user.lat != null && profile.user.lng != null) {
-          missions = missions.filter(
-            (m) =>
-              m.lat == null ||
-              m.lng == null ||
-              haversineDistanceKm(profile.user.lat, profile.user.lng, m.lat, m.lng) <= profile.radiusKm
-          );
+          missions = missions
+            .filter(
+              (m) =>
+                m.lat == null ||
+                m.lng == null ||
+                haversineDistanceKm(profile.user.lat, profile.user.lng, m.lat, m.lng) <= profile.radiusKm
+            )
+            .map((m) => ({
+              ...m,
+              distanceKm: m.lat != null && m.lng != null
+                ? Math.round(haversineDistanceKm(profile.user.lat, profile.user.lng, m.lat, m.lng) * 10) / 10
+                : null,
+            }));
         }
       }
     }

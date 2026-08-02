@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 import { SUBSCRIPTION_COLORS } from '../../../lib/subscriptionColors';
+import AccountBackButton from '../../../components/AccountBackButton';
 
 const MANAGER_PLANS = [
   { value: 'MANAGER_BOSS', name: 'Manager Boss', price: 10, limit: '10 missions par mois' },
@@ -173,7 +174,7 @@ export default function SubscriptionPage() {
 
   return (
     <div className="max-w-xl">
-      <Link href="/account" className="text-sm font-medium text-moss">← Mon compte</Link>
+      <AccountBackButton />
       <h1 className="mt-3 font-display text-2xl font-semibold text-ink">{isCompany ? 'Abonnement Entreprise' : 'Abonnements'}</h1>
       <p className="mt-2 text-sm text-slate-500">
         {isCompany

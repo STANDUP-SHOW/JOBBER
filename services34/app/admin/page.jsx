@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAgencyAuth } from '../../lib/agency-auth-context';
 import { agencyApi } from '../../lib/agencyApi';
 import MissionInfoBadges from '../../components/admin/MissionInfoBadges';
+import DistanceBadge from '../../components/admin/DistanceBadge';
 import TraiterEnAgenceSheet from '../../components/admin/TraiterEnAgenceSheet';
 
 export default function DemandesRecuesPage() {
@@ -78,7 +79,8 @@ export default function DemandesRecuesPage() {
           {missions === null && <p className="text-sm text-slate-400">Chargement…</p>}
           {missions?.length === 0 && <p className="text-sm text-slate-400">Aucune demande en attente.</p>}
           {missions?.map((m) => (
-            <div key={m.id} className="rounded-lg border border-slate-200 bg-white p-5">
+            <div key={m.id} className="relative rounded-lg border border-slate-200 bg-white p-5">
+              <DistanceBadge distanceKm={m.distanceKm} />
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2">

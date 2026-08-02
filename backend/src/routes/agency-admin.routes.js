@@ -34,6 +34,17 @@ const missionDetailsSchema = z.record(z.string(), z.union([z.string(), z.number(
 // GET list endpoint below returns this alongside its own fields.
 const MISSION_BADGES_INCLUDE = { requiredEquipment: { include: { equipment: true } } };
 
+// Distance from the agency's own address (set in "Ma zone d'intervention")
+// to the mission's — shown as a blue/yellow badge on every mission tile in
+// the admin so staff can gauge travel at a glance, not just on the detail
+// page.
+function attachDistanceKm(mission, agency) {
+  if (mission.lat == null || mission.lng == null || agency.lat == null || agency.lng == null) {
+    return { ...mission, distanceKm: null };
+  }
+  return { ...mission, distanceKm: Math.round(haversineDistanceKm(agency.lat, agency.lng, mission.lat, mission.lng) * 10) / 10 };
+}
+
 // "Information entreprise" block in Paramètres, plus the core admin fields —
 // shared shape returned by /login, /me and /credentials.
 function agencyPublicFields(agency) {
@@ -179,7 +190,7 @@ router.get('/missions/received', async (req, res, next) => {
       include: { category: true, service: true, client: { select: { firstName: true, lastName: true, phone: true, email: true } }, ...MISSION_BADGES_INCLUDE },
       orderBy: { createdAt: 'desc' },
     });
-    res.json({ missions });
+    res.json({ missions: missions.map((m) => attachDistanceKm(m, req.agency)) });
   } catch (err) { next(err); }
 });
 
@@ -275,7 +286,7 @@ router.get('/missions/nouvelle-agence', async (req, res, next) => {
       },
       orderBy: { createdAt: 'desc' },
     });
-    res.json({ missions });
+    res.json({ missions: missions.map((m) => attachDistanceKm(m, req.agency)) });
   } catch (err) { next(err); }
 });
 
@@ -403,7 +414,7 @@ router.get('/missions/published', async (req, res, next) => {
       },
       orderBy: { createdAt: 'desc' },
     });
-    res.json({ missions });
+    res.json({ missions: missions.map((m) => attachDistanceKm(m, req.agency)) });
   } catch (err) { next(err); }
 });
 
@@ -422,7 +433,7 @@ router.get('/offers', async (req, res, next) => {
         mission: {
           select: {
             id: true, title: true, corporateCode: true, estimatedHours: true, desiredDate: true,
-            address: true, isUrgent: true, datesFlexible: true, workAtHeight: true, isRecurring: true,
+            address: true, lat: true, lng: true, isUrgent: true, datesFlexible: true, workAtHeight: true, isRecurring: true,
             requiredVehicleTypes: true, otherVehicleNote: true, otherEquipmentNote: true,
             requiredEquipment: { include: { equipment: true } },
           },
@@ -436,7 +447,10 @@ router.get('/offers', async (req, res, next) => {
       },
       orderBy: { createdAt: 'desc' },
     });
-    res.json({ offers, refusalReasons: REFUSAL_REASONS_JOBBER });
+    res.json({
+      offers: offers.map((o) => ({ ...o, mission: attachDistanceKm(o.mission, req.agency) })),
+      refusalReasons: REFUSAL_REASONS_JOBBER,
+    });
   } catch (err) { next(err); }
 });
 
@@ -528,7 +542,7 @@ router.get('/missions/jobber/en-cours', async (req, res, next) => {
       include: { category: true, planning: true, booking: { include: { provider: { select: { firstName: true, lastName: true } } } }, ...MISSION_BADGES_INCLUDE },
       orderBy: { desiredDate: 'asc' },
     });
-    res.json({ missions });
+    res.json({ missions: missions.map((m) => attachDistanceKm(m, req.agency)) });
   } catch (err) { next(err); }
 });
 
@@ -542,7 +556,7 @@ router.get('/missions/jobber/terminees', async (req, res, next) => {
       include: { category: true, booking: { include: { provider: { select: { firstName: true, lastName: true } } } }, ...MISSION_BADGES_INCLUDE },
       orderBy: { updatedAt: 'desc' },
     });
-    res.json({ missions });
+    res.json({ missions: missions.map((m) => attachDistanceKm(m, req.agency)) });
   } catch (err) { next(err); }
 });
 
@@ -567,7 +581,7 @@ router.get('/missions/agence/en-cours', async (req, res, next) => {
       },
       orderBy: { desiredDate: 'asc' },
     });
-    res.json({ missions });
+    res.json({ missions: missions.map((m) => attachDistanceKm(m, req.agency)) });
   } catch (err) { next(err); }
 });
 
@@ -593,7 +607,7 @@ router.get('/missions/agence/propositions-en-attente', async (req, res, next) =>
       },
       orderBy: { desiredDate: 'asc' },
     });
-    res.json({ missions });
+    res.json({ missions: missions.map((m) => attachDistanceKm(m, req.agency)) });
   } catch (err) { next(err); }
 });
 
@@ -639,7 +653,7 @@ router.get('/missions/agence/terminees', async (req, res, next) => {
       },
       orderBy: { updatedAt: 'desc' },
     });
-    res.json({ missions });
+    res.json({ missions: missions.map((m) => attachDistanceKm(m, req.agency)) });
   } catch (err) { next(err); }
 });
 

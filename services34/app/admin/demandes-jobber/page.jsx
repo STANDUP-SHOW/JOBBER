@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAgencyAuth } from '../../../lib/agency-auth-context';
 import { agencyApi } from '../../../lib/agencyApi';
 import MissionInfoBadges from '../../../components/admin/MissionInfoBadges';
+import DistanceBadge from '../../../components/admin/DistanceBadge';
 
 export default function DemandesJobberPage() {
   const { token } = useAgencyAuth();
@@ -30,7 +31,8 @@ export default function DemandesJobberPage() {
         {missions === null && <p className="text-sm text-slate-400">Chargement…</p>}
         {missions?.length === 0 && <p className="text-sm text-slate-400">Aucune demande publiée sur Jobber pour l'instant.</p>}
         {missions?.map((m) => (
-          <div key={m.id} className="rounded-lg border border-slate-200 bg-white p-5">
+          <div key={m.id} className="relative rounded-lg border border-slate-200 bg-white p-5">
+            <DistanceBadge distanceKm={m.distanceKm} />
             <div className="flex items-center gap-2">
               <span className="text-xl">{m.category?.icon}</span>
               <Link href={`/admin/missions/${m.id}`} className="font-display text-base font-semibold text-ink hover:underline">

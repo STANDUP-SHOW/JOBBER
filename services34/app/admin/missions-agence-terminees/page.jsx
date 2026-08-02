@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAgencyAuth } from '../../../lib/agency-auth-context';
 import { agencyApi } from '../../../lib/agencyApi';
 import MissionInfoBadges from '../../../components/admin/MissionInfoBadges';
+import DistanceBadge from '../../../components/admin/DistanceBadge';
 
 export default function MissionsAgenceTermineesPage() {
   const { token } = useAgencyAuth();
@@ -38,7 +39,8 @@ export default function MissionsAgenceTermineesPage() {
 
       <div className="mt-6 space-y-3">
         {missions?.map((m) => (
-          <div key={m.id} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4">
+          <div key={m.id} className="relative flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4">
+            <DistanceBadge distanceKm={m.distanceKm} />
             <div>
               <Link href={`/admin/missions/${m.id}`} className="font-medium text-ink hover:underline">{m.title}</Link>{' '}
               {m.corporateCode && <span className="font-mono text-xs text-slate-400">({m.corporateCode})</span>}

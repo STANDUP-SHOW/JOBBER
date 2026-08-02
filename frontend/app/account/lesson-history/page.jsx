@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
+import AccountBackButton from '../../../components/AccountBackButton';
 
 export default function LessonHistoryPage() {
   const { user, token, loading: authLoading } = useAuth();
@@ -35,7 +36,7 @@ export default function LessonHistoryPage() {
 
   return (
     <div className="max-w-xl">
-      <Link href="/account" className="text-sm text-slate-400 hover:text-moss">← Mon compte</Link>
+      <AccountBackButton />
       <span className="mt-4 block label-eyebrow text-moss">Espace Formation</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Historique formation jobber</h1>
 

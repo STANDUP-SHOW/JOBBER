@@ -7,6 +7,7 @@ import { agencyApi } from '../../../lib/agencyApi';
 import MissionCountdown from '../../../components/admin/MissionCountdown';
 import PlanningPicker from '../../../components/admin/PlanningPicker';
 import MissionInfoBadges from '../../../components/admin/MissionInfoBadges';
+import DistanceBadge from '../../../components/admin/DistanceBadge';
 
 export default function MissionsJobberEnCoursPage() {
   const { token } = useAgencyAuth();
@@ -55,7 +56,8 @@ export default function MissionsJobberEnCoursPage() {
             <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-slate-400">{category}</h2>
             <div className="mt-2 space-y-3">
               {list.map((m) => (
-                <div key={m.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4">
+                <div key={m.id} className="relative flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4">
+                  <DistanceBadge distanceKm={m.distanceKm} />
                   <div>
                     <Link href={`/admin/missions/${m.id}`} className="font-medium text-ink hover:underline">{m.title}</Link>
                     <div className="text-sm text-slate-500">

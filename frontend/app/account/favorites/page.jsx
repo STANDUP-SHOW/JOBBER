@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 import StarRating from '../../../components/StarRating';
+import AccountBackButton from '../../../components/AccountBackButton';
 
 export default function FavoritesPage() {
   const { user, token, loading: authLoading } = useAuth();
@@ -40,7 +41,7 @@ export default function FavoritesPage() {
 
   return (
     <div className="max-w-xl">
-      <Link href="/account" className="text-sm text-slate-400 hover:text-moss">← Mon compte</Link>
+      <AccountBackButton />
       <span className="mt-4 block label-eyebrow text-moss">Espace Manager</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Mes jobbers favoris</h1>
       <p className="mt-1 text-sm text-slate-500">Les prestataires que vous souhaitez recontacter facilement.</p>

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 import AddCardModal from '../../../components/AddCardModal';
+import AccountBackButton from '../../../components/AccountBackButton';
 
 const BRAND_LABEL = { visa: 'Visa', mastercard: 'Mastercard', amex: 'American Express' };
 
@@ -64,7 +65,7 @@ export default function PaymentMethodsPage() {
 
   return (
     <div className="max-w-xl">
-      <Link href="/account" className="text-sm font-medium text-moss">← Mon compte</Link>
+      <AccountBackButton />
       <h1 className="mt-3 font-display text-2xl font-semibold text-ink">Moyens de paiement</h1>
 
       {error && <p className="mt-4 rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
+import AccountBackButton from '../../../components/AccountBackButton';
 
 export default function InvoicesPage() {
   const { user, token, loading: authLoading } = useAuth();
@@ -27,7 +28,7 @@ export default function InvoicesPage() {
 
   return (
     <div className="max-w-xl">
-      <Link href="/account" className="text-sm font-medium text-moss">← Mon compte</Link>
+      <AccountBackButton />
       <h1 className="mt-3 font-display text-2xl font-semibold text-ink">Mes factures</h1>
       <p className="mt-1 text-sm text-slate-500">Une facture est générée pour chaque prestation payée et versée au prestataire.</p>
 
