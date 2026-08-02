@@ -6,9 +6,10 @@ const { OAuth2Client } = require('google-auth-library');
 const prisma = require('../config/prisma');
 const { signToken } = require('../utils/jwt');
 const { requireAuth } = require('../middleware/auth');
-const { sendPasswordResetEmail } = require('../services/emailService');
+const { sendPasswordResetEmail, sendWelcomeEmail } = require('../services/emailService');
 const { geocodeAddress } = require('../services/geocodingService');
 const { isValidSiret } = require('../utils/siret');
+const { resolveAgencyFromOrigin, brandKeyForDomain } = require('../utils/agency');
 
 const router = express.Router();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -101,6 +102,8 @@ router.post('/register', async (req, res, next) => {
     });
 
     const token = signToken(user);
+    const agency = await resolveAgencyFromOrigin(req);
+    sendWelcomeEmail(user.email, { firstName: user.firstName, brandKey: brandKeyForDomain(agency?.agencyDomain) });
     res.status(201).json({ token, user: sanitize(user) });
   } catch (err) {
     if (err.name === 'ZodError') { err.status = 400; err.expose = true; err.message = err.errors[0].message; }
@@ -155,8 +158,13 @@ router.post('/forgot-password', async (req, res, next) => {
         where: { id: user.id },
         data: { resetToken: token, resetTokenExpiresAt: new Date(Date.now() + 60 * 60 * 1000) },
       });
+      // services34.fr has no reset-password page of its own yet, so the link
+      // always points at jobberplus.fr regardless of brand — only the
+      // email's look (logo/colors/site name) reflects where the request came
+      // from, via brandKeyForDomain below.
       const resetUrl = `${process.env.CLIENT_ORIGIN?.split(',')[0]}/auth/reset-password?token=${token}`;
-      await sendPasswordResetEmail(email, resetUrl);
+      const agency = await resolveAgencyFromOrigin(req);
+      await sendPasswordResetEmail(email, resetUrl, brandKeyForDomain(agency?.agencyDomain));
     }
 
     res.json({ message: 'Si un compte existe avec cet email, un lien de réinitialisation vient d\'être envoyé.' });

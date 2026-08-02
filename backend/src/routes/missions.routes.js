@@ -3,8 +3,9 @@ const { z } = require('zod');
 const prisma = require('../config/prisma');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { geocodeAddress, jitterCoordinate, haversineDistanceKm } = require('../services/geocodingService');
-const { generateCorporateCode, resolveAgencyFromOrigin } = require('../utils/agency');
+const { generateCorporateCode, resolveAgencyFromOrigin, brandKeyForDomain } = require('../utils/agency');
 const { finalizeBooking, round2 } = require('../services/bookingService');
+const { sendMissionPublishedEmail, notifyBookingAccepted } = require('../services/emailService');
 
 const router = express.Router();
 
@@ -181,6 +182,11 @@ router.post('/', requireAuth, async (req, res, next) => {
       },
       include: { requiredEquipment: { include: { equipment: true } }, scheduleEntries: true },
     });
+    sendMissionPublishedEmail(req.user.email, {
+      missionTitle: mission.title,
+      missionId: mission.id,
+      brandKey: brandKeyForDomain(agency?.agencyDomain),
+    });
     res.status(201).json({ mission });
   } catch (err) {
     if (err.name === 'ZodError') { err.status = 400; err.expose = true; err.message = err.errors[0].message; }
@@ -330,6 +336,7 @@ router.post('/:id/get', requireAuth, async (req, res, next) => {
         clientAccountKind: 'COMPANY', // GET Missions are only ever published by company accounts
         totalAmount,
       });
+      notifyBookingAccepted(result.booking.id);
 
       res.status(201).json(result);
     } catch (err) {

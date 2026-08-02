@@ -14,8 +14,24 @@ async function resolveAgencyFromOrigin(req) {
   if (!originHost) return null;
   return prisma.user.findFirst({
     where: { companyType: 'CORPORATE', OR: [{ agencyDomain: originHost }, { agencyDomain: `www.${originHost}` }] },
-    select: { id: true },
+    select: { id: true, agencyDomain: true },
   });
+}
+
+// Which transactional-email brand a given agency domain maps to — new
+// corporate agencies fall back to the Jobber brand until they get their own
+// entry in emailService.js's BRANDS map.
+function brandKeyForDomain(domain) {
+  if (domain && domain.includes('services34')) return 'services34';
+  return 'jobber';
+}
+
+// Same as brandKeyForDomain, but starting from a User id (e.g. a mission's
+// corporateAgencyId) instead of an already-known domain.
+async function resolveBrandKeyForAgencyId(agencyId) {
+  if (!agencyId) return 'jobber';
+  const agency = await prisma.user.findUnique({ where: { id: agencyId }, select: { agencyDomain: true } });
+  return brandKeyForDomain(agency?.agencyDomain);
 }
 
 // "XX-AAAA-MM-123XX" — 2-letter category code, year, month, 3 random digits
@@ -42,4 +58,7 @@ const REFUSAL_REASONS_JOBBER = [
   'Autre',
 ];
 
-module.exports = { generateCorporateCode, REFUSAL_REASONS_JOBBER, resolveAgencyFromOrigin };
+module.exports = {
+  generateCorporateCode, REFUSAL_REASONS_JOBBER, resolveAgencyFromOrigin,
+  brandKeyForDomain, resolveBrandKeyForAgencyId,
+};

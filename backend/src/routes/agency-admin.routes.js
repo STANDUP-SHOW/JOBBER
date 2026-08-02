@@ -13,7 +13,7 @@ const { signToken, verifyToken } = require('../utils/jwt');
 const { REFUSAL_REASONS_JOBBER, generateCorporateCode } = require('../utils/agency');
 const { geocodeAddress, haversineDistanceKm } = require('../services/geocodingService');
 const { getOneWayDistanceKm, AGENCY_DEPARTURE_ADDRESS } = require('../services/distanceService');
-const { sendAgenceProposalEmail } = require('../services/emailService');
+const { sendAgenceProposalEmail, notifyBookingAccepted } = require('../services/emailService');
 
 const router = express.Router();
 
@@ -508,6 +508,7 @@ router.post('/offers/:id/accept', async (req, res, next) => {
         data: { status: 'REJECTED' },
       }),
     ]);
+    notifyBookingAccepted(booking.id);
 
     res.json({ booking });
   } catch (err) { next(err); }

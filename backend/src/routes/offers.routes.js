@@ -3,6 +3,7 @@ const { z } = require('zod');
 const prisma = require('../config/prisma');
 const { requireAuth } = require('../middleware/auth');
 const { finalizeBooking, round2 } = require('../services/bookingService');
+const { notifyBookingAccepted } = require('../services/emailService');
 
 const router = express.Router();
 
@@ -194,6 +195,7 @@ router.post('/:id/accept', requireAuth, async (req, res, next) => {
           data: { status: 'REJECTED' },
         }),
       ]);
+      notifyBookingAccepted(booking.id);
       return res.status(201).json({ booking, feeWaived: true, quotaExceeded: false, plan: null, providerFeeWaived: false });
     }
 
@@ -204,6 +206,7 @@ router.post('/:id/accept', requireAuth, async (req, res, next) => {
       clientAccountKind: req.user.accountKind,
       totalAmount,
     });
+    notifyBookingAccepted(result.booking.id);
 
     res.json(result);
   } catch (err) {
