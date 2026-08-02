@@ -9,6 +9,7 @@ const BUTTON_STYLES = {
   outline: 'border border-ink/20 bg-white text-ink hover:border-ink',
   purple: 'bg-purple-600 text-white hover:bg-purple-700',
   'purple-outline': 'border border-purple-300 bg-white text-purple-700 hover:border-purple-500',
+  'blue-yellow': 'bg-blue-600 text-yellow-300 hover:bg-blue-700',
 };
 
 // Signup CTAs ("Devenir Jobber", "Ouvrir un compte entreprise"…) should send
@@ -32,15 +33,16 @@ export default function AudienceBlock({
       <div className={reverse ? 'md:order-2' : ''}>
         <span className={`block font-display text-base font-bold uppercase tracking-wide ${eyebrowClass}`}>{eyebrow}</span>
         <h2 className="mt-3 font-display text-3xl font-semibold leading-[1.1] text-ink md:text-4xl">{title}</h2>
-        <p className="mt-3 max-w-md text-slate-700">{description}</p>
+        <p className="mt-3 max-w-md text-sm text-slate-700">{description}</p>
         <div className="mt-6 flex flex-wrap gap-3">
           {buttons.map((b) => (
             <Link
               key={b.href}
               href={user && SIGNUP_HREFS.includes(b.href) ? '/account' : b.href}
-              className={`inline-block rounded-md px-5 py-3 font-medium ${BUTTON_STYLES[b.variant || 'primary']}`}
+              className={`inline-flex items-center gap-2 rounded-md px-5 py-3 font-medium ${BUTTON_STYLES[b.variant || 'primary']}`}
             >
               {b.label}
+              {b.label === 'En savoir plus' && <span className="font-bold text-ochre">+</span>}
             </Link>
           ))}
         </div>

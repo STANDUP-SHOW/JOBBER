@@ -28,9 +28,13 @@ function Block({ value, label }) {
 // Live countdown to the official launch date (15/09/2026) — shown on the
 // homepage bêta banner alongside the launch-offer callout.
 export default function LaunchCountdown() {
-  const [left, setLeft] = useState(timeLeft);
+  // Starts null (not timeLeft()) so the server-rendered markup has nothing
+  // time-dependent to mismatch against — the real value fills in right
+  // after mount instead of racing the SSR clock.
+  const [left, setLeft] = useState(null);
 
   useEffect(() => {
+    setLeft(timeLeft());
     const id = setInterval(() => setLeft(timeLeft()), 1000);
     return () => clearInterval(id);
   }, []);

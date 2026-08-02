@@ -36,30 +36,20 @@ const COMPARISON = [
   ['Frais d\'agence', 'Commission d\'intérim en plus du salaire', 'Frais fixes et transparents, inclus à la mission'],
 ];
 
+const PAID_ADDONS = [
+  { label: 'Plateforme corporate de gestion', price: '50 € TTC / mois' },
+  { label: 'Site SEO secteur pour référencement local', price: '249,90 €' },
+];
+
 const PLANS = [
-  {
-    name: 'Sans abonnement',
-    price: null,
-    detail: '10 € de frais par mission — gratuit pour le jobber',
-    addons: ['Plateforme Corporate de sous-traitance jobbers : 50 € TTC / mois', 'Création site SEO secteur pour référencement local : 249,90 €'],
-  },
-  {
-    name: 'Entreprise 20',
-    price: '99,90 €',
-    detail: '20 missions par mois sans frais',
-    addons: ['Plateforme Corporate de sous-traitance jobbers : 50 € TTC / mois', 'Création site SEO secteur pour référencement local : 249,90 €'],
-  },
-  {
-    name: 'Entreprise 50',
-    price: '199,90 €',
-    detail: '50 missions par mois sans frais',
-    addons: ['Plateforme Corporate de sous-traitance jobbers : 50 € TTC / mois', 'Création site SEO secteur pour référencement local : 249,90 €'],
-  },
+  { name: 'Sans abonnement', price: null, detail: '10 € de frais par mission — gratuit pour le jobber', addons: PAID_ADDONS },
+  { name: 'Entreprise 20', price: '99,90 €', detail: '20 missions par mois sans frais', addons: PAID_ADDONS },
+  { name: 'Entreprise 50', price: '199,90 €', detail: '50 missions par mois sans frais', addons: PAID_ADDONS },
   {
     name: 'Entreprise Illimité',
     price: '499,90 €',
     detail: 'Tout inclus — missions illimitées, aucun frais de mission',
-    addons: ['Plateforme Corporate de sous-traitance jobbers : offerte', 'Création site SEO secteur pour référencement local : offerte'],
+    addons: [{ label: 'Plateforme corporate de gestion', offered: true }, { label: 'Site SEO secteur', offered: true }],
   },
 ];
 
@@ -213,11 +203,23 @@ export default function EntreprisesPage() {
               {plan.addons && (
                 <div className="mt-3 border-t border-slate-100 pt-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Options facultatives</p>
-                  <ul className="mt-1.5 space-y-1">
+                  <ul className="mt-1.5 space-y-1.5">
                     {plan.addons.map((addon) => (
-                      <li key={addon} className="text-xs text-slate-500">{addon}</li>
+                      <li key={addon.label} className="flex items-center justify-between gap-2">
+                        <span className="text-xs text-slate-500">{addon.label}</span>
+                        {addon.offered ? (
+                          <span className="shrink-0 rounded-md bg-yellow-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-800">
+                            Offert
+                          </span>
+                        ) : (
+                          <span className="shrink-0 text-xs text-slate-500">{addon.price}</span>
+                        )}
+                      </li>
                     ))}
                   </ul>
+                  {plan.addons.some((a) => a.offered) && (
+                    <p className="mt-2 text-[11px] text-slate-400">Offerts durant toute la durée de l'abonnement.</p>
+                  )}
                 </div>
               )}
             </div>

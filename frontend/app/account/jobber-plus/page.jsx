@@ -59,7 +59,12 @@ export default function JobberPlusPage() {
             Votre back-office privé pour gérer vos demandes, vos jobbers et vos clients — comme Jobber+ le fait
             pour ses propres partenaires Corporate.
           </p>
-          <p className="mt-2 text-xs text-slate-400">Offerte avec la formule Entreprise Illimité.</p>
+          <div className="mt-2 flex items-center gap-2">
+            <span className="rounded-md bg-yellow-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-800">
+              Offert
+            </span>
+            <span className="text-xs text-slate-400">avec Entreprise Illimité, durant toute la durée de l'abonnement.</span>
+          </div>
         </div>
 
         <div className="rounded-lg border border-slate-200 bg-white p-4">
@@ -74,7 +79,12 @@ export default function JobberPlusPage() {
             Un site vitrine optimisé pour le référencement local sur votre secteur d'activité et votre zone
             géographique.
           </p>
-          <p className="mt-2 text-xs text-slate-400">Offerte avec la formule Entreprise Illimité.</p>
+          <div className="mt-2 flex items-center gap-2">
+            <span className="rounded-md bg-yellow-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-800">
+              Offert
+            </span>
+            <span className="text-xs text-slate-400">avec Entreprise Illimité, durant toute la durée de l'abonnement.</span>
+          </div>
         </div>
       </div>
 

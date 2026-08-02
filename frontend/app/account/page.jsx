@@ -124,9 +124,10 @@ export default function AccountPage() {
               </p>
               <Link
                 href="/account/jobber-plus"
-                className="mt-3 inline-block rounded-md bg-moss px-4 py-2 text-sm font-medium text-paper hover:bg-moss-dark"
+                className="mt-3 inline-flex items-center gap-2 rounded-md bg-moss px-4 py-2 text-sm font-medium text-paper hover:bg-moss-dark"
               >
                 En savoir plus
+                <span className="font-bold text-ochre">+</span>
               </Link>
             </div>
           </div>

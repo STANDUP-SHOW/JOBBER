@@ -42,15 +42,24 @@ export default async function HomePage() {
           <p className="max-w-2xl leading-snug">
             <strong>Bienvenue sur la nouvelle plateforme Jobber+ !</strong> Cette version est en bêta-test en ligne
             depuis le 01/08/2026, elle nous permet d'effectuer les derniers réglages — les missions affichées sont
-            des missions test. Mais les jobbers peuvent déjà s'inscrire et profiter de notre{' '}
-            <strong>offre cadeau de naissance Jobber+</strong> : les 20 premières missions sans aucun frais de
-            plateforme, vous encaissez ce que le client paie.{' '}
-            <Link href="/offre-lancement" className="font-semibold text-moss underline underline-offset-2 hover:text-moss-dark">
-              En savoir plus →
-            </Link>
+            des missions test.
           </p>
           <LaunchCountdown />
         </div>
+      </section>
+
+      <section className="mt-4 flex flex-col items-center gap-4 rounded-lg border-2 border-moss bg-moss-light px-6 py-6 text-center md:flex-row md:justify-between md:text-left">
+        <div>
+          <div className="font-display text-xl font-bold text-ink">Cadeau de naissance de plateforme</div>
+          <p className="mt-1 text-sm text-ink">
+            Les jobbers peuvent déjà s'inscrire et profiter de notre offre cadeau de naissance Jobber+ : Carte
+            JobberGold — les 20 premières missions sans aucun frais de plateforme !
+          </p>
+        </div>
+        <Link href="/offre-lancement" className="inline-flex shrink-0 items-center gap-2 rounded-md bg-moss px-5 py-3 font-medium text-paper hover:bg-moss-dark">
+          En savoir plus
+          <span className="font-bold text-ochre">+</span>
+        </Link>
       </section>
 
       <section className="py-6 text-center">
@@ -77,7 +86,7 @@ export default async function HomePage() {
         ]}
         buttons={[
           { href: '/missions/new', label: 'Publier un besoin', variant: 'moss' },
-          { href: '/particulier-employeur', label: 'En savoir plus', variant: 'outline' },
+          { href: '/particulier-employeur', label: 'En savoir plus', variant: 'moss' },
         ]}
       />
 
@@ -89,8 +98,9 @@ export default async function HomePage() {
           </p>
           <p className="mt-0.5 text-sm text-moss-dark">Voir les services éligibles au crédit d'impôt →</p>
         </div>
-        <Link href="/credit-impot" className="shrink-0 rounded-md bg-moss px-5 py-3 font-medium text-paper hover:bg-moss-dark">
+        <Link href="/credit-impot" className="inline-flex shrink-0 items-center gap-2 rounded-md bg-moss px-5 py-3 font-medium text-paper hover:bg-moss-dark">
           En savoir plus
+          <span className="font-bold text-ochre">+</span>
         </Link>
       </section>
 
@@ -113,7 +123,7 @@ export default async function HomePage() {
         ]}
         buttons={[
           { href: '/auth/register', label: 'Devenir Jobber', variant: 'primary' },
-          { href: '/devenir-jobber', label: 'En savoir plus', variant: 'outline' },
+          { href: '/devenir-jobber', label: 'En savoir plus', variant: 'moss' },
         ]}
       />
 
@@ -130,7 +140,7 @@ export default async function HomePage() {
         ]}
         buttons={[
           { href: '/auth/register', label: 'Devenez Jobber Pro', variant: 'primary' },
-          { href: '/travailler-avec-les-entreprises', label: 'En savoir plus', variant: 'outline' },
+          { href: '/travailler-avec-les-entreprises', label: 'En savoir plus', variant: 'moss' },
         ]}
       />
 
@@ -178,17 +188,16 @@ export default async function HomePage() {
         ]}
         buttons={[
           { href: '/auth/register-entreprise', label: 'Ouvrir un compte entreprise', variant: 'moss' },
-          { href: '/entreprises', label: 'En savoir plus', variant: 'outline' },
+          { href: '/entreprises', label: 'En savoir plus', variant: 'moss' },
+          { href: '/entreprises#comparateur-interim', label: 'Simulateur comparaison intérim / Jobber', variant: 'blue-yellow' },
         ]}
       />
 
       <section className="mt-16 flex flex-col items-center gap-4 rounded-lg border-2 border-moss bg-moss-light px-6 py-6 text-center md:flex-row md:justify-between md:text-left">
         <div>
-          <div className="font-display text-xl font-bold text-ink">Entrepreneurs, indépendants</div>
+          <div className="font-display text-xl font-bold text-ink">Développez votre secteur géographique</div>
           <p className="mt-1 text-sm text-ink">
-            Commencez à développer votre secteur géographique en sous-traitant à d'autres jobbers. Vous avez une
-            idée ? On la met en place, on vous référence sur votre secteur, et votre plateforme se gère toute
-            seule — devis, factures, etc. Nous ne vous prenons plus la tête : utilisez une plateforme corporate.
+            Ne vous prenez plus la tête : utilisez une plateforme corporate.
           </p>
         </div>
         <Link href="/plateforme-corporate" className="inline-flex shrink-0 items-center gap-2 rounded-md bg-moss px-5 py-3 font-medium text-paper hover:bg-moss-dark">
@@ -270,8 +279,9 @@ export default async function HomePage() {
             </div>
           ))}
         </div>
-        <Link href="/confiance" className="mt-6 inline-block rounded-md bg-moss px-6 py-3 font-medium text-paper hover:bg-moss-dark">
+        <Link href="/confiance" className="mt-6 inline-flex items-center gap-2 rounded-md bg-moss px-6 py-3 font-medium text-paper hover:bg-moss-dark">
           En savoir plus
+          <span className="font-bold text-ochre">+</span>
         </Link>
       </section>
 
