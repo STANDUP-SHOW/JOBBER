@@ -7,6 +7,7 @@ import { useAuth } from '../../../lib/auth-context';
 import StarRating from '../../../components/StarRating';
 import VehicleIcon, { VEHICLES } from '../../../components/VehicleIcon';
 import SubscriptionBadge from '../../../components/SubscriptionBadge';
+import { BADGE_CATALOG } from '../../../lib/badgeCatalog';
 
 const LEVEL_LABEL = { PROFESSIONNEL: 'Professionnel', EXPERT: 'Expert', PASSIONNE: 'Passionné' };
 const LEVEL_STYLE = {
@@ -83,6 +84,25 @@ export default function ProviderProfilePage() {
           )}
         </div>
       </div>
+
+      {provider.badges?.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {provider.badges.map((key) => {
+            const badge = BADGE_CATALOG[key];
+            if (!badge) return null;
+            return (
+              <span
+                key={key}
+                title={badge.label}
+                className="flex items-center gap-1 rounded-full bg-blue-600 px-2.5 py-1 text-xs font-bold text-yellow-300"
+              >
+                <span>{badge.icon}</span>
+                {badge.label}
+              </span>
+            );
+          })}
+        </div>
+      )}
 
       {profile.categories?.length > 0 && (
         <div className="mt-5">

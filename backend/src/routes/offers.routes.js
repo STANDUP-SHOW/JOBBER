@@ -55,6 +55,12 @@ router.post('/', requireAuth, async (req, res, next) => {
     if (data.proposedSlots?.length && !mission.datesFlexible) {
       return res.status(400).json({ error: 'Les dates ne sont pas flexibles' });
     }
+    if (mission.requiredBadges?.includes('PRO')) {
+      const candidate = await prisma.user.findUnique({ where: { id: req.user.id }, select: { isProfessional: true } });
+      if (!candidate?.isProfessional) {
+        return res.status(403).json({ error: 'Cette mission est réservée aux jobbers professionnels (badge PRO)' });
+      }
+    }
 
     // Labels are resolved server-side from the fixed catalog rather than trusted
     // from the client, so a tampered payload can't inject arbitrary text.

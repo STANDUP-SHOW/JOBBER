@@ -1,5 +1,6 @@
 import VehicleIcon, { VEHICLES } from './VehicleIcon';
 import MechanicVehicleIcon, { MECHANIC_VEHICLE_TYPES } from './MechanicVehicleIcon';
+import { BADGE_CATALOG } from '../lib/badgeCatalog';
 
 function ToolboxIcon(props) {
   return (
@@ -81,6 +82,20 @@ export default function MissionBadges({ mission, className = '' }) {
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ochre-light text-ochre-dark"
           >
             <VehicleIcon type={type} className="h-7 w-9" />
+          </span>
+        );
+      })}
+      {(mission.requiredBadges || []).map((key) => {
+        const badge = BADGE_CATALOG[key];
+        if (!badge) return null;
+        return (
+          <span
+            key={key}
+            title={badge.label}
+            className="flex items-center gap-1 rounded-full bg-blue-600 px-2.5 py-0.5 text-xs font-bold text-yellow-300"
+          >
+            <span>{badge.icon}</span>
+            {badge.label}
           </span>
         );
       })}

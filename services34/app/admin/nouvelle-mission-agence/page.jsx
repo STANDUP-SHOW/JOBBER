@@ -21,6 +21,7 @@ function emptyForm() {
     isUrgent: false, datesFlexible: false, workAtHeight: null,
     requiredEquipmentIds: [], otherEquipmentChecked: false, otherEquipmentNote: '',
     requiredVehicleTypes: [], otherVehicleChecked: false, otherVehicleNote: '',
+    isGetMission: false, getMissionPrice: 100,
   };
 }
 
@@ -73,6 +74,8 @@ export default function NouvelleMissionAgencePage() {
         otherEquipmentNote: form.otherEquipmentChecked ? form.otherEquipmentNote.trim() : '',
         requiredVehicleTypes: form.requiredVehicleTypes,
         otherVehicleNote: form.otherVehicleChecked ? form.otherVehicleNote.trim() : '',
+        isGetMission: form.isGetMission,
+        getMissionPrice: form.isGetMission ? Number(form.getMissionPrice) : undefined,
       }, token);
       setMessage('Mission agence créée.');
       setShowForm(false);
@@ -163,7 +166,38 @@ export default function NouvelleMissionAgencePage() {
               >
                 Dates flexibles
               </button>
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, isGetMission: !f.isGetMission }))}
+                className={`col-span-2 rounded-lg border-2 py-3 text-center text-sm font-bold uppercase tracking-wide transition ${
+                  form.isGetMission ? 'border-green-600 bg-green-600 text-white' : 'border-slate-200 text-slate-500 hover:border-green-600 hover:text-green-600'
+                }`}
+              >
+                GET Mission — tarif fixe non négociable
+              </button>
             </div>
+
+            {form.isGetMission && (
+              <div className="mt-3 flex items-center justify-center gap-4 rounded-lg bg-paper p-4">
+                <button
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, getMissionPrice: Math.max(5, Number(f.getMissionPrice) - 5) }))}
+                  aria-label="Diminuer le tarif"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-green-600 text-xl font-semibold text-white hover:bg-green-700"
+                >
+                  −
+                </button>
+                <span className="min-w-[6rem] text-center font-display text-2xl font-bold text-ink">{form.getMissionPrice} €</span>
+                <button
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, getMissionPrice: Number(f.getMissionPrice) + 5 }))}
+                  aria-label="Augmenter le tarif"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-green-600 text-xl font-semibold text-white hover:bg-green-700"
+                >
+                  +
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="flex gap-3">

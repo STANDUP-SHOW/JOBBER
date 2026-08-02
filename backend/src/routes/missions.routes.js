@@ -4,6 +4,7 @@ const prisma = require('../config/prisma');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { geocodeAddress, jitterCoordinate, haversineDistanceKm } = require('../services/geocodingService');
 const { generateCorporateCode, resolveAgencyFromOrigin, brandKeyForDomain } = require('../utils/agency');
+const { REQUIRABLE_BADGES } = require('../utils/badges');
 const { finalizeBooking, round2 } = require('../services/bookingService');
 const { sendMissionPublishedEmail, notifyBookingAccepted } = require('../services/emailService');
 
@@ -106,6 +107,9 @@ const createMissionSchema = z.object({
   // stripped server-side below for individual accounts.
   isGetMission: z.boolean().optional().default(false),
   getMissionPrice: z.number().positive().optional(),
+  // Badges required from a candidate jobber — only PRO is actually
+  // enforced (see POST /offers), the rest are informational.
+  requiredBadges: z.array(z.string()).optional().default([]),
 });
 
 // Categories where a mission moves something/someone from A to B — the form
@@ -118,6 +122,7 @@ const TRANSPORT_CATEGORY_SLUGS = ['demenagement', 'convoi', 'transport'];
 router.post('/', requireAuth, async (req, res, next) => {
   try {
     const { requiredEquipmentIds, dates, ...data } = createMissionSchema.parse(req.body);
+    data.requiredBadges = data.requiredBadges.filter((b) => REQUIRABLE_BADGES.includes(b));
     if (!data.isRecurring) { data.recurrenceCount = undefined; data.recurrenceUnit = undefined; }
     const scheduleEntries = data.isRecurring ? dates : [];
 

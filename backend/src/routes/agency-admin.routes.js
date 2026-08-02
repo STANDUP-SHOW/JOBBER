@@ -270,6 +270,11 @@ const createAgencyMissionSchema = z.object({
   otherEquipmentNote: z.string().max(200).optional().transform((v) => (v ? v : undefined)),
   otherVehicleNote: z.string().max(200).optional().transform((v) => (v ? v : undefined)),
   details: missionDetailsSchema,
+  // Same GET Mission mechanic as jobber.city's own creation form — a fixed,
+  // non-negotiable total price, first jobber to claim it gets it. Only
+  // meaningful once the agency publishes this mission to Jobber.
+  isGetMission: z.boolean().optional().default(false),
+  getMissionPrice: z.number().positive().optional(),
 });
 
 // "Créer une mission agence" — the agency originates the mission itself
@@ -281,6 +286,11 @@ const createAgencyMissionSchema = z.object({
 router.post('/missions', async (req, res, next) => {
   try {
     const { requiredEquipmentIds, dates, ...data } = createAgencyMissionSchema.parse(req.body);
+    if (!data.isGetMission) {
+      data.getMissionPrice = undefined;
+    } else if (!data.getMissionPrice) {
+      return res.status(400).json({ error: 'Le tarif de la GET Mission est requis' });
+    }
     const category = await prisma.category.findUnique({ where: { id: data.categoryId }, select: { id: true, slug: true } });
     if (!category) return res.status(400).json({ error: 'Catégorie introuvable' });
 
@@ -310,6 +320,8 @@ router.post('/missions', async (req, res, next) => {
         otherEquipmentNote: data.otherEquipmentNote,
         otherVehicleNote: data.otherVehicleNote,
         details: data.details,
+        isGetMission: data.isGetMission,
+        getMissionPrice: data.getMissionPrice,
         clientId: req.agency.id,
         corporateAgencyId: req.agency.id,
         corporateCode: generateCorporateCode(category.slug),

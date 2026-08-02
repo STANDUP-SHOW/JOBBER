@@ -5,6 +5,7 @@ const { requireAuth } = require('../middleware/auth');
 const { geocodeAddress } = require('../services/geocodingService');
 const { isValidSiret } = require('../utils/siret');
 const { generateCategoryBio } = require('../services/aiService');
+const { computeBadges } = require('../utils/badges');
 
 const router = express.Router();
 
@@ -111,8 +112,36 @@ router.get('/providers/:id', async (req, res, next) => {
       },
     });
     if (!provider || !provider.providerProfile) return res.status(404).json({ error: 'Prestataire introuvable' });
+
+    // Best single category by completed-mission count — only that category
+    // earns an expertise badge, not every category this jobber has worked in.
+    const completedByCategory = await prisma.booking.findMany({
+      where: { providerId: provider.id, status: 'COMPLETED' },
+      select: { mission: { select: { categoryId: true } } },
+    });
+    const categoryCounts = {};
+    for (const b of completedByCategory) {
+      const catId = b.mission?.categoryId;
+      if (catId) categoryCounts[catId] = (categoryCounts[catId] || 0) + 1;
+    }
+    const bestCategoryCount = Math.max(0, ...Object.values(categoryCounts));
+
     const { subscriptions, ...p } = provider;
-    res.json({ provider: { ...p, subscriptionPlan: subscriptions.find((s) => s.currentPeriodEnd > new Date())?.plan || null } });
+    const badges = computeBadges({
+      isProfessional: provider.isProfessional,
+      createdAt: provider.createdAt,
+      completedMissions: provider.providerProfile.completedMissions,
+      ratingAverage: provider.providerProfile.ratingAverage,
+      ratingCount: provider.providerProfile.ratingCount,
+      bestCategoryCount,
+    });
+    res.json({
+      provider: {
+        ...p,
+        subscriptionPlan: subscriptions.find((s) => s.currentPeriodEnd > new Date())?.plan || null,
+        badges,
+      },
+    });
   } catch (err) { next(err); }
 });
 

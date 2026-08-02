@@ -509,6 +509,11 @@ model Mission {
   // Emily") to track who's doing what. Null until assigned.
   planningId     String?
   planning       Planning?     @relation(fields: [planningId], references: [id])
+  // Badge keys (see backend/src/utils/badges.js REQUIRABLE_BADGES) the
+  // poster wants from a candidate jobber. Only PRO is actually enforced
+  // when POSTing an offer — every other selectable badge is informational,
+  // shown on mission tiles, and never blocks a candidature.
+  requiredBadges String[]      @default([])
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 

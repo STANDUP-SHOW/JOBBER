@@ -8,6 +8,7 @@ import MissionPhotosUpload from '../../../components/MissionPhotosUpload';
 import AddressAutocomplete from '../../../components/AddressAutocomplete';
 import VehicleIcon, { VEHICLES } from '../../../components/VehicleIcon';
 import { WORK_AT_HEIGHT_EQUIPMENT_NAMES } from '../../../lib/workAtHeightEquipment';
+import { BADGE_CATALOG, REQUIRABLE_BADGES, BADGE_CATEGORY_LABELS } from '../../../lib/badgeCatalog';
 
 const TRANSPORT_CATEGORY_SLUGS = ['convoi', 'demenagement', 'transport'];
 // Categories where the jobber accompanies a person (courses, rendez-vous,
@@ -86,6 +87,7 @@ function NewMissionForm() {
     requiredMachines: [],
     isGetMission: false,
     getMissionPrice: 100,
+    requiredBadges: [],
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -142,6 +144,15 @@ function NewMissionForm() {
       requiredMachines: f.requiredMachines.includes(item)
         ? f.requiredMachines.filter((m) => m !== item)
         : [...f.requiredMachines, item],
+    }));
+  }
+
+  function toggleRequiredBadge(key) {
+    setForm((f) => ({
+      ...f,
+      requiredBadges: f.requiredBadges.includes(key)
+        ? f.requiredBadges.filter((b) => b !== key)
+        : [...f.requiredBadges, key],
     }));
   }
 
@@ -641,6 +652,40 @@ function NewMissionForm() {
                 </button>
               </div>
             )}
+          </div>
+        )}
+
+        {!isLessonMode && (
+          <div>
+            <span className="text-sm font-semibold text-ink">Badges souhaités chez le jobber (optionnel)</span>
+            <p className="mt-1 text-sm text-slate-500">
+              Le badge PRO est le seul qui restreint réellement les candidatures — les autres sont indicatifs et
+              affichés sur la vignette de la mission, sans empêcher qui que ce soit de postuler.
+            </p>
+            {Object.entries(
+              REQUIRABLE_BADGES.reduce((groups, key) => {
+                const cat = BADGE_CATALOG[key].category;
+                (groups[cat] = groups[cat] || []).push(key);
+                return groups;
+              }, {})
+            ).map(([cat, keys]) => (
+              <div key={cat} className="mt-3">
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">{BADGE_CATEGORY_LABELS[cat]}</span>
+                <div className="mt-1.5 grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
+                  {keys.map((key) => (
+                    <label key={key} className="flex items-center gap-2.5 text-sm text-ink">
+                      <input
+                        type="checkbox"
+                        checked={form.requiredBadges.includes(key)}
+                        onChange={() => toggleRequiredBadge(key)}
+                        className="h-4 w-4 shrink-0 rounded border-slate-300 accent-moss"
+                      />
+                      <span>{BADGE_CATALOG[key].icon} {BADGE_CATALOG[key].label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
