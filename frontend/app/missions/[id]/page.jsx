@@ -5,12 +5,21 @@ import { useParams, useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 import ApplyOfferSheet from '../../../components/ApplyOfferSheet';
-import StarRating from '../../../components/StarRating';
 import MissionRouteMap from '../../../components/MissionRouteMap';
 import MissionBadges from '../../../components/MissionBadges';
-import RequiredBadgesPanel from '../../../components/RequiredBadgesPanel';
-import { VEHICLES } from '../../../components/VehicleIcon';
+import VehicleIcon, { VEHICLES } from '../../../components/VehicleIcon';
 import MechanicVehicleIcon, { MECHANIC_VEHICLE_TYPES } from '../../../components/MechanicVehicleIcon';
+import { BADGE_CATALOG } from '../../../lib/badgeCatalog';
+
+function ToolboxIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <rect x="2" y="8" width="20" height="12" rx="2" />
+      <path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <path d="M2 13h20" />
+    </svg>
+  );
+}
 
 function CalendarIcon(props) {
   return (
@@ -147,22 +156,27 @@ function MissionDetails({ mission }) {
 
 function MissionRequirements({ mission }) {
   const equipmentNames = (mission.requiredEquipment || []).map((re) => re.equipment.name);
-  const vehicleLabels = (mission.requiredVehicleTypes || []).map((t) => VEHICLES.find((v) => v.type === t)?.label || t);
+  const vehicleEntries = (mission.requiredVehicleTypes || []).map((t) => ({ type: t, label: VEHICLES.find((v) => v.type === t)?.label || t }));
   const hasEquipment = equipmentNames.length > 0 || mission.otherEquipmentNote;
-  const hasVehicle = vehicleLabels.length > 0 || mission.otherVehicleNote;
+  const hasVehicle = vehicleEntries.length > 0 || mission.otherVehicleNote;
   const hasPpe = (mission.requiredPpe || []).length > 0;
   const hasMachine = (mission.requiredMachines || []).length > 0;
-  if (!hasEquipment && !hasVehicle && !hasPpe && !hasMachine) return null;
+  const requiredBadgeKeys = (mission.requiredBadges || []).filter((k) => BADGE_CATALOG[k]);
+  const hasBadges = requiredBadgeKeys.length > 0;
+  if (!hasEquipment && !hasVehicle && !hasPpe && !hasMachine && !hasBadges) return null;
 
   return (
     <div className="mt-6 border-t border-slate-100 pt-5">
       <h2 className="font-display text-lg font-medium text-ink">Prérequis</h2>
-      <div className="mt-3 space-y-3">
+      <div className="mt-3 space-y-4">
         {hasEquipment && (
           <div>
-            <span className="text-sm font-semibold text-slate-600">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-moss-light text-moss-dark">
+                <ToolboxIcon className="h-5 w-5" />
+              </span>
               Matériel à apporter {mission.equipmentProvidedByCompany && '— fourni par l\'entreprise'}
-            </span>
+            </div>
             <div className="mt-1.5 flex flex-wrap gap-2">
               {equipmentNames.map((name) => (
                 <span key={name} className="rounded-full bg-moss-light px-3 py-1 text-sm text-moss-dark">{name}</span>
@@ -176,13 +190,37 @@ function MissionRequirements({ mission }) {
         {hasVehicle && (
           <div>
             <span className="text-sm font-semibold text-slate-600">Véhicule requis</span>
-            <div className="mt-1.5 flex flex-wrap gap-2">
-              {vehicleLabels.map((label) => (
-                <span key={label} className="rounded-full bg-ochre-light px-3 py-1 text-sm text-ochre-dark">{label}</span>
+            <div className="mt-1.5 flex flex-wrap gap-3">
+              {vehicleEntries.map(({ type, label }) => (
+                <div key={type} className="flex flex-col items-center gap-1">
+                  <span className="flex h-10 w-14 items-center justify-center rounded-lg bg-ochre-light text-ochre-dark">
+                    <VehicleIcon type={type} className="h-7 w-9" />
+                  </span>
+                  <span className="text-xs text-slate-500">{label}</span>
+                </div>
               ))}
               {mission.otherVehicleNote && (
-                <span className="rounded-full bg-ochre-light px-3 py-1 text-sm text-ochre-dark">{mission.otherVehicleNote}</span>
+                <span className="self-center rounded-full bg-ochre-light px-3 py-1 text-sm text-ochre-dark">{mission.otherVehicleNote}</span>
               )}
+            </div>
+          </div>
+        )}
+        {hasBadges && (
+          <div>
+            <span className="text-sm font-semibold text-slate-600">Badges souhaités chez le jobber</span>
+            <div className="mt-1.5 space-y-2">
+              {requiredBadgeKeys.map((key) => {
+                const badge = BADGE_CATALOG[key];
+                return (
+                  <div key={key} className="flex items-start gap-2 rounded-lg bg-blue-600 p-3">
+                    <span className="text-lg leading-none">{badge.icon}</span>
+                    <div>
+                      <div className="text-sm font-bold text-yellow-300">{badge.name}</div>
+                      <div className="text-xs text-yellow-100">{badge.label}</div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -368,8 +406,6 @@ export default function MissionDetailPage() {
           )}
         </div>
 
-        <RequiredBadgesPanel requiredBadges={mission.requiredBadges} />
-
         {mission.photos?.length > 0 && (
           <div className="mt-5 flex gap-2 overflow-x-auto">
             {mission.photos.map((url) => (
@@ -511,25 +547,18 @@ export default function MissionDetailPage() {
             return (
               <div key={offer.id} className="rounded-lg border border-slate-200 bg-white p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-ink">{offer.provider.firstName} {offer.provider.lastName?.[0]}.</span>
-                      {offer.provider.providerProfile?.ratingCount > 0 && (
-                        <span className="flex items-center gap-1 text-xs text-slate-500">
-                          <StarRating value={offer.provider.providerProfile.ratingAverage} size={12} />
-                          {offer.provider.providerProfile.ratingAverage.toFixed(1)} ({offer.provider.providerProfile.ratingCount})
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-sm text-slate-500">{offer.hourlyRate} €/h {offer.message ? `— "${offer.message}"` : ''}</div>
-                    {offer.extraFees?.length > 0 && (
-                      <ul className="mt-1 space-y-0.5 text-xs text-slate-500">
-                        {offer.extraFees.map((f) => (
-                          <li key={f.key}>+ {f.label} : {f.amount} €</li>
-                        ))}
-                      </ul>
+                  <div className="flex flex-col items-center gap-1.5">
+                    {offer.provider.avatarUrl ? (
+                      <img src={offer.provider.avatarUrl} alt="" className="h-14 w-14 rounded-full object-cover" />
+                    ) : (
+                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-moss-light font-display text-lg text-moss-dark">
+                        {offer.provider.firstName?.[0]}
+                      </div>
                     )}
-                    <div className="text-xs text-slate-400 mt-1">Statut : {offer.status}</div>
+                    <span className="text-sm font-medium text-ink">{offer.provider.firstName}</span>
+                    {offer.provider.isProfessional && (
+                      <span className="rounded-full bg-ochre px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink">PRO</span>
+                    )}
                   </div>
                   {offer.status === 'PENDING' && mission.status === 'OPEN' && !hasProposedSlots && (
                     <button

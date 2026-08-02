@@ -275,7 +275,7 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
         service: true,
         client: { select: { id: true, firstName: true, avatarUrl: true, accountKind: true, companyType: true, companyName: true } },
         corporateAgency: { select: { companyName: true } },
-        offers: { include: { provider: { select: { id: true, firstName: true, lastName: true, avatarUrl: true, providerProfile: true } } } },
+        offers: { include: { provider: { select: { id: true, firstName: true, lastName: true, avatarUrl: true, isProfessional: true, providerProfile: true } } } },
         booking: true,
         requiredEquipment: { include: { equipment: true } },
       },

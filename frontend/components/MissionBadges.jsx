@@ -89,7 +89,8 @@ export default function MissionBadges({ mission, className = '' }) {
         const badge = BADGE_CATALOG[key];
         if (!badge) return null;
         // Icon only on tiles/maps — the full name + description shows on
-        // the mission detail page (see RequiredBadgesPanel), not here.
+        // the mission detail page (see MissionRequirements' "Prérequis"
+        // block), not here.
         return (
           <span key={key} title={`${badge.name} — ${badge.label}`} className="text-lg leading-none">
             {badge.icon}
