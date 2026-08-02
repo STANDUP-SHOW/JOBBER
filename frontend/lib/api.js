@@ -33,7 +33,7 @@ export const api = {
     const qs = new URLSearchParams(params).toString();
     return request(`/missions${qs ? `?${qs}` : ''}`, { token });
   },
-  getMission: (id) => request(`/missions/${id}`),
+  getMission: (id, token) => request(`/missions/${id}`, { token }),
   cancelMission: (id, token) => request(`/missions/${id}/cancel`, { method: 'PATCH', token }),
   claimGetMission: (id, token) => request(`/missions/${id}/get`, { method: 'POST', token }),
 

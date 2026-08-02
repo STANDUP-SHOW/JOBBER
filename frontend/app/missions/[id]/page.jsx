@@ -226,11 +226,11 @@ export default function MissionDetailPage() {
   const [selectedSlots, setSelectedSlots] = useState({}); // offerId -> slot index
 
   async function refresh() {
-    const { mission } = await api.getMission(id);
+    const { mission } = await api.getMission(id, token);
     setMission(mission);
   }
 
-  useEffect(() => { refresh().catch((e) => setError(e.message)); }, [id]);
+  useEffect(() => { refresh().catch((e) => setError(e.message)); }, [id, token]);
 
   const isOwner = user && mission && mission.clientId === user.id;
   const alreadyApplied = user && mission?.offers?.some((o) => o.providerId === user.id);
@@ -359,6 +359,11 @@ export default function MissionDetailPage() {
             </>
           ) : (
             <InfoRow icon={PinIcon}>{shortAddress(mission.address)}</InfoRow>
+          )}
+          {mission.distanceKm != null && (
+            <InfoRow icon={PinIcon}>
+              <strong>{mission.distanceKm < 1 ? `${Math.round(mission.distanceKm * 1000)} m` : `${mission.distanceKm} km`}</strong> depuis votre adresse — pensez-y pour vos frais de route
+            </InfoRow>
           )}
         </div>
 

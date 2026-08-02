@@ -277,7 +277,20 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
     });
     if (!mission) return res.status(404).json({ error: 'Mission introuvable' });
     const isOwner = req.user && req.user.id === mission.clientId;
-    res.json({ mission: withPublicPosition(maskCorporateClient(mission, isOwner)) });
+
+    // Distance from the viewing jobber's own address to the mission's real
+    // (un-jittered) coordinates — shown regardless of whether the client is
+    // a corporate agency, so a jobber can judge travel and route fees
+    // before ever applying, not just once assigned.
+    let distanceKm = null;
+    if (req.user && mission.lat != null && mission.lng != null) {
+      const viewer = await prisma.user.findUnique({ where: { id: req.user.id }, select: { lat: true, lng: true } });
+      if (viewer?.lat != null && viewer?.lng != null) {
+        distanceKm = Math.round(haversineDistanceKm(viewer.lat, viewer.lng, mission.lat, mission.lng) * 10) / 10;
+      }
+    }
+
+    res.json({ mission: { ...withPublicPosition(maskCorporateClient(mission, isOwner)), distanceKm } });
   } catch (err) {
     next(err);
   }
