@@ -21,6 +21,8 @@ const NAV = [
   { href: '/admin/planning', label: 'Planning' },
   { href: '/admin/employes', label: 'Mes employés OFF' },
   { href: '/admin/employes-actifs', label: 'Mes employés ON' },
+  { href: '/admin/clients', label: 'Membres inscrits' },
+  { href: '/admin/contact-messages', label: 'Messages' },
   { href: '/admin/parametres', label: 'Paramètres du compte' },
 ];
 
@@ -59,7 +61,8 @@ export default function AdminShell({ children }) {
               key={item.href}
               href={item.href}
               className={`block rounded-md px-3 py-2 text-sm font-medium ${
-                pathname === item.href ? 'bg-brand text-white' : 'text-ink hover:bg-brand-light'
+                (item.href === '/admin' ? pathname === item.href : pathname.startsWith(item.href))
+                  ? 'bg-brand text-white' : 'text-ink hover:bg-brand-light'
               }`}
             >
               {item.label}

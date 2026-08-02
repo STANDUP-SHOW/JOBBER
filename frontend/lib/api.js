@@ -93,6 +93,16 @@ export const api = {
   adminStats: (token) => request('/admin/stats', { token }),
   adminUsers: (token) => request('/admin/users', { token }),
 
+  submitContactMessage: (payload, token) => request('/contact-messages', { method: 'POST', body: payload, token }),
+  adminContactMessages: (token) => request('/admin/contact-messages', { token }),
+  adminContactMessage: (id, token) => request(`/admin/contact-messages/${id}`, { token }),
+  adminMarkContactMessage: (id, status, token) => request(`/admin/contact-messages/${id}`, { method: 'PATCH', body: { status }, token }),
+  adminMembers: (params = {}, token) => {
+    const qs = new URLSearchParams(params).toString();
+    return request(`/admin/members${qs ? `?${qs}` : ''}`, { token });
+  },
+  adminMember: (id, token) => request(`/admin/members/${id}`, { token }),
+
   createCategory: (payload, token) => request('/categories', { method: 'POST', body: payload, token }),
   updateCategory: (id, payload, token) => request(`/categories/${id}`, { method: 'PATCH', body: payload, token }),
   deleteCategory: (id, token) => request(`/categories/${id}`, { method: 'DELETE', token }),

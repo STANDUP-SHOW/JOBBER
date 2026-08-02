@@ -951,4 +951,114 @@ router.post('/missions/:id/assign-planning', async (req, res, next) => {
   }
 });
 
+// --- Nous contacter — this agency's own inbox (agencyId = req.agency.id) ---
+
+router.get('/contact-messages', async (req, res, next) => {
+  try {
+    const contactMessages = await prisma.contactMessage.findMany({
+      where: { agencyId: req.agency.id },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json({ contactMessages });
+  } catch (err) { next(err); }
+});
+
+router.get('/contact-messages/:id', async (req, res, next) => {
+  try {
+    const contactMessage = await prisma.contactMessage.findFirst({ where: { id: req.params.id, agencyId: req.agency.id } });
+    if (!contactMessage) return res.status(404).json({ error: 'Message introuvable' });
+    res.json({ contactMessage });
+  } catch (err) { next(err); }
+});
+
+router.patch('/contact-messages/:id', async (req, res, next) => {
+  try {
+    const status = ['NEW', 'READ', 'REPLIED'].includes(req.body.status) ? req.body.status : undefined;
+    if (!status) return res.status(400).json({ error: 'Statut invalide' });
+    const { count } = await prisma.contactMessage.updateMany({ where: { id: req.params.id, agencyId: req.agency.id }, data: { status } });
+    if (!count) return res.status(404).json({ error: 'Message introuvable' });
+    res.json({ ok: true });
+  } catch (err) { next(err); }
+});
+
+// --- Clients — visitors who registered on this agency's own site and posted
+// a mission through it. Distinct from "Mes employés" (agency-admin/employees),
+// which is the jobber-side roster. There's no stored "signed up via this
+// agency" flag on User, so membership here is derived from having at least
+// one Mission with this agency's corporateAgencyId (excluding the agency's
+// own self-authored missions). ---
+
+async function clientActivityStats(agencyId, clientId) {
+  const missionWhere = { corporateAgencyId: agencyId, clientId };
+  const [missionsPublished, missionsCompleted, missionsCancelled, reviewsGiven, spentAgg] = await Promise.all([
+    prisma.mission.count({ where: missionWhere }),
+    prisma.mission.count({ where: { ...missionWhere, status: 'COMPLETED' } }),
+    prisma.mission.count({ where: { ...missionWhere, status: 'CANCELLED' } }),
+    prisma.review.count({ where: { authorId: clientId, booking: { mission: { corporateAgencyId: agencyId } } } }),
+    prisma.payment.aggregate({
+      where: { status: 'RELEASED', booking: { mission: missionWhere } },
+      _sum: { amount: true },
+    }),
+  ]);
+  return { missionsPublished, missionsCompleted, missionsCancelled, reviewsGiven, totalSpent: spentAgg._sum.amount || 0 };
+}
+
+router.get('/clients', async (req, res, next) => {
+  try {
+    const clientIdRows = await prisma.mission.findMany({
+      where: { corporateAgencyId: req.agency.id, clientId: { not: req.agency.id } },
+      distinct: ['clientId'],
+      select: { clientId: true },
+    });
+    const clientIds = clientIdRows.map((r) => r.clientId);
+    if (!clientIds.length) return res.json({ clients: [] });
+
+    const { search } = req.query;
+    const users = await prisma.user.findMany({
+      where: {
+        id: { in: clientIds },
+        ...(search ? {
+          OR: [
+            { firstName: { contains: search, mode: 'insensitive' } },
+            { lastName: { contains: search, mode: 'insensitive' } },
+            { email: { contains: search, mode: 'insensitive' } },
+          ],
+        } : {}),
+      },
+      select: {
+        id: true, firstName: true, lastName: true, email: true, phone: true, avatarUrl: true, address: true, createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const clients = await Promise.all(users.map(async (u) => ({ ...u, ...(await clientActivityStats(req.agency.id, u.id)) })));
+    res.json({ clients });
+  } catch (err) { next(err); }
+});
+
+router.get('/clients/:id', async (req, res, next) => {
+  try {
+    const isClient = await prisma.mission.findFirst({ where: { corporateAgencyId: req.agency.id, clientId: req.params.id } });
+    if (!isClient) return res.status(404).json({ error: 'Client introuvable' });
+
+    const user = await prisma.user.findUnique({
+      where: { id: req.params.id },
+      select: { id: true, firstName: true, lastName: true, email: true, phone: true, avatarUrl: true, address: true, createdAt: true },
+    });
+    if (!user) return res.status(404).json({ error: 'Client introuvable' });
+
+    const [stats, missions] = await Promise.all([
+      clientActivityStats(req.agency.id, user.id),
+      prisma.mission.findMany({
+        where: { corporateAgencyId: req.agency.id, clientId: user.id },
+        select: { id: true, title: true, status: true, createdAt: true },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      }),
+    ]);
+
+    res.json({ client: { ...user, ...stats, missions } });
+  } catch (err) { next(err); }
+});
+
 module.exports = router;

@@ -10,6 +10,8 @@ const TABS = [
   { href: '/admin/verifications', label: 'Vérifications' },
   { href: '/admin/categories', label: 'Catégories' },
   { href: '/admin/users', label: 'Utilisateurs' },
+  { href: '/admin/members', label: 'Membres' },
+  { href: '/admin/contact-messages', label: 'Messages' },
 ];
 
 export default function AdminLayout({ children }) {
@@ -38,7 +40,8 @@ export default function AdminLayout({ children }) {
             key={tab.href}
             href={tab.href}
             className={`rounded-t-md px-4 py-2 text-sm font-medium ${
-              pathname === tab.href ? 'border-b-2 border-moss text-moss-dark' : 'text-slate-500 hover:text-ink'
+              (tab.href === '/admin' ? pathname === tab.href : pathname.startsWith(tab.href))
+                ? 'border-b-2 border-moss text-moss-dark' : 'text-slate-500 hover:text-ink'
             }`}
           >
             {tab.label}

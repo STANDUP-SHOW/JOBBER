@@ -55,4 +55,11 @@ export const agencyApi = {
   employees: (token) => request('/employees', { token }),
   addEmployee: (jobberId, token) => request('/employees', { method: 'POST', body: { jobberId }, token }),
   embauche: (jobberId, payload, token) => request(`/employees/${jobberId}/embauche`, { method: 'POST', body: payload, token }),
+
+  contactMessages: (token) => request('/contact-messages', { token }),
+  contactMessage: (id, token) => request(`/contact-messages/${id}`, { token }),
+  markContactMessage: (id, status, token) => request(`/contact-messages/${id}`, { method: 'PATCH', body: { status }, token }),
+
+  clients: (search, token) => request(`/clients${search ? `?search=${encodeURIComponent(search)}` : ''}`, { token }),
+  client: (id, token) => request(`/clients/${id}`, { token }),
 };

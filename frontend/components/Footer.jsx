@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 const LEGAL_LINKS = [
+  ['Nous contacter', '/contact'],
   ['Conditions générales', '/conditions-generales'],
   ['Mentions légales', '/mentions-legales'],
   ['Jobber+ en toute confiance', '/confiance'],

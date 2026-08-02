@@ -247,6 +247,8 @@ model User {
   employedByAgencies  AgencyEmployee[] @relation("AgencyEmployeeOf")
   agencyInvoices      Invoice[]  @relation("AgencyInvoices")
   agencyPlannings     Planning[] @relation("AgencyPlannings")
+  contactMessagesSent    ContactMessage[] @relation("ContactMessageSender")
+  contactMessagesToAgency ContactMessage[] @relation("ContactMessageAgency")
 }
 
 // A manager bookmarking a jobber they'd like to work with again ("Mes
@@ -661,6 +663,34 @@ model Message {
   content        String
   readAt         DateTime?
   createdAt      DateTime     @default(now())
+}
+
+enum ContactMessageStatus {
+  NEW
+  READ
+  REPLIED
+}
+
+// A visitor's "Nous contacter" form submission — deliberately separate from
+// Conversation/Message (which always require a real Mission and a specific
+// client/provider pair). `agencyId` is null for a message addressed to the
+// Jobber platform itself, or set when the form was submitted from a
+// corporate agency's own white-label site (resolved server-side from the
+// request's Origin, same mechanism as Mission.corporateAgencyId) — this is
+// what routes it into that agency's own back-office inbox instead of
+// Jobber's. `senderId` is set only if the visitor was logged in.
+model ContactMessage {
+  id        String               @id @default(cuid())
+  agencyId  String?
+  agency    User?                @relation("ContactMessageAgency", fields: [agencyId], references: [id])
+  senderId  String?
+  sender    User?                @relation("ContactMessageSender", fields: [senderId], references: [id])
+  name      String
+  email     String
+  subject   String?
+  message   String
+  status    ContactMessageStatus @default(NEW)
+  createdAt DateTime             @default(now())
 }
 
 model Review {

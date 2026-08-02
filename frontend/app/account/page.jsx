@@ -195,6 +195,7 @@ export default function AccountPage() {
       </Section>
 
       <Section title="Informations utiles">
+        <Row href="/contact" icon="✉️" label="Nous contacter" />
         <Row href="/messages" icon="💬" label="Messagerie" />
         {user.role === 'ADMIN' && <Row href="/admin" icon="🛡️" label="Back-office" />}
         <Row onClick={logout} icon="🚪" label="Se déconnecter" danger />

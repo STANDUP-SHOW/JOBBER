@@ -3,7 +3,7 @@ const { z } = require('zod');
 const prisma = require('../config/prisma');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { geocodeAddress, jitterCoordinate, haversineDistanceKm } = require('../services/geocodingService');
-const { generateCorporateCode } = require('../utils/agency');
+const { generateCorporateCode, resolveAgencyFromOrigin } = require('../utils/agency');
 const { finalizeBooking, round2 } = require('../services/bookingService');
 
 const router = express.Router();
@@ -149,18 +149,10 @@ router.post('/', requireAuth, async (req, res, next) => {
     // untouched.
     let corporateAgencyId;
     let corporateCode;
-    const originHost = (() => {
-      try { return new URL(req.headers.origin || req.headers.referer || '').hostname.replace(/^www\./, ''); } catch { return null; }
-    })();
-    if (originHost) {
-      const agency = await prisma.user.findFirst({
-        where: { companyType: 'CORPORATE', OR: [{ agencyDomain: originHost }, { agencyDomain: `www.${originHost}` }] },
-        select: { id: true },
-      });
-      if (agency) {
-        corporateAgencyId = agency.id;
-        corporateCode = generateCorporateCode(category.slug);
-      }
+    const agency = await resolveAgencyFromOrigin(req);
+    if (agency) {
+      corporateAgencyId = agency.id;
+      corporateCode = generateCorporateCode(category.slug);
     }
 
     const [geocoded, dropoffGeocoded] = await Promise.all([

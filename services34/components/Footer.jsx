@@ -36,6 +36,10 @@ export default function Footer() {
             <div className="mt-4 rounded-lg bg-[#f8a703] px-4 py-4" style={{ color: SERVICES34_DARK_BLUE }}>
               <div className="text-sm font-bold">Nous contacter</div>
               <div className="mt-3 space-y-2.5">
+                <Link href="/contact" className="flex items-center gap-2 hover:opacity-80">
+                  <span className="text-base leading-none">📝</span>
+                  <span className="text-sm font-medium">Formulaire de contact</span>
+                </Link>
                 <Link href="/compte" className="flex items-center gap-2 hover:opacity-80">
                   <span className="text-base leading-none">💬</span>
                   <span className="text-sm font-medium">Messagerie du site</span>
