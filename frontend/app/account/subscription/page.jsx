@@ -20,9 +20,9 @@ const JOBBER_PLANS = [
 ];
 
 const COMPANY_PLANS = [
-  { value: 'ENTERPRISE_20', name: 'Entreprise 20', price: 49.9, limit: '20 missions par mois' },
-  { value: 'ENTERPRISE_50', name: 'Entreprise 50', price: 99.9, limit: '50 missions par mois' },
-  { value: 'ENTERPRISE_UNLIMITED', name: 'Entreprise Illimité', price: 149.9, limit: 'Missions illimitées' },
+  { value: 'ENTERPRISE_20', name: 'Entreprise 20', price: 99.9, limit: '20 missions par mois' },
+  { value: 'ENTERPRISE_50', name: 'Entreprise 50', price: 199.9, limit: '50 missions par mois' },
+  { value: 'ENTERPRISE_UNLIMITED', name: 'Entreprise Illimité', price: 499.9, limit: 'Missions illimitées, tout inclus' },
 ];
 
 const PLAN_LIMIT_VALUES = {

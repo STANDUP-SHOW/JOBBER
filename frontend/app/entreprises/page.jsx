@@ -37,10 +37,30 @@ const COMPARISON = [
 ];
 
 const PLANS = [
-  { name: 'Sans abonnement', price: null, detail: '10 € de frais par mission — gratuit pour le jobber' },
-  { name: 'Entreprise 20', price: '49,90 €', detail: '20 missions par mois sans frais' },
-  { name: 'Entreprise 50', price: '99,90 €', detail: '50 missions par mois sans frais' },
-  { name: 'Entreprise Illimité', price: '149,90 €', detail: 'Missions illimitées, 0 frais' },
+  {
+    name: 'Sans abonnement',
+    price: null,
+    detail: '10 € de frais par mission — gratuit pour le jobber',
+    addons: ['Plateforme Corporate de sous-traitance jobbers : 50 € TTC / mois', 'Création site SEO secteur pour référencement local : 249,90 €'],
+  },
+  {
+    name: 'Entreprise 20',
+    price: '99,90 €',
+    detail: '20 missions par mois sans frais',
+    addons: ['Plateforme Corporate de sous-traitance jobbers : 50 € TTC / mois', 'Création site SEO secteur pour référencement local : 249,90 €'],
+  },
+  {
+    name: 'Entreprise 50',
+    price: '199,90 €',
+    detail: '50 missions par mois sans frais',
+    addons: ['Plateforme Corporate de sous-traitance jobbers : 50 € TTC / mois', 'Création site SEO secteur pour référencement local : 249,90 €'],
+  },
+  {
+    name: 'Entreprise Illimité',
+    price: '499,90 €',
+    detail: 'Tout inclus — missions illimitées, aucun frais de mission',
+    addons: ['Plateforme Corporate de sous-traitance jobbers : offerte', 'Création site SEO secteur pour référencement local : offerte'],
+  },
 ];
 
 export default function EntreprisesPage() {
@@ -190,8 +210,35 @@ export default function EntreprisesPage() {
                 </div>
               )}
               <p className="mt-2 text-sm text-slate-500">{plan.detail}</p>
+              {plan.addons && (
+                <div className="mt-3 border-t border-slate-100 pt-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Options facultatives</p>
+                  <ul className="mt-1.5 space-y-1">
+                    {plan.addons.map((addon) => (
+                      <li key={addon} className="text-xs text-slate-500">{addon}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="mx-auto mt-16 max-w-2xl rounded-lg border border-moss/20 bg-moss-light p-6 text-center md:p-10">
+        <span className="rounded-full bg-moss px-3 py-1 text-xs font-bold uppercase tracking-wide text-paper">
+          Plateforme Corporate
+        </span>
+        <h2 className="mx-auto mt-4 font-display text-2xl font-semibold text-ink">Un back-office de gestion privé</h2>
+        <p className="mx-auto mt-3 max-w-xl text-slate-600">
+          Une plateforme en ligne SEO professionnelle pour une présence en ligne importante sur le secteur de votre
+          choix — gestion intégrale manuelle ou automatique, rentable dès la mise en route.
+        </p>
+        <div className="mt-6">
+          <Link href="/plateforme-corporate" className="inline-flex items-center gap-2 rounded-md bg-moss px-6 py-3 font-medium text-paper hover:bg-moss-dark">
+            Plus d'infos
+            <span className="font-bold text-ochre">+</span>
+          </Link>
         </div>
       </section>
 

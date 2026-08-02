@@ -182,6 +182,21 @@ export default async function HomePage() {
         ]}
       />
 
+      <section className="mt-16 flex flex-col items-center gap-4 rounded-lg border-2 border-moss bg-moss-light px-6 py-6 text-center md:flex-row md:justify-between md:text-left">
+        <div>
+          <div className="font-display text-xl font-bold text-ink">Entrepreneurs, indépendants</div>
+          <p className="mt-1 text-sm text-ink">
+            Commencez à développer votre secteur géographique en sous-traitant à d'autres jobbers. Vous avez une
+            idée ? On la met en place, on vous référence sur votre secteur, et votre plateforme se gère toute
+            seule — devis, factures, etc. Nous ne vous prenons plus la tête : utilisez une plateforme corporate.
+          </p>
+        </div>
+        <Link href="/plateforme-corporate" className="inline-flex shrink-0 items-center gap-2 rounded-md bg-moss px-5 py-3 font-medium text-paper hover:bg-moss-dark">
+          Plus d'infos
+          <span className="font-bold text-ochre">+</span>
+        </Link>
+      </section>
+
       <section className="mt-16">
         <h2 className="font-display text-2xl font-semibold text-ink">Toutes les catégories</h2>
         <div className="mt-5">
