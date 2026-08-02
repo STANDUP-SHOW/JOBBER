@@ -156,6 +156,36 @@ export default function DevenirJobberPage() {
         </Link>
       </section>
 
+      <section className="mt-16 rounded-lg border-2 border-moss bg-moss-light p-6 md:p-10">
+        <span className="rounded-full bg-moss px-3 py-1 text-xs font-bold uppercase tracking-wide text-paper">
+          Facturation
+        </span>
+        <h2 className="mt-4 font-display text-2xl font-semibold text-ink">Tout est inclus dans votre devis</h2>
+        <p className="mt-3 max-w-2xl text-slate-700">
+          Sur Jobber, vous détaillez votre devis vous-même : votre taux horaire, mais aussi vos frais
+          d'intervention, de route, de carburant, de matériel, de produits. Ajoutez tous ces faux frais qui
+          plombaient parfois la facture de votre travail — c'est fini, plus rien n'est oublié.
+        </p>
+        <p className="mt-3 max-w-2xl text-slate-700">
+          Fini aussi les frais administratifs. Devis, factures : tout est généré automatiquement par la
+          plateforme. Vous ne vous souciez plus de rien.
+        </p>
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+          {[
+            ['🧾', 'Devis détaillé', 'Taux horaire + frais de route, carburant, matériel, produits — tout est chiffré, rien n\'est oublié.'],
+            ['🚗', 'Vos frais couverts', "Facturez vos vrais coûts d'intervention au lieu de les absorber dans votre tarif horaire."],
+            ['⚙️', 'Zéro paperasse', 'Devis et factures générés automatiquement par Jobber, sans aucune démarche de votre côté.'],
+          ].map(([icon, title, desc]) => (
+            <div key={title} className="rounded-lg bg-white p-4">
+              <span className="text-2xl">{icon}</span>
+              <div className="mt-2 font-display text-base font-semibold text-ink">{title}</div>
+              <p className="mt-1 text-sm text-slate-500">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="mx-auto mt-16 max-w-2xl text-center">
         <h2 className="font-display text-2xl font-semibold text-ink">Devenez le collaborateur récurrent de plusieurs clients</h2>
         <p className="mt-3 text-slate-600">
