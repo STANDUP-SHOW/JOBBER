@@ -87,9 +87,15 @@ router.get('/providers', async (req, res, next) => {
       select: {
         id: true, firstName: true, lastName: true, avatarUrl: true, address: true, isProfessional: true,
         providerProfile: { include: { categories: { include: { category: true } }, services: { include: { service: true } }, equipment: { include: { equipment: true } }, vehicles: true } },
+        subscriptions: { where: { family: 'JOBBER', status: 'ACTIVE' }, select: { plan: true, currentPeriodEnd: true } },
       },
     });
-    res.json({ providers });
+    res.json({
+      providers: providers.map(({ subscriptions, ...p }) => ({
+        ...p,
+        subscriptionPlan: subscriptions.find((s) => s.currentPeriodEnd > new Date())?.plan || null,
+      })),
+    });
   } catch (err) { next(err); }
 });
 
@@ -101,10 +107,12 @@ router.get('/providers/:id', async (req, res, next) => {
         id: true, firstName: true, lastName: true, avatarUrl: true, address: true, createdAt: true, isProfessional: true,
         providerProfile: { include: { categories: { include: { category: true } }, services: { include: { service: true } }, equipment: { include: { equipment: true } }, vehicles: true } },
         reviewsReceived: { include: { author: { select: { firstName: true, avatarUrl: true } } }, orderBy: { createdAt: 'desc' } },
+        subscriptions: { where: { family: 'JOBBER', status: 'ACTIVE' }, select: { plan: true, currentPeriodEnd: true } },
       },
     });
     if (!provider || !provider.providerProfile) return res.status(404).json({ error: 'Prestataire introuvable' });
-    res.json({ provider });
+    const { subscriptions, ...p } = provider;
+    res.json({ provider: { ...p, subscriptionPlan: subscriptions.find((s) => s.currentPeriodEnd > new Date())?.plan || null } });
   } catch (err) { next(err); }
 });
 

@@ -206,4 +206,5 @@ module.exports = {
   setDefaultPaymentMethod,
   createManagerSubscription,
   cancelSubscription,
+  PLAN_CONFIG,
 };

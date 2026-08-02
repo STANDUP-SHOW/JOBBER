@@ -5,7 +5,7 @@ const {
   createEscrowIntent, captureIntent, refundIntent, stripe,
   upsertCustomAccount, setBankAccount, retrieveAccount, payoutToProvider,
   createCustomer, createSetupIntent, listPaymentMethods, detachPaymentMethod, setDefaultPaymentMethod,
-  createManagerSubscription, cancelSubscription,
+  createManagerSubscription, cancelSubscription, PLAN_CONFIG,
 } = require('../services/stripeService');
 
 const router = express.Router();
@@ -408,17 +408,52 @@ function planFamily(plan) {
   return null;
 }
 
+// 30-day grant used both for a balance-paid subscription period and for the
+// launch-promo free Gold grant (see auth.routes.js) — no Stripe subscription
+// backs either, so nothing auto-renews: the period simply lapses at
+// currentPeriodEnd and the fee-waiver check in bookingService stops seeing
+// it as active. The jobber/manager can resubscribe (balance or card) once
+// it lapses.
+const BALANCE_PERIOD_DAYS = 30;
+
 router.post('/subscribe', requireAuth, async (req, res, next) => {
   try {
-    const { plan } = req.body;
+    const { plan, method: payMethod } = req.body;
     const isCompany = req.user.accountKind === 'COMPANY';
     const allowedPlans = isCompany ? COMPANY_PLANS : [...MANAGER_PLANS, ...JOBBER_PLANS];
     if (!allowedPlans.includes(plan)) {
       return res.status(400).json({ error: 'Offre invalide' });
     }
     const family = planFamily(plan);
-
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+
+    if (payMethod === 'balance') {
+      const price = PLAN_CONFIG[plan].amount / 100;
+      if ((user.creditBalance ?? 0) < price) {
+        return res.status(400).json({ error: 'Solde insuffisant' });
+      }
+      const existing = await prisma.subscription.findFirst({ where: { userId: req.user.id, family } });
+      if (existing?.stripeSubscriptionId && existing.status === 'ACTIVE') {
+        await cancelSubscription(existing.stripeSubscriptionId).catch(() => {});
+      }
+      const now = new Date();
+      const data = {
+        plan, family, status: 'ACTIVE', stripeSubscriptionId: null,
+        currentPeriodStart: now,
+        currentPeriodEnd: new Date(now.getTime() + BALANCE_PERIOD_DAYS * 24 * 60 * 60 * 1000),
+        missionsUsedInPeriod: 0,
+      };
+      const [subscription] = await prisma.$transaction([
+        prisma.subscription.upsert({
+          where: { userId_family: { userId: req.user.id, family } },
+          create: { userId: req.user.id, ...data },
+          update: data,
+        }),
+        prisma.user.update({ where: { id: req.user.id }, data: { creditBalance: { decrement: price } } }),
+      ]);
+      return res.json({ subscription });
+    }
+
     if (!user.stripeCustomerId) {
       return res.status(400).json({ error: 'Ajoutez d\'abord un moyen de paiement' });
     }

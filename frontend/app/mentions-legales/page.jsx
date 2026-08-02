@@ -20,15 +20,14 @@ export default function MentionsLegalesPage() {
         <section>
           <h2 className="font-display text-lg font-semibold text-ink">Éditeur du site</h2>
           <p className="mt-2">
-            Le site {SITE_URL.replace('https://', '')} (ci-après « le Site ») est édité par <strong>SERVICES 34</strong>,
-            entreprise individuelle représentée par Monsieur Maxime Martinel, dont l'établissement est situé
-            2 rue Julien Imbert, 34500 Béziers, France.
+            Le site {SITE_URL.replace('https://', '')} (ci-après « le Site ») est édité par <strong>JOBBERPLUS SERVICES</strong>,
+            SAS représentée par Monsieur M. Martinel, dont l'établissement est situé 34500 Béziers, France.
           </p>
           <p className="mt-2 text-sm text-slate-500">
             SIRET : à compléter — N° TVA intracommunautaire : à compléter.
           </p>
           <p className="mt-2">
-            Directeur de la publication : Maxime Martinel.
+            Directeur de la publication : M. Martinel.
           </p>
         </section>
 
@@ -47,7 +46,7 @@ export default function MentionsLegalesPage() {
         <section>
           <h2 className="font-display text-lg font-semibold text-ink">Responsabilité</h2>
           <p className="mt-2">
-            SERVICES 34 met en œuvre les moyens raisonnables pour assurer l'accès et le bon fonctionnement du Site,
+            JOBBERPLUS SERVICES met en œuvre les moyens raisonnables pour assurer l'accès et le bon fonctionnement du Site,
             sans pouvoir garantir une disponibilité continue et sans erreur.
           </p>
           <p className="mt-2">Les utilisateurs demeurent seuls responsables :</p>
@@ -57,7 +56,7 @@ export default function MentionsLegalesPage() {
             <li>du respect de la réglementation applicable à leur activité.</li>
           </ul>
           <p className="mt-2">
-            SERVICES 34 ne pourra être tenue responsable des dommages indirects résultant de l'utilisation du Site.
+            JOBBERPLUS SERVICES ne pourra être tenue responsable des dommages indirects résultant de l'utilisation du Site.
           </p>
         </section>
 
@@ -65,7 +64,7 @@ export default function MentionsLegalesPage() {
           <h2 className="font-display text-lg font-semibold text-ink">Droit applicable</h2>
           <p className="mt-2">
             Les présentes mentions légales sont régies par le droit français. En cas de litige, et à défaut de
-            résolution amiable, les tribunaux compétents seront ceux du ressort du siège de SERVICES 34, sauf
+            résolution amiable, les tribunaux compétents seront ceux du ressort du siège de JOBBERPLUS SERVICES, sauf
             disposition légale impérative contraire applicable aux consommateurs.
           </p>
         </section>
@@ -73,7 +72,7 @@ export default function MentionsLegalesPage() {
         <section>
           <h2 className="font-display text-lg font-semibold text-ink">Contact et signalement</h2>
           <p className="mt-2">
-            Pour toute question ou signalement d'un contenu illicite, vous pouvez contacter SERVICES 34 à l'adresse
+            Pour toute question ou signalement d'un contenu illicite, vous pouvez contacter JOBBERPLUS SERVICES à l'adresse
             suivante : <a href="mailto:contact@jobber.city" className="text-moss hover:underline">contact@jobber.city</a>.
           </p>
         </section>

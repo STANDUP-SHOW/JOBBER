@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 import { SUBSCRIPTION_COLORS } from '../../../lib/subscriptionColors';
 import AccountBackButton from '../../../components/AccountBackButton';
+import SubscribeModal from '../../../components/SubscribeModal';
 
 const MANAGER_PLANS = [
   { value: 'MANAGER_BOSS', name: 'Manager Boss', price: 10, limit: '10 missions par mois' },
@@ -33,7 +33,7 @@ const PLAN_LIMIT_VALUES = {
 
 const STATUS_LABEL = { ACTIVE: 'Actif', PAST_DUE: 'Paiement en retard', CANCELED: 'Résilié' };
 
-function PlanSection({ title, description, plans, subscription, busy, hasCard, onSubscribe, onCancel }) {
+function PlanSection({ title, description, plans, subscription, busy, onSubscribe, onCancel }) {
   const isActive = subscription?.status === 'ACTIVE';
   const limit = PLAN_LIMIT_VALUES[subscription?.plan] ?? Infinity;
 
@@ -72,12 +72,6 @@ function PlanSection({ title, description, plans, subscription, busy, hasCard, o
         </div>
       )}
 
-      {!isActive && hasCard === false && (
-        <p className="mt-4 rounded-md bg-ochre/10 px-3 py-2 text-sm text-ink">
-          Ajoutez d'abord un <Link href="/account/payment-methods" className="font-medium text-moss">moyen de paiement</Link> pour souscrire.
-        </p>
-      )}
-
       <div className="mt-4 space-y-3">
         {plans.map((plan) => {
           const color = SUBSCRIPTION_COLORS[plan.value];
@@ -101,8 +95,8 @@ function PlanSection({ title, description, plans, subscription, busy, hasCard, o
               {!isCurrent && (
                 <button
                   type="button"
-                  disabled={busy || hasCard === false}
-                  onClick={() => onSubscribe(plan.value)}
+                  disabled={busy}
+                  onClick={() => onSubscribe(plan)}
                   className="mt-3 w-full rounded-md bg-white/90 py-2.5 text-sm font-medium text-ink hover:bg-white disabled:opacity-60"
                 >
                   {busy ? 'Traitement…' : isActive ? 'Changer pour cette offre' : "S'abonner"}
@@ -121,9 +115,10 @@ export default function SubscriptionPage() {
   const router = useRouter();
   const [subscription, setSubscription] = useState(null);
   const [jobberSubscription, setJobberSubscription] = useState(null);
-  const [hasCard, setHasCard] = useState(null);
+  const [savedCard, setSavedCard] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [subscribingPlan, setSubscribingPlan] = useState(null);
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/auth/login');
@@ -137,22 +132,14 @@ export default function SubscriptionPage() {
     ]);
     setSubscription(subscription);
     setJobberSubscription(jobberSubscription);
-    setHasCard(paymentMethods.length > 0);
+    setSavedCard(paymentMethods.find((m) => m.isDefault) || paymentMethods[0] || null);
   }
 
   useEffect(() => { refresh().catch((e) => setError(e.message)); }, [token]);
 
-  async function onSubscribe(plan) {
-    setBusy(true);
-    setError('');
-    try {
-      await api.subscribe(plan, token);
-      await refresh();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy(false);
-    }
+  function onSubscribed() {
+    setSubscribingPlan(null);
+    refresh().catch((e) => setError(e.message));
   }
 
   async function onCancel(family) {
@@ -191,8 +178,7 @@ export default function SubscriptionPage() {
           plans={COMPANY_PLANS}
           subscription={subscription}
           busy={busy}
-          hasCard={hasCard}
-          onSubscribe={onSubscribe}
+          onSubscribe={setSubscribingPlan}
           onCancel={() => onCancel('MANAGER')}
         />
       ) : (
@@ -203,8 +189,7 @@ export default function SubscriptionPage() {
             plans={MANAGER_PLANS}
             subscription={subscription}
             busy={busy}
-            hasCard={hasCard}
-            onSubscribe={onSubscribe}
+            onSubscribe={setSubscribingPlan}
             onCancel={() => onCancel('MANAGER')}
           />
           <PlanSection
@@ -213,11 +198,21 @@ export default function SubscriptionPage() {
             plans={JOBBER_PLANS}
             subscription={jobberSubscription}
             busy={busy}
-            hasCard={hasCard}
-            onSubscribe={onSubscribe}
+            onSubscribe={setSubscribingPlan}
             onCancel={() => onCancel('JOBBER')}
           />
         </>
+      )}
+
+      {subscribingPlan && (
+        <SubscribeModal
+          plan={subscribingPlan}
+          token={token}
+          balance={user.creditBalance ?? 0}
+          savedCard={savedCard}
+          onClose={() => setSubscribingPlan(null)}
+          onSubscribed={onSubscribed}
+        />
       )}
     </div>
   );

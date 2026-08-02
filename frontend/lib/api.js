@@ -59,7 +59,7 @@ export const api = {
   setDefaultPaymentMethod: (id, token) => request(`/payments/payment-methods/${id}/default`, { method: 'POST', token }),
   deletePaymentMethod: (id, token) => request(`/payments/payment-methods/${id}`, { method: 'DELETE', token }),
   getSubscription: (token) => request('/payments/subscription', { token }),
-  subscribe: (plan, token) => request('/payments/subscribe', { method: 'POST', body: { plan }, token }),
+  subscribe: (plan, payMethod, token) => request('/payments/subscribe', { method: 'POST', body: { plan, method: payMethod }, token }),
   cancelSubscription: (family, token) => request('/payments/subscribe/cancel', { method: 'POST', body: { family }, token }),
 
   updateMe: (payload, token) => request('/users/me', { method: 'PATCH', body: payload, token }),

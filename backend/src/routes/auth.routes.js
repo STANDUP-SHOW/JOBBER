@@ -57,6 +57,15 @@ async function generateReferralCode() {
   return crypto.randomBytes(6).toString('hex').toUpperCase();
 }
 
+// Launch offer: any INDIVIDUAL account created before this date gets Jobber
+// Gold (20 missions/month, no fee) auto-activated for one period — no card,
+// no Stripe subscription behind it, so it simply lapses at currentPeriodEnd
+// like a balance-paid subscription (see payments.routes.js /subscribe)
+// instead of auto-renewing. The jobber can resubscribe (balance or card)
+// once it lapses.
+const GOLD_PROMO_DEADLINE = new Date('2026-09-15T00:00:00');
+const GOLD_PROMO_PERIOD_DAYS = 30;
+
 router.post('/register', async (req, res, next) => {
   try {
     const data = registerSchema.parse(req.body);
@@ -78,6 +87,7 @@ router.post('/register', async (req, res, next) => {
     const isCompany = data.accountKind === 'COMPANY';
     const geocoded = isCompany ? await geocodeAddress(data.address) : undefined;
     const passwordHash = await bcrypt.hash(data.password, 10);
+    const goldPromoActive = !isCompany && new Date() < GOLD_PROMO_DEADLINE;
     const user = await prisma.user.create({
       data: {
         email: data.email,
@@ -98,6 +108,18 @@ router.post('/register', async (req, res, next) => {
         isProfessional: !isCompany && data.isProfessional,
         professionalSiret: !isCompany && data.isProfessional ? data.professionalSiret : undefined,
         providerProfile: isCompany ? undefined : { create: {} },
+        subscriptions: goldPromoActive
+          ? {
+              create: {
+                family: 'JOBBER',
+                plan: 'JOBBER_GOLD',
+                status: 'ACTIVE',
+                currentPeriodStart: new Date(),
+                currentPeriodEnd: new Date(Date.now() + GOLD_PROMO_PERIOD_DAYS * 24 * 60 * 60 * 1000),
+                missionsUsedInPeriod: 0,
+              },
+            }
+          : undefined,
       },
     });
 

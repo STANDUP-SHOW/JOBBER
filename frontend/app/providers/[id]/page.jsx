@@ -6,6 +6,7 @@ import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 import StarRating from '../../../components/StarRating';
 import VehicleIcon, { VEHICLES } from '../../../components/VehicleIcon';
+import SubscriptionBadge from '../../../components/SubscriptionBadge';
 
 const LEVEL_LABEL = { PROFESSIONNEL: 'Professionnel', EXPERT: 'Expert', PASSIONNE: 'Passionné' };
 const LEVEL_STYLE = {
@@ -52,7 +53,10 @@ export default function ProviderProfilePage() {
           {provider.firstName?.[0]}{provider.lastName?.[0]}
         </div>
         <div>
-          <h1 className="font-display text-2xl font-semibold text-ink">{provider.firstName} {provider.lastName?.[0]}.</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="font-display text-2xl font-semibold text-ink">{provider.firstName} {provider.lastName?.[0]}.</h1>
+            {provider.subscriptionPlan && <SubscriptionBadge plan={provider.subscriptionPlan} size="sm" />}
+          </div>
           <div className="flex items-center gap-2 text-sm text-slate-500">
             <StarRating value={profile.ratingAverage} size={14} />
             <span>{profile.ratingAverage.toFixed(1)} ({profile.ratingCount} avis) · {profile.completedMissions} missions réalisées</span>
