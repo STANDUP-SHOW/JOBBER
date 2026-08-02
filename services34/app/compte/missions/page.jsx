@@ -6,8 +6,16 @@ import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 import PaymentModal from '../../../components/PaymentModal';
+import DistanceBadge from '../../../components/DistanceBadge';
+import CountdownToStart from '../../../components/CountdownToStart';
+import { haversineDistanceKm } from '../../../lib/geo';
 
 const ONGOING_STATUSES = ['SCHEDULED', 'IN_PROGRESS', 'AWAITING_VALIDATION'];
+
+function distanceTo(user, mission) {
+  if (user?.lat == null || user?.lng == null || mission?.lat == null || mission?.lng == null) return null;
+  return Math.round(haversineDistanceKm(user.lat, user.lng, mission.lat, mission.lng) * 10) / 10;
+}
 
 export default function ComptesMissionsPage() {
   const { user, token, loading: authLoading } = useAuth();
@@ -44,6 +52,16 @@ export default function ComptesMissionsPage() {
     finally { setBusyId(null); }
   }
 
+  async function contactAgency(mission) {
+    if (!mission?.corporateAgencyId) return;
+    setBusyId(`contact-${mission.id}`); setError('');
+    try {
+      const { conversation } = await api.startConversation({ missionId: mission.id, providerId: mission.corporateAgencyId }, token);
+      router.push(`/messages/${conversation.id}`);
+    } catch (err) { setError(err.message); }
+    finally { setBusyId(null); }
+  }
+
   if (!user) return null;
 
   return (
@@ -68,22 +86,35 @@ export default function ComptesMissionsPage() {
         <div className="mt-6 space-y-3">
           {bookings.length === 0 && <EmptyState text="Aucune mission en cours pour le moment." />}
           {bookings.map((b) => (
-            <div key={b.id} className="rounded-lg border border-slate-200 bg-white p-4">
-              <div className="flex items-center justify-between">
-                <div className="font-display text-base font-semibold text-ink">{b.mission?.title}</div>
-                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">{b.status}</span>
+            <div key={b.id} className="relative rounded-lg border border-slate-200 bg-white p-4">
+              <DistanceBadge distanceKm={distanceTo(user, b.mission)} />
+              <div className="flex items-center justify-between gap-2">
+                <Link href={`/compte/missions/${b.mission?.id}`} className="font-display text-base font-semibold text-ink hover:text-brand hover:underline">
+                  {b.mission?.title}
+                </Link>
+                <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">{b.status}</span>
               </div>
               <div className="mt-1 text-sm text-slate-500">
                 {b.hours} h × {b.hourlyRate} €/h = <strong>{b.totalAmount} €</strong> · {new Date(b.scheduledDate).toLocaleDateString('fr-FR')}
               </div>
-              {b.payment?.status === 'REQUIRES_PAYMENT' && (
+              {b.status === 'SCHEDULED' && <div className="mt-1"><CountdownToStart date={b.scheduledDate} /></div>}
+              <div className="mt-3 flex flex-wrap gap-2">
+                {b.payment?.status === 'REQUIRES_PAYMENT' && (
+                  <button
+                    onClick={() => setPayingBooking(b)}
+                    className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                  >
+                    Payer maintenant ({b.payment.amount} €)
+                  </button>
+                )}
                 <button
-                  onClick={() => setPayingBooking(b)}
-                  className="mt-3 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                  disabled={busyId === `contact-${b.mission?.id}`}
+                  onClick={() => contactAgency(b.mission)}
+                  className="rounded-md border border-slate-200 px-4 py-2 text-sm font-medium text-ink hover:border-brand disabled:opacity-60"
                 >
-                  Payer maintenant ({b.payment.amount} €)
+                  💬 Contacter l'agence
                 </button>
-              )}
+              </div>
             </div>
           ))}
         </div>
@@ -93,14 +124,17 @@ export default function ComptesMissionsPage() {
         <div className="mt-6 space-y-3">
           {offers.length === 0 && <EmptyState text="Aucune offre reçue pour le moment." />}
           {offers.map((o) => (
-            <div key={o.id} className="rounded-lg border border-slate-200 bg-white p-4">
+            <div key={o.id} className="relative rounded-lg border border-slate-200 bg-white p-4">
+              <DistanceBadge distanceKm={distanceTo(user, o.mission)} />
               <div className="flex items-start gap-3">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-brand/10 text-xl">
                   {o.mission.category?.icon}
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="truncate font-display text-base font-semibold text-ink">{o.mission.title}</h3>
+                    <Link href={`/compte/missions/${o.mission.id}`} className="truncate font-display text-base font-semibold text-ink hover:text-brand hover:underline">
+                      {o.mission.title}
+                    </Link>
                     <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-ink">{o.hourlyRate} €/h</span>
                   </div>
                   <div className="mt-0.5 truncate text-sm text-slate-400">{o.mission.address}</div>
@@ -112,7 +146,14 @@ export default function ComptesMissionsPage() {
                   </div>
                 </div>
               </div>
-              <div className="mt-3 flex items-center justify-end border-t border-slate-100 pt-3">
+              <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-slate-100 pt-3">
+                <button
+                  disabled={busyId === `contact-${o.mission.id}`}
+                  onClick={() => contactAgency(o.mission)}
+                  className="rounded-md border border-slate-200 px-4 py-2 text-sm font-medium text-ink hover:border-brand disabled:opacity-60"
+                >
+                  💬 Contacter l'agence
+                </button>
                 <button
                   disabled={busyId === o.id}
                   onClick={() => accept(o.id)}

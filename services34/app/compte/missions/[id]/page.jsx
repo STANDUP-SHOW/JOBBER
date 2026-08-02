@@ -7,6 +7,8 @@ import Image from 'next/image';
 import { api } from '../../../../lib/api';
 import { useAuth } from '../../../../lib/auth-context';
 import MissionCountdown from '../../../../components/MissionCountdown';
+import DistanceBadge from '../../../../components/DistanceBadge';
+import { haversineDistanceKm } from '../../../../lib/geo';
 
 const STATUS_LABELS = {
   OPEN: 'En attente',
@@ -33,6 +35,7 @@ export default function MissionDetailPage() {
   const [error, setError] = useState('');
   const [accepting, setAccepting] = useState(false);
   const [acceptError, setAcceptError] = useState('');
+  const [contacting, setContacting] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) router.push(`/auth/login?next=/compte/missions/${id}`);
@@ -58,10 +61,24 @@ export default function MissionDetailPage() {
     }
   }
 
+  async function contactAgency() {
+    if (!mission?.corporateAgencyId) return;
+    setContacting(true);
+    setError('');
+    try {
+      const { conversation } = await api.startConversation({ missionId: mission.id, providerId: mission.corporateAgencyId }, token);
+      router.push(`/messages/${conversation.id}`);
+    } catch (err) { setError(err.message); }
+    finally { setContacting(false); }
+  }
+
   if (authLoading || !user) return null;
   if (error) return <p className="mx-auto max-w-2xl rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>;
   if (!mission) return <p className="mx-auto max-w-2xl text-sm text-slate-400">Chargement…</p>;
 
+  const distanceKm = user.lat != null && user.lng != null && mission.lat != null && mission.lng != null
+    ? Math.round(haversineDistanceKm(user.lat, user.lng, mission.lat, mission.lng) * 10) / 10
+    : null;
   const pendingOffer = mission.offers?.find((o) => o.status === 'PENDING');
   const isAgenceOffer = pendingOffer && mission.corporateAgencyId;
   const isConfirmed = mission.status === 'ASSIGNED' || mission.status === 'IN_PROGRESS';
@@ -136,7 +153,8 @@ export default function MissionDetailPage() {
         </section>
       )}
 
-      <section className="mt-6 rounded-lg border border-slate-200 bg-white p-5">
+      <section className="relative mt-6 rounded-lg border border-slate-200 bg-white p-5">
+        <DistanceBadge distanceKm={distanceKm} />
         <h2 className="font-display text-base font-semibold text-ink">Votre demande</h2>
         <p className="mt-2 text-sm text-slate-600">{mission.description}</p>
         <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
@@ -159,6 +177,17 @@ export default function MissionDetailPage() {
             </div>
           )}
         </div>
+
+        {mission.corporateAgencyId && (
+          <button
+            type="button"
+            disabled={contacting}
+            onClick={contactAgency}
+            className="mt-4 w-full rounded-md border border-slate-200 py-2.5 text-sm font-medium text-ink hover:border-brand disabled:opacity-60"
+          >
+            💬 Contacter l'agence
+          </button>
+        )}
       </section>
 
       {mission.photos?.length > 0 && (

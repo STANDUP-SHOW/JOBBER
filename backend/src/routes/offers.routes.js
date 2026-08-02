@@ -91,6 +91,7 @@ router.get('/mine', requireAuth, async (req, res, next) => {
         mission: {
           select: {
             id: true, title: true, address: true, status: true, desiredDate: true, estimatedHours: true,
+            lat: true, lng: true, corporateAgencyId: true,
             category: { select: { name: true, icon: true } },
           },
         },
@@ -112,6 +113,7 @@ router.get('/received', requireAuth, async (req, res, next) => {
         mission: {
           select: {
             id: true, title: true, address: true, status: true, desiredDate: true, estimatedHours: true,
+            lat: true, lng: true, corporateAgencyId: true,
             category: { select: { name: true, icon: true } },
           },
         },
