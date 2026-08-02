@@ -46,6 +46,10 @@ enum MissionVisibility {
 
 enum OfferStatus {
   PENDING
+  // Auto-picked by the "5 offers or 11h" rule as the best jobber offer on a
+  // mission an agency published — sits here while the agency builds its
+  // client devis (see Offer.sourceOfferId), before the client ever sees it.
+  SELECTED
   ACCEPTED
   REJECTED
   WITHDRAWN
@@ -603,6 +607,13 @@ model Offer {
   // picks from when accepting (see chosenSlot below and POST /:id/accept).
   proposedSlots Json?
   chosenSlot    Json?
+  // Set only on an agency's client-facing devis offer built from a
+  // SELECTED jobber offer (services34↔jobber margin workflow) — points at
+  // that original jobber offer so "Commander la mission" (once the client
+  // accepts this devis) knows which jobber to actually book.
+  sourceOfferId String?
+  sourceOffer   Offer?      @relation("OfferSource", fields: [sourceOfferId], references: [id])
+  derivedOffers Offer[]     @relation("OfferSource")
   createdAt   DateTime    @default(now())
 
   @@unique([missionId, providerId])

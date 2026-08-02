@@ -15,6 +15,7 @@ const { geocodeAddress, haversineDistanceKm } = require('../services/geocodingSe
 const { getOneWayDistanceKm, AGENCY_DEPARTURE_ADDRESS } = require('../services/distanceService');
 const { sendAgenceProposalEmail, notifyBookingAccepted } = require('../services/emailService');
 const { getCounts, markSeen } = require('../services/notificationCounts');
+const { runAutoSelect } = require('../services/agencyMarginWorkflow');
 
 const router = express.Router();
 
@@ -460,6 +461,7 @@ router.post('/missions/:id/agence', async (req, res, next) => {
 // awaiting a decision (no accepted offer yet).
 router.get('/missions/published', async (req, res, next) => {
   try {
+    await runAutoSelect(req.agency.id);
     const missions = await prisma.mission.findMany({
       where: { corporateAgencyId: req.agency.id, visibility: 'PUBLIC', status: 'OPEN' },
       include: {
@@ -474,13 +476,16 @@ router.get('/missions/published', async (req, res, next) => {
 });
 
 // --- Section 3 : Offres Jobber ---
-// Every pending offer from an actual jobber (never the agency's own
-// self-offers) on one of the agency's published missions.
+// Offers auto-SELECTED as the best of 5+ received (or after 11h open) on
+// one of the agency's published missions — ready for the agency to build a
+// client devis from (POST /offers/:id/quote), never the agency's own
+// self-offers.
 router.get('/offers', async (req, res, next) => {
   try {
+    await runAutoSelect(req.agency.id);
     const offers = await prisma.offer.findMany({
       where: {
-        status: 'PENDING',
+        status: 'SELECTED',
         providerId: { not: req.agency.id },
         mission: { corporateAgencyId: req.agency.id, visibility: 'PUBLIC' },
       },
@@ -580,6 +585,123 @@ router.post('/offers/:id/accept', async (req, res, next) => {
     notifyBookingAccepted(booking.id);
 
     res.json({ booking });
+  } catch (err) { next(err); }
+});
+
+const quoteSchema = z.object({ amount: z.number().positive() });
+
+// "Devis client" — turns a SELECTED jobber offer into the agency's own
+// client-facing offer, priced at whatever the agency chooses (defaults to
+// jobber total + 30% margin client-side). This is a normal Offer with the
+// agency as provider, so it flows through the exact same client "mes
+// offres reçues" accept flow as a direct Mission Agence offer — the client
+// never sees the jobber. `sourceOfferId` remembers which jobber offer this
+// was built from, so "Commander la mission" (after the client accepts)
+// knows who to actually book.
+router.post('/offers/:id/quote', async (req, res, next) => {
+  try {
+    const { amount } = quoteSchema.parse(req.body);
+    const offer = await prisma.offer.findUnique({ where: { id: req.params.id }, include: { mission: true } });
+    if (!offer || offer.mission.corporateAgencyId !== req.agency.id) return res.status(404).json({ error: 'Offre introuvable' });
+    if (offer.status !== 'SELECTED') return res.status(400).json({ error: "Cette offre n'est plus disponible pour un devis" });
+
+    const hourlyRate = round2(amount / offer.mission.estimatedHours);
+    const quoteOffer = await prisma.offer.create({
+      data: {
+        missionId: offer.missionId,
+        providerId: req.agency.id,
+        hourlyRate,
+        sourceOfferId: offer.id,
+      },
+    });
+
+    res.status(201).json({ offer: quoteOffer });
+  } catch (err) {
+    if (err.name === 'ZodError') { err.status = 400; err.expose = true; err.message = err.errors[0].message; }
+    if (err.code === 'P2002') { err.status = 409; err.expose = true; err.message = 'Un devis existe déjà pour cette demande'; }
+    next(err);
+  }
+});
+
+// --- Offre acceptée par le client ---
+// Once the client accepts the agency's devis (via the normal offers.routes
+// /accept — same isAgenceOffer path as a direct Mission Agence booking),
+// that devis Offer flips to ACCEPTED and its Booking still has
+// providerId = the agency itself. That's exactly what makes a booking show
+// up here: the agency has been paid its due, but the real jobber isn't
+// booked yet. Offer has no Prisma relation back to Booking (Booking.offerId
+// is a bare scalar), so bookings are matched to their devis by missionId.
+router.get('/missions/offre-acceptee', async (req, res, next) => {
+  try {
+    const quoteOffers = await prisma.offer.findMany({
+      where: {
+        providerId: req.agency.id,
+        status: 'ACCEPTED',
+        sourceOfferId: { not: null },
+        mission: { corporateAgencyId: req.agency.id },
+      },
+      include: {
+        mission: { include: { category: true, client: { select: { firstName: true, lastName: true, phone: true } } } },
+        sourceOffer: { include: { provider: { select: { firstName: true, lastName: true } } } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const bookings = await prisma.booking.findMany({ where: { missionId: { in: quoteOffers.map((o) => o.missionId) } } });
+    const bookingByMission = Object.fromEntries(bookings.map((b) => [b.missionId, b]));
+
+    const pending = quoteOffers
+      .map((offer) => ({ offer, booking: bookingByMission[offer.missionId] }))
+      .filter(({ booking }) => booking && booking.providerId === req.agency.id);
+
+    res.json({ pending });
+  } catch (err) { next(err); }
+});
+
+// "Commander la mission" — the agency confirms the client's accepted devis
+// and only NOW does the actual jobber get notified. Reassigns the existing
+// booking's provider from the agency to the jobber (same move as
+// "Embaucher un employé" on a Mission Agence booking) rather than creating
+// a second booking, since Booking.missionId is unique — one booking per
+// mission throughout. The client's escrowed payment is untouched; only the
+// payout is revised down to what the jobber actually quoted (the agency
+// keeps the difference as its margin, net of Jobber's 10€ facilitation fee
+// — there's no separate money movement for that fee in this model yet).
+router.post('/bookings/:id/commander', async (req, res, next) => {
+  try {
+    const booking = await prisma.booking.findUnique({
+      where: { id: req.params.id },
+      include: { mission: true, payment: true },
+    });
+    if (!booking || booking.mission.corporateAgencyId !== req.agency.id) return res.status(404).json({ error: 'Mission introuvable' });
+    if (booking.providerId !== req.agency.id) return res.status(400).json({ error: 'Mission déjà commandée' });
+
+    const quoteOffer = await prisma.offer.findUnique({ where: { id: booking.offerId } });
+    const sourceOffer = quoteOffer?.sourceOfferId ? await prisma.offer.findUnique({ where: { id: quoteOffer.sourceOfferId } }) : null;
+    if (!sourceOffer) return res.status(400).json({ error: "Cette mission n'a pas de devis basé sur une offre jobber" });
+
+    const jobberHours = sourceOffer.hours ?? booking.mission.estimatedHours;
+    const jobberExtraFeesTotal = (sourceOffer.extraFees || []).reduce((sum, f) => sum + f.amount, 0);
+    const jobberTotal = round2(sourceOffer.hourlyRate * jobberHours + jobberExtraFeesTotal);
+    const agencyMargin = round2((booking.payment?.amount ?? booking.totalAmount) - jobberTotal - AGENCY_PLATFORM_FEE);
+
+    // hours/hourlyRate stay as the client's contract terms (booking.totalAmount
+    // is what the client is paying, unaffected by this step) — only who does
+    // the work changes, exactly like reassigning an employee.
+    const [updatedBooking] = await prisma.$transaction([
+      prisma.booking.update({
+        where: { id: booking.id },
+        data: { providerId: sourceOffer.providerId },
+      }),
+      prisma.payment.update({
+        where: { bookingId: booking.id },
+        data: { providerPayout: jobberTotal, platformFee: round2(agencyMargin + AGENCY_PLATFORM_FEE) },
+      }),
+      prisma.offer.update({ where: { id: sourceOffer.id }, data: { status: 'ACCEPTED' } }),
+    ]);
+    notifyBookingAccepted(updatedBooking.id);
+
+    res.json({ booking: updatedBooking });
   } catch (err) { next(err); }
 });
 

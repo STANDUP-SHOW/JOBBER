@@ -12,6 +12,7 @@ const NAV = [
   { href: '/admin/nouvelle-mission-agence', label: 'Nouvelle mission agence' },
   { href: '/admin/demandes-jobber', label: "Demandes d'intervention Jobber", section: 'demandes-jobber' },
   { href: '/admin/offres-jobber', label: 'Offres Jobber', section: 'offres-jobber' },
+  { href: '/admin/offre-acceptee', label: 'Offre acceptée par le client', section: 'offre-acceptee' },
   { href: '/admin/missions-jobber-en-cours', label: 'Missions Jobber en cours', section: 'missions-jobber-en-cours' },
   { href: '/admin/missions-jobber-terminees', label: 'Missions Jobber terminées', section: 'missions-jobber-terminees' },
   { href: '/admin/factures-jobber', label: 'Mes factures Jobber' },

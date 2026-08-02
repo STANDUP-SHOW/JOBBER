@@ -6,6 +6,7 @@ import { useAgencyAuth } from '../../../lib/agency-auth-context';
 import { agencyApi } from '../../../lib/agencyApi';
 import MissionInfoBadges from '../../../components/admin/MissionInfoBadges';
 import DistanceBadge from '../../../components/admin/DistanceBadge';
+import DevisModal from '../../../components/admin/DevisModal';
 
 export default function OffresJobberPage() {
   const { token } = useAgencyAuth();
@@ -15,6 +16,8 @@ export default function OffresJobberPage() {
   const [busyId, setBusyId] = useState(null);
   const [refusing, setRefusing] = useState(null); // offer id currently showing the reason picker
   const [reasonDraft, setReasonDraft] = useState('');
+  const [quoting, setQuoting] = useState(null); // offer currently in the devis modal
+  const [quoteError, setQuoteError] = useState('');
 
   async function refresh() {
     try {
@@ -26,12 +29,13 @@ export default function OffresJobberPage() {
 
   useEffect(() => { if (token) refresh(); }, [token]);
 
-  async function accept(id) {
-    setBusyId(id);
+  async function sendQuote(amount) {
+    setBusyId(quoting.id); setQuoteError('');
     try {
-      await agencyApi.acceptOffer(id, token);
+      await agencyApi.createQuote(quoting.id, amount, token);
+      setQuoting(null);
       await refresh();
-    } catch (err) { setError(err.message); } finally { setBusyId(null); }
+    } catch (err) { setQuoteError(err.message); } finally { setBusyId(null); }
   }
 
   async function confirmRefuse(id) {
@@ -49,8 +53,8 @@ export default function OffresJobberPage() {
     <div>
       <h1 className="font-display text-2xl font-semibold text-ink">Offres Jobber</h1>
       <p className="mt-1 text-sm text-slate-500">
-        Chaque offre reçue se présente comme un devis, imprimable et téléchargeable — la mise en forme définitive sera
-        paramétrée plus tard.
+        La meilleure offre reçue est sélectionnée automatiquement dès 5 propositions ou après 11h — à vous de
+        construire le devis client à partir de celle-ci.
       </p>
 
       {error && <p className="mt-4 rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
@@ -104,8 +108,8 @@ export default function OffresJobberPage() {
                 </div>
               ) : (
                 <div className="mt-4 flex gap-3 border-t border-slate-100 pt-4">
-                  <button type="button" disabled={busyId === o.id} onClick={() => accept(o.id)} className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark disabled:opacity-60">
-                    Valider la mission
+                  <button type="button" disabled={busyId === o.id} onClick={() => { setQuoting(o); setQuoteError(''); }} className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark disabled:opacity-60">
+                    Créer le devis client
                   </button>
                   <button type="button" onClick={() => setRefusing(o.id)} className="rounded-md border border-slate-200 px-4 py-2 text-sm font-medium text-ink hover:border-slate-300">
                     Refuser l'offre
@@ -116,6 +120,16 @@ export default function OffresJobberPage() {
           );
         })}
       </div>
+
+      {quoting && (
+        <DevisModal
+          offer={quoting}
+          busy={busyId === quoting.id}
+          error={quoteError}
+          onClose={() => setQuoting(null)}
+          onSubmit={sendQuote}
+        />
+      )}
     </div>
   );
 }

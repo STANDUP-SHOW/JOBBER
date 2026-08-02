@@ -113,13 +113,14 @@ export default function PlateformeCorporatePage() {
       </section>
 
       <section className="mt-16 rounded-lg border-2 border-moss bg-white p-6 md:p-10">
-        <span className="rounded-full bg-ochre px-3 py-1 text-xs font-bold uppercase tracking-wide text-ink">
-          Prochainement
+        <span className="rounded-full bg-moss px-3 py-1 text-xs font-bold uppercase tracking-wide text-paper">
+          En cours de déploiement
         </span>
         <h2 className="mt-4 font-display text-2xl font-semibold text-ink">Le pilote automatique</h2>
         <p className="mt-3 max-w-2xl text-slate-600">
-          À venir : une fois activé, le pilote automatique prend en charge le cycle complet d'une demande — de sa
-          réception sur votre site jusqu'à votre facture, sans intervention de votre part.
+          Le pilote automatique prend en charge le cycle complet d'une demande — de sa réception sur votre site
+          jusqu'à votre facture, sans intervention de votre part. Le parcours client existe déjà ; l'automatisation
+          côté back-office se met en place progressivement.
         </p>
 
         <ol className="mt-6 space-y-3">

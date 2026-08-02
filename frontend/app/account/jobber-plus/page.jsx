@@ -3,6 +3,13 @@
 import Link from 'next/link';
 import AccountBackButton from '../../../components/AccountBackButton';
 
+const MISSION_PLANS = [
+  { name: 'Sans abonnement', price: null, detail: '10 € de frais par mission — gratuit pour le jobber' },
+  { name: 'Entreprise 20', price: '99,90 €', detail: '20 missions par mois sans frais' },
+  { name: 'Entreprise 50', price: '199,90 €', detail: '50 missions par mois sans frais' },
+  { name: 'Entreprise Illimité', price: '499,90 €', detail: 'Tout inclus — missions illimitées, aucun frais de mission' },
+];
+
 export default function JobberPlusPage() {
   return (
     <div className="max-w-xl">
@@ -20,7 +27,26 @@ export default function JobberPlusPage() {
         ou automatique — pensée pour être rentable dès la mise en route.
       </p>
 
-      <div className="mt-6 space-y-3">
+      <h2 className="mt-8 font-display text-lg font-semibold text-ink">Tarifs abonnements missions</h2>
+      <div className="mt-4 space-y-3">
+        {MISSION_PLANS.map((plan) => (
+          <div key={plan.name} className="rounded-lg border border-slate-200 bg-white p-4">
+            <div className="flex items-center justify-between">
+              <div className="font-display text-base font-semibold text-ink">{plan.name}</div>
+              {plan.price && (
+                <div className="text-right">
+                  <div className="font-display text-lg font-bold text-ink">{plan.price}</div>
+                  <div className="text-xs text-slate-400">/ mois</div>
+                </div>
+              )}
+            </div>
+            <p className="mt-1 text-sm text-slate-500">{plan.detail}</p>
+          </div>
+        ))}
+      </div>
+
+      <h2 className="mt-8 font-display text-lg font-semibold text-ink">Options facultatives</h2>
+      <div className="mt-4 space-y-3">
         <div className="rounded-lg border border-slate-200 bg-white p-4">
           <div className="flex items-center justify-between">
             <div className="font-display text-base font-semibold text-ink">Plateforme Corporate de sous-traitance jobbers</div>
