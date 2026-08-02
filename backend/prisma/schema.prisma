@@ -699,6 +699,22 @@ model ContactMessage {
   createdAt DateTime             @default(now())
 }
 
+// Tracks when an admin (Jobber back-office) or an agency (Services34-style
+// white-label back-office) last looked at a given nav section — powers the
+// red notification badges (see notificationCounts.js): a section's count is
+// how many of its rows were created/updated since lastViewedAt. ownerType
+// distinguishes the two back-offices sharing this table ('JOBBER_ADMIN' vs
+// 'AGENCY'); ownerId is the User.id in both cases (an agency is a User row).
+model AdminSectionView {
+  id           String   @id @default(cuid())
+  ownerType    String
+  ownerId      String
+  section      String
+  lastViewedAt DateTime @default(now())
+
+  @@unique([ownerType, ownerId, section])
+}
+
 model Review {
   id         String   @id @default(cuid())
   bookingId  String   @unique

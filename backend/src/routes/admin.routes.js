@@ -1,9 +1,34 @@
 const express = require('express');
 const prisma = require('../config/prisma');
 const { requireAuth, requireRole } = require('../middleware/auth');
+const { getCounts, markSeen } = require('../services/notificationCounts');
 
 const router = express.Router();
 router.use(requireAuth, requireRole('ADMIN'));
+
+// --- Notification badges (left nav "unread" counts) ---
+// VerificationDocument and ContactMessage have no updatedAt column — a
+// PENDING verification or a NEW contact message is only ever created once,
+// so createdAt alone is enough to catch "new" for those two.
+
+router.get('/notification-counts', async (req, res, next) => {
+  try {
+    const sections = {
+      verifications: (since) => prisma.verificationDocument.count({ where: { status: 'PENDING', createdAt: { gt: since } } }),
+      members: (since) => prisma.user.count({ where: { createdAt: { gt: since } } }),
+      'contact-messages': (since) => prisma.contactMessage.count({ where: { agencyId: null, createdAt: { gt: since } } }),
+    };
+    const counts = await getCounts('JOBBER_ADMIN', req.user.id, sections);
+    res.json({ counts });
+  } catch (err) { next(err); }
+});
+
+router.post('/notification-counts/:section/seen', async (req, res, next) => {
+  try {
+    await markSeen('JOBBER_ADMIN', req.user.id, req.params.section);
+    res.json({ ok: true });
+  } catch (err) { next(err); }
+});
 
 router.get('/stats', async (req, res, next) => {
   try {

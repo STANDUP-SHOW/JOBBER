@@ -102,6 +102,8 @@ export const api = {
     return request(`/admin/members${qs ? `?${qs}` : ''}`, { token });
   },
   adminMember: (id, token) => request(`/admin/members/${id}`, { token }),
+  adminNotificationCounts: (token) => request('/admin/notification-counts', { token }),
+  adminMarkSectionSeen: (section, token) => request(`/admin/notification-counts/${section}/seen`, { method: 'POST', token }),
 
   createCategory: (payload, token) => request('/categories', { method: 'POST', body: payload, token }),
   updateCategory: (id, payload, token) => request(`/categories/${id}`, { method: 'PATCH', body: payload, token }),

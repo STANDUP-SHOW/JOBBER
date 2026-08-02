@@ -22,6 +22,9 @@ export const agencyApi = {
   me: (token) => request('/me', { token }),
   updateCredentials: (payload, token) => request('/credentials', { method: 'PATCH', body: payload, token }),
 
+  notificationCounts: (token) => request('/notification-counts', { token }),
+  markSectionSeen: (section, token) => request(`/notification-counts/${section}/seen`, { method: 'POST', token }),
+
   missionsReceived: (token) => request('/missions/received', { token }),
   missionDetail: (missionId, token) => request(`/missions/${missionId}`, { token }),
   publishToJobber: (missionId, token) => request(`/missions/${missionId}/publish-to-jobber`, { method: 'POST', token }),

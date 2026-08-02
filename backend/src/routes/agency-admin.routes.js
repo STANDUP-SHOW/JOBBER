@@ -14,6 +14,7 @@ const { REFUSAL_REASONS_JOBBER, generateCorporateCode } = require('../utils/agen
 const { geocodeAddress, haversineDistanceKm } = require('../services/geocodingService');
 const { getOneWayDistanceKm, AGENCY_DEPARTURE_ADDRESS } = require('../services/distanceService');
 const { sendAgenceProposalEmail, notifyBookingAccepted } = require('../services/emailService');
+const { getCounts, markSeen } = require('../services/notificationCounts');
 
 const router = express.Router();
 
@@ -128,6 +129,60 @@ router.use(requireAgencyAuth);
 
 router.get('/me', (req, res) => {
   res.json({ agency: agencyPublicFields(req.agency) });
+});
+
+// --- Notification badges (left nav "unread" counts) ---
+// Offer and ContactMessage have no updatedAt column, so those two sections
+// key off createdAt alone; Mission does have updatedAt, so sections that
+// are really about a mission *entering* a status (assigned, completed…)
+// also count a mission updated since the section was last viewed.
+
+router.get('/notification-counts', async (req, res, next) => {
+  try {
+    const agencyId = req.agency.id;
+    const updatedSince = (since) => ({ OR: [{ createdAt: { gt: since } }, { updatedAt: { gt: since } }] });
+    const sections = {
+      'demandes-recues': (since) => prisma.mission.count({
+        where: { corporateAgencyId: agencyId, clientId: { not: agencyId }, visibility: 'PRIVATE', status: 'OPEN', offers: { none: {} }, ...updatedSince(since) },
+      }),
+      'demandes-jobber': (since) => prisma.mission.count({
+        where: { corporateAgencyId: agencyId, visibility: 'PUBLIC', status: 'OPEN', ...updatedSince(since) },
+      }),
+      'offres-jobber': (since) => prisma.offer.count({
+        where: { status: 'PENDING', providerId: { not: agencyId }, mission: { corporateAgencyId: agencyId, visibility: 'PUBLIC' }, createdAt: { gt: since } },
+      }),
+      'missions-jobber-en-cours': (since) => prisma.mission.count({
+        where: { corporateAgencyId: agencyId, visibility: 'PUBLIC', status: { in: ['ASSIGNED', 'IN_PROGRESS'] }, booking: { providerId: { not: agencyId } }, ...updatedSince(since) },
+      }),
+      'missions-jobber-terminees': (since) => prisma.mission.count({
+        where: { corporateAgencyId: agencyId, visibility: 'PUBLIC', status: 'COMPLETED', booking: { providerId: { not: agencyId } }, ...updatedSince(since) },
+      }),
+      'missions-agence-propositions': (since) => prisma.mission.count({
+        where: { corporateAgencyId: agencyId, status: 'OPEN', offers: { some: { providerId: agencyId, status: 'PENDING' } }, ...updatedSince(since) },
+      }),
+      'missions-agence-en-cours': (since) => prisma.mission.count({
+        where: { corporateAgencyId: agencyId, visibility: 'PRIVATE', status: { in: ['ASSIGNED', 'IN_PROGRESS'] }, ...updatedSince(since) },
+      }),
+      'missions-agence-terminees': (since) => prisma.mission.count({
+        where: { corporateAgencyId: agencyId, visibility: 'PRIVATE', status: 'COMPLETED', ...updatedSince(since) },
+      }),
+      clients: (since) => prisma.mission.count({
+        where: { corporateAgencyId: agencyId, clientId: { not: agencyId }, createdAt: { gt: since } },
+      }),
+      'contact-messages': (since) => prisma.contactMessage.count({
+        where: { agencyId, createdAt: { gt: since } },
+      }),
+    };
+    const counts = await getCounts('AGENCY', agencyId, sections);
+    res.json({ counts });
+  } catch (err) { next(err); }
+});
+
+router.post('/notification-counts/:section/seen', async (req, res, next) => {
+  try {
+    await markSeen('AGENCY', req.agency.id, req.params.section);
+    res.json({ ok: true });
+  } catch (err) { next(err); }
 });
 
 const CIVILITES = ['Monsieur', 'Madame', 'Autre'];
