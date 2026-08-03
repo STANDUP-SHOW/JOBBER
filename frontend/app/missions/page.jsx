@@ -91,6 +91,13 @@ export default function MissionsPage() {
         </div>
       )}
 
+      <div className="mt-4 rounded-lg bg-green-600 px-4 py-3.5">
+        <p className="font-bold text-white">
+          GET MISSION : mission déjà chiffrée, à prendre tout de suite si vous remplissez les conditions. Activez le
+          GET Mission !
+        </p>
+      </div>
+
       <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
         <label className="block max-w-xs grow">
           <span className="text-xs font-medium text-slate-500">Filtrer par catégorie</span>
@@ -120,13 +127,6 @@ export default function MissionsPage() {
             Vue carte
           </button>
         </div>
-      </div>
-
-      <div className="mt-4 rounded-lg bg-green-600 px-4 py-3.5">
-        <p className="font-bold text-white">
-          GET MISSION : mission déjà chiffrée, à prendre tout de suite si vous remplissez les conditions. Activez le
-          GET Mission !
-        </p>
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
