@@ -5,36 +5,42 @@ const { requireAuth } = require('../middleware/auth');
 const { geocodeAddress } = require('../services/geocodingService');
 const { isValidSiret } = require('../utils/siret');
 const { generateCategoryBio } = require('../services/aiService');
-const { computeBadges } = require('../utils/badges');
+const { BADGE_CATALOG, computeBadges } = require('../utils/badges');
 
 const router = express.Router();
 
-// "Mes Badges et récompenses" — computed live from real provider stats
-// (no separate awarded-badges table to keep in sync): a badge is earned the
-// moment the underlying stat crosses its threshold, and lost if it ever
-// drops back below (e.g. rating average slipping under 4.5).
-const BADGE_DEFINITIONS = [
-  { id: 'first-mission', icon: '🥉', name: 'Première mission', description: 'Terminez votre première mission', check: (s) => s.completedMissions >= 1 },
-  { id: 'confirmed', icon: '🥈', name: 'Jobber confirmé', description: '10 missions terminées', check: (s) => s.completedMissions >= 10 },
-  { id: 'expert', icon: '🥇', name: 'Jobber expert', description: '50 missions terminées', check: (s) => s.completedMissions >= 50 },
-  { id: 'trusted', icon: '⭐', name: 'Jobber de confiance', description: 'Note moyenne d\'au moins 4,5 sur au moins 5 avis', check: (s) => s.ratingAverage >= 4.5 && s.ratingCount >= 5 },
-  { id: 'versatile', icon: '🎯', name: 'Multi-compétences', description: 'Actif dans au moins 3 catégories', check: (s) => s.categoriesCount >= 3 },
-];
-
+// "Mes Badges et récompenses" — same catalog and same live computation as
+// the public profile / mission-tile badges (see utils/badges.js), so a
+// jobber's own badge page always matches what others see on their profile.
 router.get('/me/badges', requireAuth, async (req, res, next) => {
   try {
-    const profile = await prisma.providerProfile.findUnique({
-      where: { userId: req.user.id },
-      include: { categories: true },
-    });
+    const [user, profile] = await Promise.all([
+      prisma.user.findUnique({ where: { id: req.user.id }, select: { createdAt: true, isProfessional: true } }),
+      prisma.providerProfile.findUnique({ where: { userId: req.user.id } }),
+    ]);
     if (!profile) return res.status(404).json({ error: 'Profil prestataire introuvable' });
+
+    const completedByCategory = await prisma.booking.findMany({
+      where: { providerId: req.user.id, status: 'COMPLETED' },
+      select: { mission: { select: { categoryId: true } } },
+    });
+    const categoryCounts = {};
+    for (const b of completedByCategory) {
+      const catId = b.mission?.categoryId;
+      if (catId) categoryCounts[catId] = (categoryCounts[catId] || 0) + 1;
+    }
+    const bestCategoryCount = Math.max(0, ...Object.values(categoryCounts));
+
     const stats = {
+      isProfessional: user.isProfessional,
+      createdAt: user.createdAt,
       completedMissions: profile.completedMissions,
       ratingAverage: profile.ratingAverage,
       ratingCount: profile.ratingCount,
-      categoriesCount: profile.categories.length,
+      bestCategoryCount,
     };
-    const badges = BADGE_DEFINITIONS.map(({ check, ...b }) => ({ ...b, earned: check(stats) }));
+    const earnedKeys = computeBadges(stats);
+    const badges = Object.entries(BADGE_CATALOG).map(([key, b]) => ({ key, ...b, earned: earnedKeys.includes(key) }));
     res.json({ badges, stats });
   } catch (err) { next(err); }
 });

@@ -124,11 +124,8 @@ export default function MissionsPage() {
 
       <div className="mt-4 rounded-lg bg-green-600 px-4 py-3.5">
         <p className="font-bold text-white">
-          GET MISSION : prenez la mission, elle est pour vous si vous remplissez les conditions demandées, et
-          acceptez son tarif fixe tout inclus non négociable.
-        </p>
-        <p className="mt-1 text-sm font-normal text-white/90">
-          Sélectionnez « GET Mission uniquement » ci-dessous pour trier.
+          GET MISSION : mission déjà chiffrée, à prendre tout de suite si vous remplissez les conditions. Activez le
+          GET Mission !
         </p>
       </div>
 

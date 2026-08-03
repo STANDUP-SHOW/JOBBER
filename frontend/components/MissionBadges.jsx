@@ -16,7 +16,7 @@ function ToolboxIcon(props) {
 // publication-time choices, always rendered explicitly (e.g. Ponctuel is
 // shown just as much as Récurrent) so the full picture is visible at a
 // glance in list and map view alike.
-export default function MissionBadges({ mission, className = '' }) {
+export default function MissionBadges({ mission, className = '', excludeBadges = [] }) {
   if (!mission) return null;
   const equipmentNames = (mission.requiredEquipment || []).map((re) => re.equipment.name);
   if (mission.otherEquipmentNote) equipmentNames.push(mission.otherEquipmentNote);
@@ -85,7 +85,7 @@ export default function MissionBadges({ mission, className = '' }) {
           </span>
         );
       })}
-      {(mission.requiredBadges || []).map((key) => {
+      {(mission.requiredBadges || []).filter((key) => !excludeBadges.includes(key)).map((key) => {
         const badge = BADGE_CATALOG[key];
         if (!badge) return null;
         // Icon only on tiles/maps — the full name + description shows on

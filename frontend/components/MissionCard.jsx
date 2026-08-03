@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import MissionBadges from './MissionBadges';
 import DistanceBadge from './DistanceBadge';
+import { BADGE_CATALOG } from '../lib/badgeCatalog';
 
 const STATUS_LABEL = {
   OPEN: { text: 'Ouverte', cls: 'bg-moss-light text-moss-dark' },
@@ -26,6 +27,7 @@ export default function MissionCard({ mission }) {
   const status = STATUS_LABEL[mission.status] || STATUS_LABEL.OPEN;
   const isCompany = mission.client?.accountKind === 'COMPANY';
   const posterName = isCompany ? mission.client.companyName : mission.client?.firstName;
+  const proRequired = mission.requiredBadges?.includes('PRO');
 
   return (
     <Link
@@ -47,7 +49,7 @@ export default function MissionCard({ mission }) {
             <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-ink">{mission.estimatedHours} h</span>
           </div>
           <div className="mt-0.5 truncate text-sm text-slate-400">{mission.address}</div>
-          <MissionBadges mission={mission} className="mt-1.5" />
+          <MissionBadges mission={mission} className="mt-1.5" excludeBadges={['PRO']} />
         </div>
       </div>
 
@@ -56,6 +58,13 @@ export default function MissionCard({ mission }) {
           <span>{new Date(mission.desiredDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
           <span className={`rounded-full px-2.5 py-0.5 font-medium ${status.cls}`}>{status.text}</span>
         </div>
+        {proRequired && (
+          <div className="mt-2">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-base font-bold text-yellow-300">
+              <span className="text-2xl leading-none">{BADGE_CATALOG.PRO.icon}</span> PRO uniquement
+            </span>
+          </div>
+        )}
         <div className="mt-1.5 flex items-center gap-2 text-xs text-slate-400">
           <span>{timeAgo(mission.createdAt)}</span>
           {isRecent(mission.createdAt) && (

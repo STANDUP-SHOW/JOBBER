@@ -3,6 +3,15 @@
 import { useRef, useState } from 'react';
 import { uploadImage } from '../lib/cloudinary';
 
+function PencilIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
 export default function AvatarUpload({ avatarUrl, firstName, onUploaded }) {
   const inputRef = useRef(null);
   const [busy, setBusy] = useState(false);
@@ -25,35 +34,35 @@ export default function AvatarUpload({ avatarUrl, firstName, onUploaded }) {
   }
 
   return (
-    <div className="flex items-center gap-4">
-      <button
-        type="button"
-        onClick={() => inputRef.current?.click()}
-        disabled={busy}
-        className="group relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-moss-light text-2xl font-semibold text-moss-dark disabled:opacity-60"
-        aria-label="Changer la photo de profil"
-      >
-        {avatarUrl ? (
-          <img src={avatarUrl} alt="Photo de profil" className="h-full w-full object-cover" />
-        ) : (
-          <span>{firstName?.[0]?.toUpperCase() || '?'}</span>
-        )}
-        <span className="absolute inset-0 flex items-center justify-center bg-ink/50 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100">
-          {busy ? '…' : 'Modifier'}
-        </span>
-      </button>
-      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
-      <div>
+    <div className="flex flex-col items-center gap-2">
+      <div className="relative">
+        <div className="flex h-40 w-40 shrink-0 items-center justify-center overflow-hidden rounded-full bg-moss-light text-5xl font-semibold text-moss-dark">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="Photo de profil" className="h-full w-full object-cover" />
+          ) : (
+            <span>{firstName?.[0]?.toUpperCase() || '?'}</span>
+          )}
+        </div>
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={busy}
-          className="text-sm font-medium text-moss hover:underline disabled:opacity-60"
+          aria-label="Changer la photo de profil"
+          className="absolute -bottom-1 left-1/2 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full border-4 border-paper bg-moss text-white shadow hover:bg-moss-dark disabled:opacity-60"
         >
-          {busy ? 'Envoi…' : 'Changer la photo'}
+          <PencilIcon className="h-4 w-4" />
         </button>
-        {error && <p className="mt-1 text-xs text-clay">{error}</p>}
       </div>
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={busy}
+        className="mt-2 text-sm font-medium text-moss hover:underline disabled:opacity-60"
+      >
+        {busy ? 'Envoi…' : 'Changer la photo'}
+      </button>
+      {error && <p className="text-xs text-clay">{error}</p>}
     </div>
   );
 }

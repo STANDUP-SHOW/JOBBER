@@ -147,13 +147,23 @@ function NewMissionForm() {
     }));
   }
 
-  function toggleRequiredBadge(key) {
-    setForm((f) => ({
-      ...f,
-      requiredBadges: f.requiredBadges.includes(key)
-        ? f.requiredBadges.filter((b) => b !== key)
-        : [...f.requiredBadges, key],
-    }));
+  // Tenure/missions/reviews/expertise are tiered series (e.g. "1 to 5
+  // missions" vs "100+ missions") — checking more than one tier per series
+  // would create meaningless combinations, so selecting a new tier there
+  // replaces the previous one instead of adding to it. PRO ("status") has
+  // no series, so it stays a plain independent checkbox.
+  const EXCLUSIVE_BADGE_CATEGORIES = ['tenure', 'missions', 'reviews', 'expertise'];
+
+  function toggleRequiredBadge(key, category) {
+    setForm((f) => {
+      if (f.requiredBadges.includes(key)) {
+        return { ...f, requiredBadges: f.requiredBadges.filter((b) => b !== key) };
+      }
+      const sameSeries = EXCLUSIVE_BADGE_CATEGORIES.includes(category)
+        ? REQUIRABLE_BADGES.filter((k) => BADGE_CATALOG[k].category === category)
+        : [];
+      return { ...f, requiredBadges: [...f.requiredBadges.filter((b) => !sameSeries.includes(b)), key] };
+    });
   }
 
   async function onSubmit(e) {
@@ -677,7 +687,7 @@ function NewMissionForm() {
                       <input
                         type="checkbox"
                         checked={form.requiredBadges.includes(key)}
-                        onChange={() => toggleRequiredBadge(key)}
+                        onChange={() => toggleRequiredBadge(key, cat)}
                         className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 accent-moss"
                       />
                       <span>
