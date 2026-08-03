@@ -7,6 +7,8 @@ import { useAuth } from '../../lib/auth-context';
 import { api } from '../../lib/api';
 import AvatarUpload from '../../components/AvatarUpload';
 import ZoneSummaryCard from '../../components/ZoneSummaryCard';
+import PageTitleBadge from '../../components/PageTitleBadge';
+import { UserIcon } from '../../components/NavIcons';
 
 function ChevronIcon(props) {
   return (
@@ -69,7 +71,7 @@ export default function AccountPage() {
 
   return (
     <div className="max-w-xl">
-      <span className="label-eyebrow text-moss">Mon compte</span>
+      <PageTitleBadge icon={UserIcon} label="Mon compte" />
 
       <div className="mt-4">
         <AvatarUpload avatarUrl={user.avatarUrl} firstName={user.firstName} onUploaded={onAvatarUploaded} />

@@ -61,7 +61,7 @@ export default function MissionCard({ mission }) {
         {proRequired && (
           <div className="mt-2">
             <span className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-base font-bold text-yellow-300">
-              <span className="text-2xl leading-none">{BADGE_CATALOG.PRO.icon}</span> PRO uniquement
+              <span className="text-2xl leading-none">{BADGE_CATALOG.PRO.icon}</span> PRO
             </span>
           </div>
         )}
