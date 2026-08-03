@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { API_URL } from '../lib/api';
 import CategoryGrid from '../components/CategoryGrid';
 import MissionCard from '../components/MissionCard';
@@ -42,48 +41,15 @@ export default async function HomePage() {
         </p>
       </section>
 
-      <section className="mt-4 rounded-lg border-2 border-blue-600 bg-blue-50 px-5 py-4 text-sm text-ink md:px-6">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <span className="rounded-md bg-blue-600 px-3 py-1 text-xs font-bold uppercase tracking-wide text-yellow-300">
-              Version bêta
-            </span>
-            <span className="rounded-md bg-blue-600 px-3 py-1 text-xs font-bold uppercase tracking-wide text-yellow-300">
-              Ouverture le 15/09/2026
-            </span>
-          </div>
-          <p className="max-w-2xl text-balance text-base leading-snug">
-            <strong>Bienvenue sur la nouvelle plateforme Jobber+ !</strong> Cette version est en bêta-test en ligne
-            depuis le 01/08/2026, elle nous permet d'effectuer les derniers réglages — les missions affichées sont
-            des missions test.
-          </p>
-          <LaunchCountdown />
-        </div>
-      </section>
-
-      <section className="mt-4 flex flex-col items-center gap-4 rounded-lg border-2 border-moss bg-moss-light px-6 py-6 text-center md:flex-row md:justify-between md:text-left">
-        <div>
-          <div className="font-display text-xl font-bold text-ink">Cadeau de naissance de plateforme</div>
-          <p className="mt-1 text-balance text-base text-ink">
-            Les jobbers peuvent déjà s'inscrire et profiter de notre offre cadeau de naissance Jobber+ : Carte
-            JobberGold — les 20 premières missions sans aucun frais de plateforme !
-          </p>
-        </div>
-        <Link href="/offre-lancement" className="inline-flex shrink-0 items-center gap-2 rounded-md bg-moss px-5 py-3 font-medium text-paper hover:bg-moss-dark">
-          En savoir plus
-          <span className="font-bold text-ochre">+</span>
-        </Link>
-      </section>
-
       <AudienceBlock
         eyebrow="Vous avez un besoin ?"
-        title="Décrivez votre besoin, recevez des propositions en quelques minutes."
-        description="Ménage, bricolage, jardinage, déménagement… Publiez votre mission et recevez des propositions de prestataires vérifiés près de chez vous."
+        title="Publiez votre besoin, recevez des offres en quelques minutes."
+        description="Ménage, bricolage, jardinage, déménagement : publiez votre mission et recevez des propositions de prestataires vérifiés près de chez vous."
         sectionClass="border border-slate-200 bg-white"
         eyebrowClass="text-moss"
         points={[
           { icon: '📝', title: 'Votre mission', desc: 'Catégorie, adresse, date souhaitée, durée estimée.' },
-          { icon: '📊', title: 'Comparez les offres', desc: "En moins de 10 minutes : nulle part ailleurs vous n'aurez un devis aussi vite." },
+          { icon: '📊', title: 'Comparez les offres', desc: 'En moins de 10 minutes : nulle part ailleurs un devis aussi rapide.' },
           { icon: '🔒', title: 'Payez en sécurité', desc: "L'argent est bloqué en séquestre puis versé une fois le travail validé." },
         ]}
         buttons={[
@@ -112,8 +78,8 @@ export default async function HomePage() {
         title="Arrondissez vos fins de mois. Augmentez vos revenus."
         description={
           <>
-            Jobbez à plein temps ou sur votre temps libre. Que vous soyez <strong>particulier ou travailleur indépendant</strong>,
-            Jobber c'est des centaines de missions par semaine, près de chez vous.
+            Jobbez à plein temps ou sur votre temps libre, <strong>particulier ou indépendant</strong> : des centaines
+            de missions par semaine, près de chez vous.
           </>
         }
         sectionClass="bg-ochre"
@@ -129,10 +95,29 @@ export default async function HomePage() {
         ]}
       />
 
+      <section className="mt-6 rounded-lg border-2 border-blue-600 bg-blue-50 px-5 py-4 text-sm text-ink md:px-6">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <span className="rounded-md bg-blue-600 px-3 py-1 text-xs font-bold uppercase tracking-wide text-yellow-300">
+              Version bêta
+            </span>
+            <span className="rounded-md bg-blue-600 px-3 py-1 text-xs font-bold uppercase tracking-wide text-yellow-300">
+              Ouverture le 15/09/2026
+            </span>
+          </div>
+          <p className="max-w-2xl text-balance text-base leading-snug">
+            <strong>Bienvenue sur la nouvelle plateforme Jobber+ !</strong> Cette version est en bêta-test en ligne
+            depuis le 01/08/2026, elle nous permet d'effectuer les derniers réglages — les missions affichées sont
+            des missions test.
+          </p>
+          <LaunchCountdown />
+        </div>
+      </section>
+
       <AudienceBlock
         eyebrow="Jobber pour les Entreprises"
         title="Devenez Jobber Pro, accédez à plus de missions."
-        description="Les entreprises et nos partenaires Corporate publient des missions professionnelles sur Jobber+. Avec le badge Jobber+ PRO vous y accédez — et pour certaines, la mission est pour vous en un clic."
+        description="Les entreprises et nos partenaires Corporate publient des missions professionnelles sur Jobber+. Avec le badge PRO, vous y accédez — et pour certaines, la mission est pour vous en un clic."
         sectionClass="border border-ochre/30 bg-ochre-light"
         eyebrowClass="text-ochre-dark"
         points={[
@@ -146,33 +131,16 @@ export default async function HomePage() {
         ]}
       />
 
-      <AudienceBlock
-        eyebrow="Vous voulez apprendre un métier pour Jobber ?"
-        title="Apprenez avec un pro, on passe direct à la pratique."
-        description="Vous souhaitez apprendre ? Bonne nouvelle ! Sur Jobber, vous apprenez avec un pro. Demandez des cours de jardinage, de ménage, d'électricité, de plomberie… nos jobbers viennent chez vous vous apprendre !"
-        sectionClass="border border-purple-200 bg-purple-50"
-        eyebrowClass="text-purple-700"
-        points={[
-          { icon: '🎓', title: 'Formation accessible à tous', desc: 'Accès à la formation professionnelle pour tous, sans démarches administratives.' },
-          { icon: '⏰', title: 'À votre rythme', desc: 'Vous apprenez un métier à votre rythme, sur votre temps libre.' },
-          { icon: '🤝', title: 'Partagez votre expérience', desc: 'Vous partagez votre expérience et transmettez vos valeurs.' },
-        ]}
-        buttons={[
-          { href: '/lessons', label: 'Voir les leçons proposées', variant: 'purple' },
-          { href: '/missions/new?type=lesson', label: 'Demander un cours', variant: 'purple-outline' },
-        ]}
-      />
-
-      <section className="mt-16 rounded-lg border border-ink/10 bg-ink px-6 py-10 text-center md:px-10">
-        <p className="mx-auto max-w-2xl text-balance font-display text-2xl font-semibold leading-snug text-white md:text-3xl">
-          Avec Jobber, les tarifs sont transparents et identiques à toutes les missions. Jobber est la plateforme la
-          moins chère en France pour les mises en relations de prestations de service.
-        </p>
-        <p className="mx-auto mt-3 max-w-2xl text-balance text-base font-bold text-ochre">
-          La version gratuite de Jobber donne accès à toutes les fonctionnalités de la plateforme.
-        </p>
-        <Link href="/frais" className="mt-6 inline-block rounded-md bg-white px-6 py-3 font-medium text-ink hover:bg-slate-100">
-          Voir les tarifs
+      <section className="mt-16 flex flex-col items-center gap-4 rounded-lg border-2 border-moss bg-moss-light px-6 py-6 text-center md:flex-row md:justify-between md:text-left">
+        <div>
+          <div className="font-display text-xl font-bold text-ink">Cadeau de naissance de plateforme</div>
+          <p className="mt-1 text-balance text-base text-ink">
+            Carte JobberGold offerte à l'inscription : les 20 premières missions sans aucun frais de plateforme !
+          </p>
+        </div>
+        <Link href="/offre-lancement" className="inline-flex shrink-0 items-center gap-2 rounded-md bg-moss px-5 py-3 font-medium text-paper hover:bg-moss-dark">
+          En savoir plus
+          <span className="font-bold text-ochre">+</span>
         </Link>
       </section>
 
@@ -180,7 +148,7 @@ export default async function HomePage() {
         reverse
         eyebrow="Votre entreprise a des besoins de collaborateurs ?"
         title="Recrutez à la tâche. Oubliez l'intérim."
-        description="Oubliez l'intérim, oubliez le CDD. Constituez-vous une horde de collaborateurs dans des domaines bien précis et gérez-les comme vos salariés grâce à Jobber+ : plannings, missions, employés, factures, tout est simplifié. Vous ne payez qu'une fois le travail effectué."
+        description="Oubliez l'intérim et le CDD. Constituez votre équipe de collaborateurs et gérez-la comme vos salariés grâce à Jobber+ : plannings, missions, factures, tout est simplifié. Vous ne payez qu'une fois le travail effectué."
         sectionClass="border border-moss/20 bg-moss-light"
         eyebrowClass="text-moss-dark"
         points={[
@@ -207,6 +175,36 @@ export default async function HomePage() {
           <span className="font-bold text-ochre">+</span>
         </Link>
       </section>
+
+      <section className="mt-16 rounded-lg border border-ink/10 bg-ink px-6 py-10 text-center md:px-10">
+        <p className="mx-auto max-w-2xl text-balance font-display text-2xl font-semibold leading-snug text-white md:text-3xl">
+          Avec Jobber, les tarifs sont transparents et identiques à toutes les missions. Jobber est la plateforme la
+          moins chère en France pour les mises en relations de prestations de service.
+        </p>
+        <p className="mx-auto mt-3 max-w-2xl text-balance text-base font-bold text-ochre">
+          La version gratuite de Jobber donne accès à toutes les fonctionnalités de la plateforme.
+        </p>
+        <Link href="/frais" className="mt-6 inline-block rounded-md bg-white px-6 py-3 font-medium text-ink hover:bg-slate-100">
+          Voir les tarifs
+        </Link>
+      </section>
+
+      <AudienceBlock
+        eyebrow="Vous voulez apprendre un métier pour Jobber ?"
+        title="Apprenez avec un pro, on passe direct à la pratique."
+        description="Vous souhaitez apprendre ? Bonne nouvelle ! Sur Jobber, vous apprenez avec un pro. Demandez des cours de jardinage, de ménage, d'électricité, de plomberie… nos jobbers viennent chez vous vous apprendre !"
+        sectionClass="border border-purple-200 bg-purple-50"
+        eyebrowClass="text-purple-700"
+        points={[
+          { icon: '🎓', title: 'Formation accessible à tous', desc: 'Accès à la formation professionnelle pour tous, sans démarches administratives.' },
+          { icon: '⏰', title: 'À votre rythme', desc: 'Vous apprenez un métier à votre rythme, sur votre temps libre.' },
+          { icon: '🤝', title: 'Partagez votre expérience', desc: 'Vous partagez votre expérience et transmettez vos valeurs.' },
+        ]}
+        buttons={[
+          { href: '/lessons', label: 'Voir les leçons proposées', variant: 'purple' },
+          { href: '/missions/new?type=lesson', label: 'Demander un cours', variant: 'purple-outline' },
+        ]}
+      />
 
       <section className="mt-16">
         <h2 className="font-display text-2xl font-semibold text-ink">Toutes les catégories</h2>
@@ -287,37 +285,17 @@ export default async function HomePage() {
         </Link>
       </section>
 
-      <section className="mt-16 mb-4 overflow-hidden rounded-lg border border-ochre/30 bg-ochre/10">
-        <div className="grid md:grid-cols-2">
-          <div className="relative aspect-square md:aspect-auto">
-            <Image
-              src="/images/info/dechetterie.png"
-              alt="Agent de collecte chargeant des déchets recyclables dans un camion professionnel"
-              fill
-              className="object-cover"
-              sizes="(min-width: 768px) 50vw, 100vw"
-            />
-          </div>
-          <div className="p-6 md:p-10">
+      <section className="mt-16 mb-4 rounded-lg border border-ochre/30 bg-ochre/10 px-6 py-8 text-center md:px-10 md:text-left">
+        <div className="flex flex-col items-center gap-4 md:flex-row">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white text-3xl">🗑️</span>
+          <div>
             <h2 className="text-balance font-display text-xl font-semibold text-ink">
-              Déchetterie, recyclage, gravats et encombrants
+              Déchetterie et recyclage : des frais pro normaux
             </h2>
-            <p className="mt-3 text-balance text-base text-slate-700">
-              Ce qui est peu connu : les déchèteries municipales sont financées par la taxe d'enlèvement des ordures
-              ménagères, payée par les particuliers — pas par les professionnels. Un artisan ou un jobber
-              professionnel qui dépose des déchets liés à une prestation doit donc s'acquitter d'une redevance
-              spéciale, avec un pass professionnel dédié. Et oui, cela vaut aussi pour les déchets verts.
-            </p>
-            <p className="mt-3 text-balance text-base text-slate-700">
-              Ce coût recouvre plusieurs éléments pour le professionnel : le temps du trajet jusqu'à la déchèterie,
-              son carburant, l'usage de son véhicule professionnel, et une facturation au poids ou au volume selon
-              le type de déchet — souvent plusieurs dizaines d'euros la tonne, avec des tarifs qui varient d'une
-              commune à l'autre.
-            </p>
-            <p className="mt-3 text-balance text-base font-medium text-ink">
-              Ne soyez donc pas surpris si un jobber professionnel ajoute des frais de déchetterie à son offre : ce
-              n'est pas une majoration arbitraire, c'est un coût réel qu'il doit couvrir pour évacuer vos déchets
-              dans les règles.
+            <p className="mt-2 text-balance text-base text-slate-700">
+              Les déchèteries sont financées par les particuliers, pas par les professionnels. Un jobber pro y dépose
+              ses déchets avec une carte pro et une redevance spéciale, facturée au poids ou au volume : des frais
+              répercutés sur votre devis, normaux et justifiés.
             </p>
           </div>
         </div>
