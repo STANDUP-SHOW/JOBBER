@@ -88,6 +88,14 @@ function MissionNavBar({ backHref, nextId }) {
   );
 }
 
+const STATUS_LABEL = {
+  OPEN: { text: 'Ouverte', cls: 'bg-moss-light text-moss-dark' },
+  ASSIGNED: { text: 'Attribuée', cls: 'bg-ochre-light text-ochre-dark' },
+  IN_PROGRESS: { text: 'En cours', cls: 'bg-ochre-light text-ochre-dark' },
+  COMPLETED: { text: 'Terminée', cls: 'bg-slate-200 text-slate-600' },
+  CANCELLED: { text: 'Annulée', cls: 'bg-slate-200 text-slate-600' },
+};
+
 function InfoRow({ icon: Icon, children }) {
   return (
     <div className="flex items-center gap-3">
@@ -108,7 +116,8 @@ function timeAgo(dateStr) {
 }
 
 // Addresses are shown truncated to "postal code + city" on the pre-application
-// jobber view, matching the jittered map pin's approximate privacy.
+// jobber view, matching the jittered map pin's approximate privacy. The
+// mission owner always sees their own full address.
 function shortAddress(address) {
   if (!address) return '';
   const parts = address.split(',').map((p) => p.trim()).filter(Boolean).filter((p) => p.toLowerCase() !== 'france');
@@ -364,208 +373,124 @@ export default function MissionDetailPage() {
   if (error && !mission) return <p className="text-clay">{error}</p>;
   if (!mission) return <p className="text-slate-400">Chargement…</p>;
 
-  if (!isOwner) {
-    const start = new Date(mission.desiredDate);
-    const end = new Date(start.getTime() + mission.estimatedHours * 3600 * 1000);
-    const fmtTime = (d) => d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    const dateLabel = capitalize(start.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }));
-    const endDateLabel = mission.missionEndDate
-      ? new Date(mission.missionEndDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
-      : null;
-    const indicativeRate = user?.providerProfile?.categories?.find((c) => c.categoryId === mission.categoryId)?.hourlyRate ?? 15;
-    const indicativePrice = Math.round(indicativeRate * mission.estimatedHours);
-    const applicantCount = mission.offers?.length ?? 0;
-    const isTransportMission = mission.dropoffAddress && mission.dropoffLat != null && mission.dropoffLng != null;
-
-    return (
-      <div className="max-w-2xl">
-        <MissionNavBar backHref={navList.href} nextId={nextMissionId} />
-
-        <div className="mt-3 overflow-hidden rounded-lg border border-slate-200">
-          {isTransportMission ? (
-            <MissionRouteMap
-              origin={{ lat: mission.lat, lng: mission.lng }}
-              destination={{ lat: mission.dropoffLat, lng: mission.dropoffLng }}
-            />
-          ) : (
-            <MissionRouteMap destination={mission.lat != null && mission.lng != null ? { lat: mission.lat, lng: mission.lng } : null} />
-          )}
-        </div>
-
-        <div className="mt-5 flex items-start justify-between gap-3">
-          <h1 className="font-display text-2xl font-semibold text-ink">{mission.title}</h1>
-          <div className="shrink-0 text-right">
-            {mission.isGetMission ? (
-              <>
-                <div className="font-display text-2xl font-bold text-green-600">{mission.getMissionPrice} €</div>
-                <div className="text-xs text-slate-400">tarif fixe</div>
-              </>
-            ) : (
-              <>
-                <div className="font-display text-2xl font-bold text-ink">~{indicativePrice} €</div>
-                <div className="text-xs text-slate-400">estimation</div>
-              </>
-            )}
-          </div>
-        </div>
-
-        <MissionBadges mission={mission} className="mt-2" />
-
-        <div className="mt-2 flex items-center gap-2">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-moss-light font-display text-xs text-moss-dark">
-            {mission.client?.avatarUrl ? (
-              <img src={mission.client.avatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
-            ) : (
-              posterName(mission)?.[0]
-            )}
-          </span>
-          <span className="flex items-center gap-1.5 text-sm text-slate-500">
-            Publié par {posterName(mission)} · {timeAgo(mission.createdAt)}
-            {mission.client?.accountKind === 'COMPANY' && (
-              <span className="rounded-full bg-moss px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-                {mission.client.companyType === 'CORPORATE' ? 'Corporate' : 'Entreprise'}
-              </span>
-            )}
-          </span>
-        </div>
-
-        <div className="mt-5 space-y-3">
-          <InfoRow icon={CalendarIcon}>{endDateLabel ? `Du ${dateLabel} au ${endDateLabel}` : dateLabel}</InfoRow>
-          <InfoRow icon={ClockIcon}>{fmtTime(start)} à {fmtTime(end)} ({mission.estimatedHours}h)</InfoRow>
-          {recurrenceLabel(mission) && <InfoRow icon={RepeatIcon}>Mission à réaliser {recurrenceLabel(mission)}</InfoRow>}
-          {isTransportMission ? (
-            <>
-              <InfoRow icon={PinIcon}>Départ : {shortAddress(mission.address)}</InfoRow>
-              <InfoRow icon={PinIcon}>Arrivée : {shortAddress(mission.dropoffAddress)}</InfoRow>
-            </>
-          ) : (
-            <InfoRow icon={PinIcon}>{shortAddress(mission.address)}</InfoRow>
-          )}
-          {mission.distanceKm != null && (
-            <InfoRow icon={PinIcon}>
-              <strong>{mission.distanceKm < 1 ? `${Math.round(mission.distanceKm * 1000)} m` : `${mission.distanceKm} km`}</strong> depuis votre adresse — pensez-y pour vos frais de route
-            </InfoRow>
-          )}
-        </div>
-
-        {mission.photos?.length > 0 && (
-          <div className="mt-5 flex gap-2 overflow-x-auto">
-            {mission.photos.map((url) => (
-              <img key={url} src={url} alt="" className="h-32 w-32 shrink-0 rounded-lg object-cover" />
-            ))}
-          </div>
-        )}
-
-        <div className="mt-6 border-t border-slate-100 pt-5">
-          <h2 className="font-display text-lg font-medium text-ink">Description</h2>
-          <p className="mt-2 text-sm text-slate-600">{mission.description}</p>
-        </div>
-
-        <MissionDetails mission={mission} />
-        <MissionRequirements mission={mission} />
-
-        {applicantCount > 0 && mission.status === 'OPEN' && (
-          <div className="mt-5 flex items-center gap-2 rounded-md bg-slate-100 px-4 py-3 text-sm text-slate-600">
-            <span>ℹ️</span>
-            Déjà <strong className="text-ink">{applicantCount}</strong> prestataire{applicantCount > 1 ? 's ont' : ' a'} postulé
-          </div>
-        )}
-
-        {error && <p className="mt-4 rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
-
-        {quotaNotice && (
-          <div className="mt-4 rounded-md bg-ochre/10 px-4 py-3 text-sm text-ink">
-            <p>{quotaNotice}</p>
-            <div className="mt-2 flex gap-3">
-              <a href="/dashboard" className="font-medium text-moss">Voir mes réservations</a>
-              <a href="/account/subscription" className="font-medium text-moss">Passer à Manager Holder</a>
-            </div>
-          </div>
-        )}
-
-        {alreadyApplied && mission.status === 'OPEN' && (
-          <p className="mt-5 rounded-md bg-moss-light px-4 py-3 text-sm text-moss-dark">Votre candidature a été envoyée.</p>
-        )}
-
-        {mission.status === 'OPEN' && !alreadyApplied && (
-          <div className="mt-6 flex gap-3">
-            <button
-              onClick={() => router.push('/missions')}
-              className="flex-1 rounded-full border border-slate-200 py-3.5 text-sm font-semibold text-clay hover:border-clay"
-            >
-              Ignorer
-            </button>
-            {mission.isGetMission ? (
-              <button
-                onClick={claimGetMission}
-                disabled={busy}
-                className="flex-1 rounded-full bg-green-600 py-3.5 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-60"
-              >
-                {busy ? 'Un instant…' : 'GET MISSION →'}
-              </button>
-            ) : (
-              <button
-                onClick={openApply}
-                className="flex-1 rounded-full bg-moss py-3.5 text-sm font-semibold text-white hover:bg-moss-dark"
-              >
-                Postuler →
-              </button>
-            )}
-          </div>
-        )}
-
-        {sheetOpen && (
-          <ApplyOfferSheet
-            mission={mission}
-            defaultRate={indicativeRate}
-            busy={busy}
-            error={offerError}
-            onClose={() => setSheetOpen(false)}
-            onSubmit={applyToMission}
-          />
-        )}
-      </div>
-    );
-  }
+  // Same rich template for everyone — map, price, badges, prérequis — the
+  // only thing that changes below is the footer: apply flow for a
+  // candidate, the candidatures list for the mission's owner. Previously
+  // the owner saw a much sparser page (no map, no price, no description
+  // layout), which read as if missions from different sources were being
+  // presented inconsistently — they weren't, it was just owner vs
+  // candidate view.
+  const start = new Date(mission.desiredDate);
+  const end = new Date(start.getTime() + mission.estimatedHours * 3600 * 1000);
+  const fmtTime = (d) => d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const dateLabel = capitalize(start.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }));
+  const endDateLabel = mission.missionEndDate
+    ? new Date(mission.missionEndDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
+    : null;
+  const indicativeRate = user?.providerProfile?.categories?.find((c) => c.categoryId === mission.categoryId)?.hourlyRate ?? 15;
+  const indicativePrice = Math.round(indicativeRate * mission.estimatedHours);
+  const applicantCount = mission.offers?.length ?? 0;
+  const isTransportMission = mission.dropoffAddress && mission.dropoffLat != null && mission.dropoffLng != null;
+  const status = STATUS_LABEL[mission.status];
+  const displayAddress = (addr) => (isOwner ? addr : shortAddress(addr));
 
   return (
     <div className="max-w-2xl">
       <MissionNavBar backHref={navList.href} nextId={nextMissionId} />
 
-      <span className="mt-4 block label-eyebrow text-moss">{mission.category?.name}</span>
-      <h1 className="mt-2 font-display text-3xl font-semibold text-ink">{mission.title}</h1>
+      <div className="mt-3 overflow-hidden rounded-lg border border-slate-200">
+        {isTransportMission ? (
+          <MissionRouteMap
+            origin={{ lat: mission.lat, lng: mission.lng }}
+            destination={{ lat: mission.dropoffLat, lng: mission.dropoffLng }}
+          />
+        ) : (
+          <MissionRouteMap destination={mission.lat != null && mission.lng != null ? { lat: mission.lat, lng: mission.lng } : null} />
+        )}
+      </div>
+
+      <div className="mt-5 flex items-start justify-between gap-3">
+        <h1 className="font-display text-2xl font-semibold text-ink">{mission.title}</h1>
+        <div className="shrink-0 text-right">
+          {mission.isGetMission ? (
+            <>
+              <div className="font-display text-2xl font-bold text-green-600">{mission.getMissionPrice} €</div>
+              <div className="text-xs text-slate-400">tarif fixe</div>
+            </>
+          ) : (
+            <>
+              <div className="font-display text-2xl font-bold text-ink">~{indicativePrice} €</div>
+              <div className="text-xs text-slate-400">estimation</div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {status && (
+        <span className={`mt-2 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${status.cls}`}>{status.text}</span>
+      )}
+
       <MissionBadges mission={mission} className="mt-2" />
-      <p className="mt-3 text-slate-600">{mission.description}</p>
+
+      <div className="mt-2 flex items-center gap-2">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-moss-light font-display text-xs text-moss-dark">
+          {mission.client?.avatarUrl ? (
+            <img src={mission.client.avatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
+          ) : (
+            posterName(mission)?.[0]
+          )}
+        </span>
+        <span className="flex items-center gap-1.5 text-sm text-slate-500">
+          Publié par {posterName(mission)} · {timeAgo(mission.createdAt)}
+          {mission.client?.accountKind === 'COMPANY' && (
+            <span className="rounded-full bg-moss px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+              {mission.client.companyType === 'CORPORATE' ? 'Corporate' : 'Entreprise'}
+            </span>
+          )}
+        </span>
+      </div>
+
+      <div className="mt-5 space-y-3">
+        <InfoRow icon={CalendarIcon}>{endDateLabel ? `Du ${dateLabel} au ${endDateLabel}` : dateLabel}</InfoRow>
+        <InfoRow icon={ClockIcon}>{fmtTime(start)} à {fmtTime(end)} ({mission.estimatedHours}h)</InfoRow>
+        {recurrenceLabel(mission) && <InfoRow icon={RepeatIcon}>Mission à réaliser {recurrenceLabel(mission)}</InfoRow>}
+        {isTransportMission ? (
+          <>
+            <InfoRow icon={PinIcon}>Départ : {displayAddress(mission.address)}</InfoRow>
+            <InfoRow icon={PinIcon}>Arrivée : {displayAddress(mission.dropoffAddress)}</InfoRow>
+          </>
+        ) : (
+          <InfoRow icon={PinIcon}>{displayAddress(mission.address)}</InfoRow>
+        )}
+        {mission.distanceKm != null && (
+          <InfoRow icon={PinIcon}>
+            <strong>{mission.distanceKm < 1 ? `${Math.round(mission.distanceKm * 1000)} m` : `${mission.distanceKm} km`}</strong> depuis votre adresse — pensez-y pour vos frais de route
+          </InfoRow>
+        )}
+      </div>
 
       {mission.photos?.length > 0 && (
-        <div className="mt-4 flex gap-2 overflow-x-auto">
+        <div className="mt-5 flex gap-2 overflow-x-auto">
           {mission.photos.map((url) => (
             <img key={url} src={url} alt="" className="h-32 w-32 shrink-0 rounded-lg object-cover" />
           ))}
         </div>
       )}
 
-      <dl className="mt-5 grid grid-cols-2 gap-4 rounded-lg border border-slate-200 bg-white p-4 text-sm sm:grid-cols-4">
-        <Item label={mission.dropoffAddress ? 'Adresse de départ' : 'Adresse'} value={mission.address} />
-        {mission.dropoffAddress && <Item label="Adresse d'arrivée" value={mission.dropoffAddress} />}
-        <Item label={mission.missionEndDate ? 'Date de début' : 'Date souhaitée'} value={new Date(mission.desiredDate).toLocaleDateString('fr-FR')} />
-        {mission.missionEndDate && <Item label="Date de fin" value={new Date(mission.missionEndDate).toLocaleDateString('fr-FR')} />}
-        <Item label="Durée estimée" value={`${mission.estimatedHours} h`} />
-        {recurrenceLabel(mission) && <Item label="Fréquence" value={recurrenceLabel(mission)} />}
-        <Item label="Statut" value={mission.status} />
-      </dl>
-
-      {mission.dropoffAddress && mission.lat != null && mission.lng != null && mission.dropoffLat != null && mission.dropoffLng != null && (
-        <div className="mt-5 overflow-hidden rounded-lg border border-slate-200">
-          <MissionRouteMap
-            origin={{ lat: mission.lat, lng: mission.lng }}
-            destination={{ lat: mission.dropoffLat, lng: mission.dropoffLng }}
-          />
-        </div>
-      )}
+      <div className="mt-6 border-t border-slate-100 pt-5">
+        <h2 className="font-display text-lg font-medium text-ink">Description</h2>
+        <p className="mt-2 text-sm text-slate-600">{mission.description}</p>
+      </div>
 
       <MissionDetails mission={mission} />
       <MissionRequirements mission={mission} />
+
+      {!isOwner && applicantCount > 0 && mission.status === 'OPEN' && (
+        <div className="mt-5 flex items-center gap-2 rounded-md bg-slate-100 px-4 py-3 text-sm text-slate-600">
+          <span>ℹ️</span>
+          Déjà <strong className="text-ink">{applicantCount}</strong> prestataire{applicantCount > 1 ? 's ont' : ' a'} postulé
+        </div>
+      )}
 
       {error && <p className="mt-4 rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
 
@@ -579,84 +504,119 @@ export default function MissionDetailPage() {
         </div>
       )}
 
-      <section className="mt-10">
-        <h2 className="font-display text-lg font-medium text-ink">
-          Candidatures {mission.offers?.length ? `(${mission.offers.length})` : ''}
-        </h2>
-        <div className="mt-3 space-y-3">
-          {mission.offers?.length === 0 && <p className="text-sm text-slate-400">Aucune candidature pour l'instant.</p>}
-          {mission.offers?.map((offer) => {
-            const hasProposedSlots = offer.status === 'PENDING' && offer.proposedSlots?.length > 0;
-            const selectedIndex = selectedSlots[offer.id];
-            return (
-              <div key={offer.id} className="rounded-lg border border-slate-200 bg-white p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex flex-col items-center gap-1.5">
-                    {offer.provider.avatarUrl ? (
-                      <img src={offer.provider.avatarUrl} alt="" className="h-14 w-14 rounded-full object-cover" />
-                    ) : (
-                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-moss-light font-display text-lg text-moss-dark">
-                        {offer.provider.firstName?.[0]}
-                      </div>
-                    )}
-                    <span className="text-sm font-medium text-ink">{offer.provider.firstName}</span>
-                    {offer.provider.isProfessional && (
-                      <span className="rounded-full bg-ochre px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink">PRO</span>
+      {!isOwner && alreadyApplied && mission.status === 'OPEN' && (
+        <p className="mt-5 rounded-md bg-moss-light px-4 py-3 text-sm text-moss-dark">Votre candidature a été envoyée.</p>
+      )}
+
+      {!isOwner && mission.status === 'OPEN' && !alreadyApplied && (
+        <div className="mt-6 flex gap-3">
+          <button
+            onClick={() => router.push('/missions')}
+            className="flex-1 rounded-full border border-slate-200 py-3.5 text-sm font-semibold text-clay hover:border-clay"
+          >
+            Ignorer
+          </button>
+          {mission.isGetMission ? (
+            <button
+              onClick={claimGetMission}
+              disabled={busy}
+              className="flex-1 rounded-full bg-green-600 py-3.5 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-60"
+            >
+              {busy ? 'Un instant…' : 'GET MISSION →'}
+            </button>
+          ) : (
+            <button
+              onClick={openApply}
+              className="flex-1 rounded-full bg-moss py-3.5 text-sm font-semibold text-white hover:bg-moss-dark"
+            >
+              Postuler →
+            </button>
+          )}
+        </div>
+      )}
+
+      {!isOwner && sheetOpen && (
+        <ApplyOfferSheet
+          mission={mission}
+          defaultRate={indicativeRate}
+          busy={busy}
+          error={offerError}
+          onClose={() => setSheetOpen(false)}
+          onSubmit={applyToMission}
+        />
+      )}
+
+      {isOwner && (
+        <section className="mt-10">
+          <h2 className="font-display text-lg font-medium text-ink">
+            Candidatures {mission.offers?.length ? `(${mission.offers.length})` : ''}
+          </h2>
+          <div className="mt-3 space-y-3">
+            {mission.offers?.length === 0 && <p className="text-sm text-slate-400">Aucune candidature pour l'instant.</p>}
+            {mission.offers?.map((offer) => {
+              const hasProposedSlots = offer.status === 'PENDING' && offer.proposedSlots?.length > 0;
+              const selectedIndex = selectedSlots[offer.id];
+              return (
+                <div key={offer.id} className="rounded-lg border border-slate-200 bg-white p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex flex-col items-center gap-1.5">
+                      {offer.provider.avatarUrl ? (
+                        <img src={offer.provider.avatarUrl} alt="" className="h-14 w-14 rounded-full object-cover" />
+                      ) : (
+                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-moss-light font-display text-lg text-moss-dark">
+                          {offer.provider.firstName?.[0]}
+                        </div>
+                      )}
+                      <span className="text-sm font-medium text-ink">{offer.provider.firstName}</span>
+                      {offer.provider.isProfessional && (
+                        <span className="rounded-full bg-ochre px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink">PRO</span>
+                      )}
+                    </div>
+                    {offer.status === 'PENDING' && mission.status === 'OPEN' && !hasProposedSlots && (
+                      <button
+                        disabled={busy}
+                        onClick={() => acceptOffer(offer.id)}
+                        className="shrink-0 rounded-md bg-moss px-4 py-2 text-sm font-medium text-white hover:bg-moss-dark disabled:opacity-60"
+                      >
+                        Accepter
+                      </button>
                     )}
                   </div>
-                  {offer.status === 'PENDING' && mission.status === 'OPEN' && !hasProposedSlots && (
-                    <button
-                      disabled={busy}
-                      onClick={() => acceptOffer(offer.id)}
-                      className="shrink-0 rounded-md bg-moss px-4 py-2 text-sm font-medium text-white hover:bg-moss-dark disabled:opacity-60"
-                    >
-                      Accepter
-                    </button>
+
+                  {hasProposedSlots && (
+                    <div className="mt-3 rounded-md bg-ochre-light p-3">
+                      <p className="text-sm font-medium text-ochre-dark">
+                        Vos dates étant flexibles, le jobber vous propose {offer.proposedSlots.length} créneau{offer.proposedSlots.length > 1 ? 'x' : ''} : veuillez choisir.
+                      </p>
+                      <div className="mt-2 space-y-1.5">
+                        {offer.proposedSlots.map((slot, i) => (
+                          <label key={i} className="flex items-center gap-2 text-sm text-ink">
+                            <input
+                              type="radio"
+                              name={`slot-${offer.id}`}
+                              checked={selectedIndex === i}
+                              onChange={() => setSelectedSlots((s) => ({ ...s, [offer.id]: i }))}
+                              className="h-4 w-4 accent-moss"
+                            />
+                            {new Date(`${slot.date}T${slot.startTime}`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} à {slot.startTime}
+                          </label>
+                        ))}
+                      </div>
+                      <button
+                        disabled={busy || selectedIndex == null}
+                        onClick={() => acceptOffer(offer.id, offer.proposedSlots[selectedIndex])}
+                        className="mt-3 w-full rounded-md bg-moss py-2 text-sm font-medium text-white hover:bg-moss-dark disabled:opacity-60"
+                      >
+                        Confirmer ce créneau et accepter l'offre
+                      </button>
+                    </div>
                   )}
                 </div>
-
-                {hasProposedSlots && (
-                  <div className="mt-3 rounded-md bg-ochre-light p-3">
-                    <p className="text-sm font-medium text-ochre-dark">
-                      Vos dates étant flexibles, le jobber vous propose {offer.proposedSlots.length} créneau{offer.proposedSlots.length > 1 ? 'x' : ''} : veuillez choisir.
-                    </p>
-                    <div className="mt-2 space-y-1.5">
-                      {offer.proposedSlots.map((slot, i) => (
-                        <label key={i} className="flex items-center gap-2 text-sm text-ink">
-                          <input
-                            type="radio"
-                            name={`slot-${offer.id}`}
-                            checked={selectedIndex === i}
-                            onChange={() => setSelectedSlots((s) => ({ ...s, [offer.id]: i }))}
-                            className="h-4 w-4 accent-moss"
-                          />
-                          {new Date(`${slot.date}T${slot.startTime}`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} à {slot.startTime}
-                        </label>
-                      ))}
-                    </div>
-                    <button
-                      disabled={busy || selectedIndex == null}
-                      onClick={() => acceptOffer(offer.id, offer.proposedSlots[selectedIndex])}
-                      className="mt-3 w-full rounded-md bg-moss py-2 text-sm font-medium text-white hover:bg-moss-dark disabled:opacity-60"
-                    >
-                      Confirmer ce créneau et accepter l'offre
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function Item({ label, value }) {
-  return (
-    <div>
-      <dt className="text-xs text-slate-400">{label}</dt>
-      <dd className="mt-0.5 font-medium text-ink">{value}</dd>
+              );
+            })}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

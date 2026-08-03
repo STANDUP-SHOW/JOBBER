@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
+import AccountBackButton from '../../../components/AccountBackButton';
 
 const PERIODS = [
   { value: 'day', label: 'Jour' },
@@ -169,14 +170,8 @@ export default function WalletPage() {
 
   return (
     <div className="max-w-xl">
-      <div className="flex items-center gap-3">
-        <button type="button" onClick={() => router.back()} aria-label="Retour" className="text-ink">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </button>
-        <h1 className="font-display text-xl font-semibold text-ink">Porte-monnaie</h1>
-      </div>
+      <AccountBackButton />
+      <h1 className="mt-4 font-display text-xl font-semibold text-ink">Porte-monnaie</h1>
 
       <div className="mt-4 rounded-2xl bg-paper p-5">
         <div className="font-display text-4xl font-bold text-ink">{walletBalance.toFixed(2).replace(/\.00$/, '')} €</div>

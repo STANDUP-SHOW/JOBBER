@@ -4,8 +4,6 @@ import CategoryGrid from '../components/CategoryGrid';
 import MissionCard from '../components/MissionCard';
 import { SEO_CATEGORIES } from '../lib/seoCategories';
 import { SEO_LESSON_CATEGORIES } from '../lib/seoLessonCategories';
-import Logo from '../components/Logo';
-import Wordmark from '../components/Wordmark';
 import AudienceBlock from '../components/AudienceBlock';
 import LaunchCountdown from '../components/LaunchCountdown';
 
@@ -28,19 +26,6 @@ export default async function HomePage() {
 
   return (
     <div>
-      <section className="py-6 text-center">
-        <div className="flex items-center justify-center gap-2">
-          <Logo className="h-14 w-14 md:h-16 md:w-16" />
-          <Wordmark className="h-12 md:h-14" />
-        </div>
-        <p className="mt-4 font-display text-base font-bold text-blue-600">
-          L'<span className="text-yellow-500">humain</span> au service de l'humain,
-        </p>
-        <p className="font-display text-base font-bold text-blue-600">
-          Le <span className="text-yellow-500">pro</span> au service des pros.
-        </p>
-      </section>
-
       <AudienceBlock
         eyebrow="Vous avez un besoin ?"
         title="Publiez votre besoin, recevez des offres en quelques minutes."
