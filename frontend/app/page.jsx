@@ -131,7 +131,7 @@ export default async function HomePage() {
 
       <AudienceBlock
         reverse
-        eyebrow="Votre entreprise a des besoins de collaborateurs ?"
+        eyebrow="Votre entreprise a besoin de collaborateurs ?"
         title="Recrutez à la tâche. Oubliez l'intérim."
         description="Oubliez l'intérim et le CDD. Constituez votre équipe de collaborateurs et gérez-la comme vos salariés grâce à Jobber+ : plannings, missions, factures, tout est simplifié. Vous ne payez qu'une fois le travail effectué."
         sectionClass="border border-moss/20 bg-moss-light"
