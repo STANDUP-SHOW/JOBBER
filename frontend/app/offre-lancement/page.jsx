@@ -4,7 +4,7 @@ import { SUBSCRIPTION_COLORS } from '../../lib/subscriptionColors';
 
 const title = "Offre de lancement Jobber+ — cadeau de naissance & Jobber Gold offert";
 const description =
-  "Jobber+ est en bêta depuis le 01/08/2026 : 20 premières missions sans aucun frais de plateforme pour les jobbers, et l'abonnement Jobber Gold offert pour toute inscription avant le 15 septembre 2026.";
+  "Jobber+ est en bêta depuis le 01/08/2026 : 20 premières missions sans aucun frais de plateforme pour les jobbers, et la carte Jobber Gold offerte pour toute inscription avant le 15 septembre 2026.";
 
 export const metadata = {
   title,
@@ -48,7 +48,7 @@ export default function OffreLancementPage() {
           <span className="text-3xl">⭐</span>
           <h2 className="mt-3 font-display text-xl font-semibold">Jobber Gold offert</h2>
           <p className="mt-2 text-sm opacity-90">
-            Tout nouveau jobber inscrit avant le <strong>15 septembre 2026</strong> reçoit l'abonnement{' '}
+            Tout nouveau jobber inscrit avant le <strong>15 septembre 2026</strong> reçoit la carte{' '}
             <strong>Jobber Gold</strong> — 20 missions par mois sans aucun frais — inclus gratuitement, sans carte
             bancaire demandée. Un badge Gold apparaît sur votre profil.
           </p>
@@ -76,7 +76,7 @@ export default function OffreLancementPage() {
         </div>
         <p className="mx-auto mt-6 max-w-xl text-sm text-slate-500">
           Après le 15 septembre 2026 ou une fois vos missions gratuites du cadeau de naissance épuisées, retrouvez
-          le détail de tous nos abonnements et de nos frais sur la page{' '}
+          le détail de toutes nos cartes et de nos frais sur la page{' '}
           <Link href="/frais" className="font-medium text-moss hover:underline">Nos frais</Link>.
         </p>
       </section>
@@ -84,8 +84,8 @@ export default function OffreLancementPage() {
       <section className="mt-16 mb-4 rounded-lg bg-ink py-10 px-6 text-center text-white md:px-12">
         <h2 className="font-display text-2xl font-semibold">Prêt à devenir jobber ?</h2>
         <p className="mx-auto mt-2 max-w-xl text-white/80">
-          Inscrivez-vous avant le 15 septembre 2026 pour profiter du cadeau de naissance et de l'abonnement Gold
-          offert.
+          Inscrivez-vous avant le 15 septembre 2026 pour profiter du cadeau de naissance et de la carte Gold
+          offerte.
         </p>
         <div className="mt-6">
           <Link href="/auth/register" className="rounded-md bg-white px-6 py-3 font-medium text-ink hover:bg-slate-100">

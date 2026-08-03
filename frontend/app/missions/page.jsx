@@ -58,6 +58,13 @@ export default function MissionsPage() {
     })
     .filter((m) => !getOnly || m.isGetMission);
 
+  // Lets the mission detail page's "Mission suivante" button step through
+  // this same filtered/ordered list, whatever its origin (Jobber, Services34…).
+  useEffect(() => {
+    sessionStorage.setItem('jobber:missionListIds', JSON.stringify(filteredMissions.map((m) => m.id)));
+    sessionStorage.setItem('jobber:missionListHref', '/missions');
+  }, [filteredMissions]);
+
   return (
     <div>
       <span className="label-eyebrow text-moss">Missions</span>

@@ -59,6 +59,35 @@ function PinIcon(props) {
   );
 }
 
+const MISSION_LIST_IDS_KEY = 'jobber:missionListIds';
+const MISSION_LIST_HREF_KEY = 'jobber:missionListHref';
+
+// Back-to-list / next-mission nav, styled to match AccountBackButton
+// (blue background, yellow text) so mission browsing feels consistent
+// with the rest of the account UI, regardless of whether the mission
+// came from Jobber's own feed or a corporate/Services34 posting.
+function MissionNavBar({ backHref, nextId }) {
+  const router = useRouter();
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <button
+        onClick={() => router.push(backHref)}
+        className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3.5 py-2 text-sm font-semibold text-yellow-300 hover:bg-blue-700"
+      >
+        ← Retour liste mission
+      </button>
+      {nextId && (
+        <button
+          onClick={() => router.push(`/missions/${nextId}`)}
+          className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3.5 py-2 text-sm font-semibold text-yellow-300 hover:bg-blue-700"
+        >
+          Mission suivante →
+        </button>
+      )}
+    </div>
+  );
+}
+
 function InfoRow({ icon: Icon, children }) {
   return (
     <div className="flex items-center gap-3">
@@ -263,6 +292,7 @@ export default function MissionDetailPage() {
   const [busy, setBusy] = useState(false);
   const [quotaNotice, setQuotaNotice] = useState(null);
   const [selectedSlots, setSelectedSlots] = useState({}); // offerId -> slot index
+  const [navList, setNavList] = useState({ ids: [], href: '/missions' });
 
   async function refresh() {
     const { mission } = await api.getMission(id, token);
@@ -270,6 +300,20 @@ export default function MissionDetailPage() {
   }
 
   useEffect(() => { refresh().catch((e) => setError(e.message)); }, [id, token]);
+
+  // The list you were browsing (Jobber's own feed, your "Suivi de missions"…)
+  // is stashed in sessionStorage by that list page, so "Mission suivante"
+  // can step through the same order you were looking at.
+  useEffect(() => {
+    try {
+      const ids = JSON.parse(sessionStorage.getItem(MISSION_LIST_IDS_KEY) || '[]');
+      const href = sessionStorage.getItem(MISSION_LIST_HREF_KEY) || '/missions';
+      setNavList({ ids, href });
+    } catch { setNavList({ ids: [], href: '/missions' }); }
+  }, []);
+
+  const navIndex = navList.ids.indexOf(id);
+  const nextMissionId = navIndex >= 0 ? navList.ids[navIndex + 1] : null;
 
   const isOwner = user && mission && mission.clientId === user.id;
   const alreadyApplied = user && mission?.offers?.some((o) => o.providerId === user.id);
@@ -335,9 +379,7 @@ export default function MissionDetailPage() {
 
     return (
       <div className="max-w-2xl">
-        <button onClick={() => router.back()} className="flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-ink">
-          ← Retour
-        </button>
+        <MissionNavBar backHref={navList.href} nextId={nextMissionId} />
 
         <div className="mt-3 overflow-hidden rounded-lg border border-slate-200">
           {isTransportMission ? (
@@ -488,7 +530,9 @@ export default function MissionDetailPage() {
 
   return (
     <div className="max-w-2xl">
-      <span className="label-eyebrow text-moss">{mission.category?.name}</span>
+      <MissionNavBar backHref={navList.href} nextId={nextMissionId} />
+
+      <span className="mt-4 block label-eyebrow text-moss">{mission.category?.name}</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">{mission.title}</h1>
       <MissionBadges mission={mission} className="mt-2" />
       <p className="mt-3 text-slate-600">{mission.description}</p>

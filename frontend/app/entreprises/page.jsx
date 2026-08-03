@@ -42,7 +42,7 @@ const PAID_ADDONS = [
 ];
 
 const PLANS = [
-  { name: 'Sans abonnement', price: null, detail: '10 € de frais par mission — gratuit pour le jobber', addons: PAID_ADDONS },
+  { name: 'Sans carte', price: null, detail: '10 € de frais par mission — gratuit pour le jobber', addons: PAID_ADDONS },
   { name: 'Entreprise 20', price: '99,90 €', detail: '20 missions par mois sans frais', addons: PAID_ADDONS },
   { name: 'Entreprise 50', price: '199,90 €', detail: '50 missions par mois sans frais', addons: PAID_ADDONS },
   {
@@ -218,7 +218,7 @@ export default function EntreprisesPage() {
                     ))}
                   </ul>
                   {plan.addons.some((a) => a.offered) && (
-                    <p className="mt-2 text-[11px] text-slate-400">Offerts durant toute la durée de l'abonnement.</p>
+                    <p className="mt-2 text-[11px] text-slate-400">Offerts durant toute la durée de la carte.</p>
                   )}
                 </div>
               )}

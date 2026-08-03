@@ -67,7 +67,7 @@ function PlanSection({ title, description, plans, subscription, busy, onSubscrib
             onClick={onCancel}
             className="mt-3 text-sm font-medium underline disabled:opacity-60"
           >
-            Résilier l'abonnement
+            Résilier la carte
           </button>
         </div>
       )}
@@ -162,10 +162,10 @@ export default function SubscriptionPage() {
   return (
     <div className="max-w-xl">
       <AccountBackButton />
-      <h1 className="mt-3 font-display text-2xl font-semibold text-ink">{isCompany ? 'Abonnement Entreprise' : 'Abonnements'}</h1>
+      <h1 className="mt-3 font-display text-2xl font-semibold text-ink">{isCompany ? 'Carte Entreprise' : 'Cartes'}</h1>
       <p className="mt-2 text-sm text-slate-500">
         {isCompany
-          ? 'Sans abonnement, chaque mission coûte 10 € de frais (gratuit pour le jobber). Ces formules suppriment ces frais dans la limite de votre offre.'
+          ? 'Sans carte, chaque mission coûte 10 € de frais (gratuit pour le jobber). Ces formules suppriment ces frais dans la limite de votre offre.'
           : "La version gratuite de Jobber donne accès à toutes les fonctionnalités. Ces formules suppriment uniquement les frais prélevés sur vos missions."}
       </p>
 
@@ -173,8 +173,8 @@ export default function SubscriptionPage() {
 
       {isCompany ? (
         <PlanSection
-          title="Abonnement Entreprise"
-          description="Sans abonnement, 10 € de frais par mission (gratuit pour le jobber)."
+          title="Carte Entreprise"
+          description="Sans carte, 10 € de frais par mission (gratuit pour le jobber)."
           plans={COMPANY_PLANS}
           subscription={subscription}
           busy={busy}
@@ -184,8 +184,8 @@ export default function SubscriptionPage() {
       ) : (
         <>
           <PlanSection
-            title="Abonnements Manager"
-            description="Sans abonnement, 2,50 € de frais sont prélevés à chaque mission que vous publiez."
+            title="Cartes Manager"
+            description="Sans carte, 2,50 € de frais sont prélevés à chaque mission que vous publiez."
             plans={MANAGER_PLANS}
             subscription={subscription}
             busy={busy}
@@ -193,8 +193,8 @@ export default function SubscriptionPage() {
             onCancel={() => onCancel('MANAGER')}
           />
           <PlanSection
-            title="Abonnements Jobber"
-            description="Sans abonnement, 2,50 € de frais sont prélevés à chaque mission que vous décrochez."
+            title="Cartes Jobber"
+            description="Sans carte, 2,50 € de frais sont prélevés à chaque mission que vous décrochez."
             plans={JOBBER_PLANS}
             subscription={jobberSubscription}
             busy={busy}

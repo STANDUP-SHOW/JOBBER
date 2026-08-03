@@ -4,7 +4,7 @@ import Link from 'next/link';
 import AccountBackButton from '../../../components/AccountBackButton';
 
 const MISSION_PLANS = [
-  { name: 'Sans abonnement', price: null, detail: '10 € de frais par mission — gratuit pour le jobber' },
+  { name: 'Sans carte', price: null, detail: '10 € de frais par mission — gratuit pour le jobber' },
   { name: 'Entreprise 20', price: '99,90 €', detail: '20 missions par mois sans frais' },
   { name: 'Entreprise 50', price: '199,90 €', detail: '50 missions par mois sans frais' },
   { name: 'Entreprise Illimité', price: '499,90 €', detail: 'Tout inclus — missions illimitées, aucun frais de mission' },
@@ -27,7 +27,7 @@ export default function JobberPlusPage() {
         ou automatique — pensée pour être rentable dès la mise en route.
       </p>
 
-      <h2 className="mt-8 font-display text-lg font-semibold text-ink">Tarifs abonnements missions</h2>
+      <h2 className="mt-8 font-display text-lg font-semibold text-ink">Tarifs cartes missions</h2>
       <div className="mt-4 space-y-3">
         {MISSION_PLANS.map((plan) => (
           <div key={plan.name} className="rounded-lg border border-slate-200 bg-white p-4">
@@ -63,7 +63,7 @@ export default function JobberPlusPage() {
             <span className="rounded-md bg-yellow-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-800">
               Offert
             </span>
-            <span className="text-xs text-slate-400">avec Entreprise Illimité, durant toute la durée de l'abonnement.</span>
+            <span className="text-xs text-slate-400">avec Entreprise Illimité, durant toute la durée de la carte.</span>
           </div>
         </div>
 
@@ -83,7 +83,7 @@ export default function JobberPlusPage() {
             <span className="rounded-md bg-yellow-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-800">
               Offert
             </span>
-            <span className="text-xs text-slate-400">avec Entreprise Illimité, durant toute la durée de l'abonnement.</span>
+            <span className="text-xs text-slate-400">avec Entreprise Illimité, durant toute la durée de la carte.</span>
           </div>
         </div>
       </div>

@@ -97,11 +97,11 @@ export default async function HomePage() {
 
       <section className="mt-6 rounded-lg border-2 border-blue-600 bg-blue-50 px-5 py-4 text-sm text-ink md:px-6">
         <div className="flex flex-col items-center gap-3 text-center">
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <span className="rounded-md bg-blue-600 px-3 py-1 text-xs font-bold uppercase tracking-wide text-yellow-300">
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <span className="rounded-md bg-blue-600 px-6 py-2.5 text-xl font-bold uppercase tracking-wide text-yellow-300">
               Version bêta
             </span>
-            <span className="rounded-md bg-blue-600 px-3 py-1 text-xs font-bold uppercase tracking-wide text-yellow-300">
+            <span className="rounded-md bg-blue-600 px-6 py-2.5 text-xl font-bold uppercase tracking-wide text-yellow-300">
               Ouverture le 15/09/2026
             </span>
           </div>
@@ -285,7 +285,7 @@ export default async function HomePage() {
         </Link>
       </section>
 
-      <section className="mt-16 mb-4 rounded-lg border border-ochre/30 bg-ochre/10 px-6 py-8 text-center md:px-10 md:text-left">
+      <section className="mt-16 mb-4 rounded-lg border-2 border-green-600 bg-green-50 px-6 py-8 text-center md:px-10 md:text-left">
         <div className="flex flex-col items-center gap-4 md:flex-row">
           <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white text-3xl">🗑️</span>
           <div>

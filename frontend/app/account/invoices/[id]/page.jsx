@@ -129,7 +129,7 @@ export default function InvoiceDetailPage() {
             </div>
             <div className="flex justify-between text-slate-500">
               <span>Frais de mise en relation</span>
-              <span>{payment.feeWaived ? 'Offerts (abonnement)' : `${payment.managerFee.toFixed(2)} €`}</span>
+              <span>{payment.feeWaived ? 'Offerts (carte)' : `${payment.managerFee.toFixed(2)} €`}</span>
             </div>
             <div className="flex justify-between border-t border-slate-200 pt-1.5 font-semibold text-ink">
               <span>Total payé</span>

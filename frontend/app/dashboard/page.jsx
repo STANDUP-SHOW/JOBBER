@@ -105,7 +105,7 @@ export default function DashboardPage() {
               {b.payment && (
                 <div className="mt-2 text-xs text-slate-400">
                   Paiement : {b.payment.status}
-                  {isClient && ` — vous payez ${b.payment.amount} €${b.payment.feeWaived ? ' (sans frais, abonnement actif)' : ` (dont ${b.payment.managerFee} € de frais)`}`}
+                  {isClient && ` — vous payez ${b.payment.amount} €${b.payment.feeWaived ? ' (sans frais, carte active)' : ` (dont ${b.payment.managerFee} € de frais)`}`}
                   {!isClient && ` — vous touchez ${b.payment.providerPayout} € (frais ${b.payment.providerFee} €)`}
                 </div>
               )}

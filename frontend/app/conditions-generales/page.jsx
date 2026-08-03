@@ -134,9 +134,9 @@ export default function ConditionsGeneralesPage() {
         </p>
       </Article>
 
-      <Article n="8" title="Frais de service et abonnements">
+      <Article n="8" title="Frais de service et cartes">
         <p>
-          Jobber donne accès à l'ensemble de ses fonctionnalités gratuitement. Sauf abonnement actif, des frais fixes
+          Jobber donne accès à l'ensemble de ses fonctionnalités gratuitement. Sauf carte active, des frais fixes
           sont appliqués à chaque mission réalisée :
         </p>
         <ul className="list-disc space-y-1 pl-5">
@@ -144,7 +144,7 @@ export default function ConditionsGeneralesPage() {
           <li>10 € à la charge du demandeur, sans frais pour le jobber, lorsque la mission est publiée par un compte entreprise.</li>
         </ul>
         <p>
-          Des abonnements mensuels facultatifs (détaillés sur notre page{' '}
+          Des cartes mensuelles facultatives (détaillées sur notre page{' '}
           <Link href="/frais" className="text-moss hover:underline">Nos frais</Link>) permettent de supprimer ces
           frais dans la limite d'un nombre de missions par mois selon la formule souscrite. Ils sont résiliables à
           tout moment, la résiliation prenant effet à la fin de la période déjà payée.
@@ -175,7 +175,7 @@ export default function ConditionsGeneralesPage() {
           le cas échéant, au jobber professionnel de le proposer directement au demandeur consommateur.
         </p>
         <p>
-          Concernant les abonnements souscrits directement auprès de Jobber (Article 8), l'utilisateur consommateur
+          Concernant les cartes souscrites directement auprès de Jobber (Article 8), l'utilisateur consommateur
           dispose d'un délai de 14 jours à compter de la souscription pour se rétracter, sauf s'il a expressément
           demandé l'exécution immédiate du service et reconnu perdre son droit de rétractation une fois celui-ci
           pleinement exécuté.

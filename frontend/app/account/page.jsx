@@ -102,7 +102,7 @@ export default function AccountPage() {
           <Section title="Espace ENTREPRISE">
             <Row href="/missions/new" icon="📝" label="Publier un besoin" sublabel="Décrire une mission à réaliser" />
             <Row href="/dashboard" icon="📋" label="Mes besoins en cours" sublabel="Suivre vos missions en cours" />
-            <Row href="/account/subscription" icon="⭐" label="Abonnements" sublabel="Plus aucun frais sur vos missions" />
+            <Row href="/account/subscription" icon="⭐" label="Cartes" sublabel="Plus aucun frais sur vos missions" />
           </Section>
 
           <Section title="Espace Gestion">
@@ -139,7 +139,7 @@ export default function AccountPage() {
           <Row href="/dashboard/manager-completed" icon="✅" label="Missions terminées" />
           <Row href="/account/invoices" icon="🧾" label="Mes factures" />
           <Row href="/account/favorites" icon="⭐" label="Mes jobbers favoris" sublabel="Vos prestataires à recontacter" />
-          <Row href="/account/subscription" icon="💼" label="Abonnements Manager" sublabel="Plus aucun frais sur vos missions" />
+          <Row href="/account/subscription" icon="💼" label="Cartes Manager" sublabel="Plus aucun frais sur vos missions" />
         </Section>
       )}
 
@@ -158,7 +158,7 @@ export default function AccountPage() {
             label={`Mon Portefeuille — ${(user.providerProfile?.walletBalance ?? 0).toFixed(2)} €`}
             sublabel={user.providerProfile?.payoutsEnabled ? 'Paiements activés' : 'Paiements non configurés'}
           />
-          <Row href="/account/subscription" icon="💼" label="Abonnements jobber" sublabel="Plus aucun frais sur vos missions" />
+          <Row href="/account/subscription" icon="💼" label="Cartes jobber" sublabel="Plus aucun frais sur vos missions" />
         </Section>
       )}
 

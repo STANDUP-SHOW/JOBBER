@@ -44,6 +44,13 @@ export default function ManagerMissionsPage() {
 
   useEffect(() => { if (user) refresh().catch((e) => setError(e.message)); }, [token, user]);
 
+  // Lets the mission detail page's "Mission suivante" button step through
+  // this same list when reached from "Suivi de missions".
+  useEffect(() => {
+    sessionStorage.setItem('jobber:missionListIds', JSON.stringify(openMissions.map((m) => m.id)));
+    sessionStorage.setItem('jobber:missionListHref', '/dashboard/manager-missions');
+  }, [openMissions]);
+
   async function accept(offerId) {
     setBusyId(offerId); setError('');
     try { await api.acceptOffer(offerId, undefined, token); await refresh(); }
