@@ -5,8 +5,6 @@ import CategoryGrid from '../components/CategoryGrid';
 import MissionCard from '../components/MissionCard';
 import { SEO_CATEGORIES } from '../lib/seoCategories';
 import { SEO_LESSON_CATEGORIES } from '../lib/seoLessonCategories';
-import Logo from '../components/Logo';
-import Wordmark from '../components/Wordmark';
 import AudienceBlock from '../components/AudienceBlock';
 
 async function getData() {
@@ -29,11 +27,6 @@ export default async function HomePage() {
   return (
     <div>
       <section className="py-6 text-center">
-        <div className="flex items-center justify-center gap-2">
-          <Logo className="h-14 w-14 md:h-16 md:w-16" />
-          <Wordmark className="h-12 md:h-14" />
-        </div>
-        <span className="mt-4 block font-display text-base font-bold uppercase tracking-wide text-moss">L'humain au service de l'humain</span>
         <h1 className="mx-auto mt-3 max-w-2xl font-display text-4xl font-semibold leading-[1.1] text-ink md:text-5xl">
           Un coup de main de confiance, <span className="text-moss">à deux clics</span>.
         </h1>
