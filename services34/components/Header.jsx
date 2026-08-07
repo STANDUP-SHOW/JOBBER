@@ -22,8 +22,13 @@ export default function Header() {
   return (
     <header className="border-b border-slate-200 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        {/* Pictogram left, wordmark right — same layout as Jobber's header. */}
-        <Link href="/" className="flex min-w-0 items-center gap-2">
+        {/* Pictogram left, wordmark right — same layout as Jobber's header.
+            No min-w-0/shrink here: the wordmark uses whitespace-nowrap, so
+            letting this flex item shrink below its content's width made the
+            text silently overflow on top of the nav instead of the row
+            reserving space for it (visible on category pages once the
+            colored prefix, e.g. "Conciergerie ", is added to the wordmark). */}
+        <Link href="/" className="flex shrink-0 items-center gap-2">
           <LogoMark color={brand.prefix ? brand.color : SERVICES34_GOLD} className="h-10 w-10 shrink-0" />
           <span className="whitespace-nowrap font-brand text-base font-extrabold uppercase tracking-tight text-ink sm:text-lg">
             {/* Category prefix (e.g. "Conciergerie ") only shows once there's
@@ -35,7 +40,7 @@ export default function Header() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav className="hidden items-center gap-6 lg:flex">
           {SERVICES.map(([label, href]) => (
             <Link key={href} href={href} className="text-sm font-medium text-ink hover:text-brand">
               {label}
@@ -43,7 +48,7 @@ export default function Header() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-3 lg:flex">
           <Link href={user ? '/compte' : '/auth/login'} className="text-sm font-medium text-ink hover:text-brand">
             {user ? 'Mon compte' : 'Se connecter'}
           </Link>
@@ -55,7 +60,7 @@ export default function Header() {
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          className="rounded-md border border-slate-200 p-2 md:hidden"
+          className="rounded-md border border-slate-200 p-2 lg:hidden"
           aria-label="Menu"
         >
           ☰
@@ -63,7 +68,7 @@ export default function Header() {
       </div>
 
       {open && (
-        <nav className="border-t border-slate-200 bg-white px-6 py-4 md:hidden">
+        <nav className="border-t border-slate-200 bg-white px-6 py-4 lg:hidden">
           <div className="flex flex-col gap-3">
             {SERVICES.map(([label, href]) => (
               <Link key={href} href={href} className="text-sm font-medium text-ink" onClick={() => setOpen(false)}>
