@@ -40,7 +40,7 @@ export default function InvoiceDetailPage() {
 
   if (error) {
     return (
-      <div className="max-w-xl">
+      <div className="mx-auto max-w-xl">
         <Link href="/account/invoices" className="text-sm font-medium text-moss">← Mes factures</Link>
         <p className="mt-4 rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>
       </div>
@@ -53,7 +53,7 @@ export default function InvoiceDetailPage() {
   const providerName = [booking.provider?.firstName, booking.provider?.lastName].filter(Boolean).join(' ');
 
   return (
-    <div className="max-w-2xl">
+    <div className="mx-auto max-w-2xl">
       <div className="flex items-center justify-between print:hidden">
         <Link href="/account/invoices" className="text-sm font-medium text-moss">← Mes factures</Link>
         <button

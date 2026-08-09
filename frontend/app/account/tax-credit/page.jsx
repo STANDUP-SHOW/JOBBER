@@ -34,7 +34,7 @@ export default function TaxCreditPage() {
   const net = gross - credit;
 
   return (
-    <div className="max-w-xl">
+    <div className="mx-auto max-w-xl">
       <AccountBackButton />
       <h1 className="mt-3 font-display text-2xl font-semibold text-ink">Simulez votre crédit d'impôt</h1>
       <p className="mt-2 text-sm text-slate-500">

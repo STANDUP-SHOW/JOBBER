@@ -35,7 +35,7 @@ export default function AdminContactMessageDetailPage() {
   if (!message) return <p className="text-slate-400">Chargement…</p>;
 
   return (
-    <div className="max-w-xl">
+    <div className="mx-auto max-w-xl">
       <Link href="/admin/contact-messages" className="text-sm text-slate-400 hover:text-moss">← Messages</Link>
 
       <div className="mt-3 rounded-lg border border-slate-200 bg-white p-5">

@@ -35,7 +35,7 @@ export default function LessonHistoryPage() {
   if (!user) return null;
 
   return (
-    <div className="max-w-xl">
+    <div className="mx-auto max-w-xl">
       <AccountBackButton />
       <span className="mt-4 block label-eyebrow text-moss">Espace Formation</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Historique formation jobber</h1>

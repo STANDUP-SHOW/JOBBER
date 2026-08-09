@@ -22,7 +22,7 @@ function Article({ n, title, children }) {
 
 export default function ConditionsGeneralesPage() {
   return (
-    <div className="max-w-2xl pb-16">
+    <div className="mx-auto max-w-2xl pb-16">
       <span className="label-eyebrow text-moss">Contrat</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Conditions générales</h1>
       <p className="mt-3 text-sm text-slate-500">Dernière mise à jour : 23 juillet 2026.</p>

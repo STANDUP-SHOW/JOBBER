@@ -169,7 +169,7 @@ export default function WalletPage() {
   const canPayout = bankLast4 && payoutsEnabled && walletBalance > 0 && !payoutBusy;
 
   return (
-    <div className="max-w-xl">
+    <div className="mx-auto max-w-xl">
       <AccountBackButton />
       <h1 className="mt-4 font-display text-xl font-semibold text-ink">Porte-monnaie</h1>
 

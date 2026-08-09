@@ -34,7 +34,7 @@ export default function AdminMemberDetailPage() {
   if (!member) return <p className="text-slate-400">Chargement…</p>;
 
   return (
-    <div className="max-w-3xl">
+    <div className="mx-auto max-w-3xl">
       <Link href="/admin/members" className="text-sm text-slate-400 hover:text-moss">← Membres</Link>
 
       <div className="mt-3 flex items-center gap-4">

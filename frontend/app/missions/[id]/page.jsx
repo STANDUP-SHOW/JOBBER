@@ -395,7 +395,7 @@ export default function MissionDetailPage() {
   const displayAddress = (addr) => (isOwner ? addr : shortAddress(addr));
 
   return (
-    <div className="max-w-2xl">
+    <div className="mx-auto max-w-2xl">
       <MissionNavBar backHref={navList.href} nextId={nextMissionId} />
 
       <div className="mt-3 overflow-hidden rounded-lg border border-slate-200">

@@ -41,7 +41,7 @@ function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <div className="max-w-md">
+      <div className="mx-auto max-w-md">
         <p className="rounded-md bg-clay/10 px-4 py-3 text-sm text-clay">
           Lien invalide. Redemandez un email depuis la page{' '}
           <a href="/auth/forgot-password" className="font-medium underline">mot de passe oublié</a>.
@@ -51,7 +51,7 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="max-w-md">
+    <div className="mx-auto max-w-md">
       <span className="label-eyebrow text-moss">Nouveau mot de passe</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Choisissez un nouveau mot de passe</h1>
 

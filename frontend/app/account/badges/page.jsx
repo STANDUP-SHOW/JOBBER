@@ -38,7 +38,7 @@ export default function BadgesPage() {
   }, {});
 
   return (
-    <div className="max-w-xl">
+    <div className="mx-auto max-w-xl">
       <AccountBackButton />
       <span className="mt-4 block label-eyebrow text-moss">Espace Jobber</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Mes badges et récompenses</h1>

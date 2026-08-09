@@ -31,7 +31,7 @@ export default function TaxCertificatesPage() {
   const current = years?.find((y) => y.year === openYear);
 
   return (
-    <div className="max-w-xl">
+    <div className="mx-auto max-w-xl">
       <div className="flex items-center justify-between print:hidden">
         <AccountBackButton />
         {current && (

@@ -66,7 +66,7 @@ export default function NotificationsPage() {
   if (!user) return null;
 
   return (
-    <div className="max-w-xl">
+    <div className="mx-auto max-w-xl">
       <AccountBackButton />
       <h1 className="mt-3 font-display text-2xl font-semibold text-ink">Notifications</h1>
 

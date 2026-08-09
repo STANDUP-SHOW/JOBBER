@@ -12,7 +12,7 @@ const MISSION_PLANS = [
 
 export default function JobberPlusPage() {
   return (
-    <div className="max-w-xl">
+    <div className="mx-auto max-w-xl">
       <AccountBackButton />
 
       <span className="label-eyebrow text-moss">Plateforme Corporate</span>

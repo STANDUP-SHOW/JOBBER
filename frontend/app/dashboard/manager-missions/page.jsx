@@ -62,7 +62,7 @@ export default function ManagerMissionsPage() {
   if (!user) return null;
 
   return (
-    <div className="max-w-2xl">
+    <div className="mx-auto max-w-2xl">
       <AccountBackButton />
       <span className="mt-4 block label-eyebrow text-moss">Espace Manager</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Suivi de missions</h1>

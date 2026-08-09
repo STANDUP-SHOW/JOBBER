@@ -70,7 +70,7 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="max-w-xl">
+    <div className="mx-auto max-w-xl">
       <PageTitleBadge icon={UserIcon} label="Mon compte" />
 
       <div className="mt-4">

@@ -20,7 +20,7 @@ export default function AdminContactMessagesPage() {
   if (error) return <p className="text-clay">{error}</p>;
 
   return (
-    <div className="max-w-2xl">
+    <div className="mx-auto max-w-2xl">
       {messages.length === 0 && <p className="text-slate-400">Aucun message reçu.</p>}
       <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white">
         {messages.map((m) => (
