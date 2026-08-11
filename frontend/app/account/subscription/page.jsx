@@ -10,19 +10,19 @@ import SubscribeModal from '../../../components/SubscribeModal';
 
 const MANAGER_PLANS = [
   { value: 'MANAGER_BOSS', name: 'Manager Boss', price: 10, limit: '10 missions par mois' },
-  { value: 'MANAGER_HOLDER', name: 'Manager Holder', price: 20, limit: 'Missions illimitées' },
+  { value: 'MANAGER_HOLDER', name: 'Manager Holder', price: 20, limit: 'Missions illimitées', recommended: true },
 ];
 
 const JOBBER_PLANS = [
   { value: 'JOBBER_SILVER', name: 'Jobber Silver', price: 15, limit: '10 missions par mois' },
-  { value: 'JOBBER_GOLD', name: 'Jobber Gold', price: 20, limit: '20 missions par mois' },
+  { value: 'JOBBER_GOLD', name: 'Jobber Gold', price: 20, limit: '20 missions par mois', recommended: true },
   { value: 'JOBBER_PLATINUM', name: 'Jobber Platine', price: 29.99, limit: 'Missions illimitées' },
 ];
 
 const COMPANY_PLANS = [
   { value: 'ENTERPRISE_20', name: 'Entreprise 20', price: 99.9, limit: '20 missions par mois' },
   { value: 'ENTERPRISE_50', name: 'Entreprise 50', price: 199.9, limit: '50 missions par mois' },
-  { value: 'ENTERPRISE_UNLIMITED', name: 'Entreprise Illimité', price: 499.9, limit: 'Missions illimitées, tout inclus' },
+  { value: 'ENTERPRISE_UNLIMITED', name: 'Entreprise Illimité', price: 499.9, limit: 'Missions illimitées, tout inclus', recommended: true },
 ];
 
 const PLAN_LIMIT_VALUES = {
@@ -32,6 +32,14 @@ const PLAN_LIMIT_VALUES = {
 };
 
 const STATUS_LABEL = { ACTIVE: 'Actif', PAST_DUE: 'Paiement en retard', CANCELED: 'Résilié' };
+
+function CheckIcon(props) {
+  return (
+    <svg viewBox="0 0 20 20" fill="currentColor" {...props}>
+      <path fillRule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0l-3.5-3.5a1 1 0 1 1 1.4-1.4l2.8 2.8 6.8-6.8a1 1 0 0 1 1.4 0Z" clipRule="evenodd" />
+    </svg>
+  );
+}
 
 function PlanSection({ title, description, plans, subscription, busy, onSubscribe, onCancel }) {
   const isActive = subscription?.status === 'ACTIVE';
@@ -44,7 +52,7 @@ function PlanSection({ title, description, plans, subscription, busy, onSubscrib
 
       {isActive && (
         <div
-          className="mt-4 rounded-lg p-4"
+          className="mt-4 rounded-2xl p-4"
           style={SUBSCRIPTION_COLORS[subscription.plan] ? { backgroundColor: SUBSCRIPTION_COLORS[subscription.plan].bg, color: SUBSCRIPTION_COLORS[subscription.plan].text } : undefined}
         >
           <div className="flex items-center justify-between">
@@ -72,32 +80,48 @@ function PlanSection({ title, description, plans, subscription, busy, onSubscrib
         </div>
       )}
 
-      <div className="mt-4 space-y-3">
+      <div className={`mt-4 grid gap-4 ${plans.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-3'}`}>
         {plans.map((plan) => {
           const color = SUBSCRIPTION_COLORS[plan.value];
           const isCurrent = subscription?.plan === plan.value && isActive;
           return (
             <div
               key={plan.value}
-              className={`rounded-lg p-4 ${color ? '' : 'border border-slate-200 bg-white'} ${isCurrent ? 'ring-2 ring-offset-2 ring-ink' : ''}`}
+              className={`relative flex flex-col rounded-2xl p-5 ${color ? '' : 'border border-slate-200 bg-white'} ${
+                isCurrent ? 'ring-2 ring-offset-2 ring-ink' : plan.recommended ? 'shadow-lg' : ''
+              }`}
               style={color ? { backgroundColor: color.bg, color: color.text } : undefined}
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-display text-lg font-bold">{plan.name}</div>
-                  <div className={`text-sm ${color ? 'opacity-90' : 'text-slate-500'}`}>{plan.limit} · plus aucun frais</div>
-                </div>
-                <div className="text-right">
-                  <div className="font-display text-xl font-bold">{plan.price.toFixed(2).replace('.', ',')} €</div>
-                  <div className={`text-xs ${color ? 'opacity-75' : 'text-slate-400'}`}>/ mois</div>
-                </div>
+              {plan.recommended && !isCurrent && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-ink px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
+                  Recommandé
+                </span>
+              )}
+              <div className="font-display text-base font-bold">{plan.name}</div>
+              <div className="mt-3 flex items-baseline gap-1">
+                <span className="font-display text-3xl font-extrabold">{plan.price.toFixed(2).replace('.', ',')} €</span>
+                <span className={`text-sm ${color ? 'opacity-75' : 'text-slate-400'}`}>/ mois</span>
               </div>
-              {!isCurrent && (
+              <ul className="mt-4 flex-1 space-y-2 text-sm">
+                <li className="flex items-center gap-2">
+                  <CheckIcon className={`h-4 w-4 shrink-0 ${color ? '' : 'text-moss'}`} />
+                  {plan.limit}
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckIcon className={`h-4 w-4 shrink-0 ${color ? '' : 'text-moss'}`} />
+                  Plus aucun frais de plateforme
+                </li>
+              </ul>
+              {isCurrent ? (
+                <span className="mt-4 rounded-md bg-white/90 py-2.5 text-center text-sm font-medium text-ink">
+                  Offre actuelle
+                </span>
+              ) : (
                 <button
                   type="button"
                   disabled={busy}
                   onClick={() => onSubscribe(plan)}
-                  className="mt-3 w-full rounded-md bg-white/90 py-2.5 text-sm font-medium text-ink hover:bg-white disabled:opacity-60"
+                  className="mt-4 w-full rounded-md bg-white/90 py-2.5 text-sm font-medium text-ink hover:bg-white disabled:opacity-60"
                 >
                   {busy ? 'Traitement…' : isActive ? 'Changer pour cette offre' : "S'abonner"}
                 </button>
@@ -160,7 +184,7 @@ export default function SubscriptionPage() {
   const isCompany = user.accountKind === 'COMPANY';
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="mx-auto max-w-3xl">
       <AccountBackButton />
       <h1 className="mt-3 font-display text-2xl font-semibold text-ink">{isCompany ? 'Carte Entreprise' : 'Cartes'}</h1>
       <p className="mt-2 text-sm text-slate-500">

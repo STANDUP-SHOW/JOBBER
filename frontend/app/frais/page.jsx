@@ -16,38 +16,53 @@ export const metadata = {
 const MANAGER_PLANS = [
   { key: null, name: 'Sans carte', price: null, detail: '2,50 € de frais par mission réalisée' },
   { key: 'MANAGER_BOSS', name: 'Manager Boss', price: '10 €', detail: '10 missions par mois sans frais' },
-  { key: 'MANAGER_HOLDER', name: 'Manager Holder', price: '20 €', detail: 'Missions illimitées sans frais' },
+  { key: 'MANAGER_HOLDER', name: 'Manager Holder', price: '20 €', detail: 'Missions illimitées sans frais', recommended: true },
 ];
 
 const JOBBER_PLANS = [
   { key: null, name: 'Sans carte', price: null, detail: '2,50 € de frais par mission décrochée' },
   { key: 'JOBBER_SILVER', name: 'Jobber Silver', price: '15 €', detail: '10 missions par mois sans frais' },
-  { key: 'JOBBER_GOLD', name: 'Jobber Gold', price: '20 €', detail: '20 missions par mois sans frais' },
+  { key: 'JOBBER_GOLD', name: 'Jobber Gold', price: '20 €', detail: '20 missions par mois sans frais', recommended: true },
   { key: 'JOBBER_PLATINUM', name: 'Jobber Platine', price: '29,99 €', detail: 'Missions illimitées sans frais' },
 ];
+
+function CheckIcon(props) {
+  return (
+    <svg viewBox="0 0 20 20" fill="currentColor" {...props}>
+      <path fillRule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0l-3.5-3.5a1 1 0 1 1 1.4-1.4l2.8 2.8 6.8-6.8a1 1 0 0 1 1.4 0Z" clipRule="evenodd" />
+    </svg>
+  );
+}
 
 function PlanTable({ title, plans }) {
   return (
     <div>
       <h3 className="font-display text-lg font-semibold text-ink">{title}</h3>
-      <div className="mt-4 space-y-3">
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
         {plans.map((plan) => {
           const color = SUBSCRIPTION_COLORS[plan.key];
           return (
             <div
               key={plan.name}
-              className={`rounded-lg p-4 ${color ? '' : 'border border-slate-200 bg-white'}`}
+              className={`relative flex flex-col rounded-2xl p-5 ${color ? '' : 'border border-slate-200 bg-white'} ${plan.recommended ? 'shadow-lg' : ''}`}
               style={color ? { backgroundColor: color.bg, color: color.text } : undefined}
             >
-              <div className="flex items-center justify-between">
-                <div className="font-display text-base font-bold">{plan.name}</div>
-                {plan.price && (
-                  <div className="font-display text-lg font-bold">
-                    {plan.price} <span className={`text-sm font-normal ${color ? 'opacity-80' : 'text-slate-400'}`}>/ mois</span>
-                  </div>
-                )}
+              {plan.recommended && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-ink px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
+                  Recommandé
+                </span>
+              )}
+              <div className="font-display text-base font-bold">{plan.name}</div>
+              {plan.price && (
+                <div className="mt-3 flex items-baseline gap-1">
+                  <span className="font-display text-2xl font-extrabold">{plan.price}</span>
+                  <span className={`text-sm ${color ? 'opacity-75' : 'text-slate-400'}`}>/ mois</span>
+                </div>
+              )}
+              <div className={`flex items-center gap-2 text-sm ${plan.price ? 'mt-3' : 'mt-4'} ${color ? 'opacity-90' : 'text-slate-500'}`}>
+                <CheckIcon className={`h-4 w-4 shrink-0 ${color ? '' : 'text-moss'}`} />
+                {plan.detail}
               </div>
-              <p className={`mt-1 text-sm ${color ? 'opacity-90' : 'text-slate-500'}`}>{plan.detail}</p>
             </div>
           );
         })}
