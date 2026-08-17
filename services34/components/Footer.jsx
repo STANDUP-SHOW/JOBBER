@@ -44,9 +44,9 @@ export default function Footer() {
                   <span className="text-base leading-none">💬</span>
                   <span className="text-sm font-medium">Messagerie du site</span>
                 </Link>
-                <a href="mailto:contact@service34.fr" className="flex items-center gap-2 hover:opacity-80">
+                <a href="mailto:contact@services34.fr" className="flex items-center gap-2 hover:opacity-80">
                   <span className="text-base leading-none">✉️</span>
-                  <span className="text-sm font-medium">contact@service34.fr</span>
+                  <span className="text-sm font-medium">contact@services34.fr</span>
                 </a>
                 <a href="tel:+33746476968" className="flex items-center gap-2 hover:opacity-80">
                   <span className="text-base leading-none">📞</span>
