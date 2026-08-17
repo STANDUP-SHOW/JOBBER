@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
-import AccountBackButton from '../../../components/AccountBackButton';
 
 const OFFER_STATUS_LABEL = {
   PENDING: { text: 'En attente', cls: 'bg-ochre-light text-ochre-dark' },
@@ -38,9 +37,7 @@ export default function MyOffersPage() {
   if (!user) return null;
 
   return (
-    <div className="mx-auto max-w-xl">
-      <AccountBackButton />
-      <span className="mt-4 block label-eyebrow text-moss">Mes offres</span>
+    <div className="max-w-3xl">
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Mes candidatures</h1>
       <p className="mt-1 text-sm text-slate-500">Missions auxquelles vous avez postulé, avec le tarif proposé.</p>
 

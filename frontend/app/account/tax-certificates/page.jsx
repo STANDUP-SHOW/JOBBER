@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
-import AccountBackButton from '../../../components/AccountBackButton';
 
 export default function TaxCertificatesPage() {
   const { user, token, loading: authLoading } = useAuth();
@@ -31,9 +30,8 @@ export default function TaxCertificatesPage() {
   const current = years?.find((y) => y.year === openYear);
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="max-w-3xl">
       <div className="flex items-center justify-between print:hidden">
-        <AccountBackButton />
         {current && (
           <button type="button" onClick={() => window.print()} className="text-sm font-medium text-moss">
             Télécharger / Imprimer

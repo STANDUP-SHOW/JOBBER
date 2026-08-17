@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
-import AccountBackButton from '../../../components/AccountBackButton';
 
 const PERIODS = [
   { value: 'day', label: 'Jour' },
@@ -169,8 +168,7 @@ export default function WalletPage() {
   const canPayout = bankLast4 && payoutsEnabled && walletBalance > 0 && !payoutBusy;
 
   return (
-    <div className="mx-auto max-w-xl">
-      <AccountBackButton />
+    <div className="max-w-3xl">
       <h1 className="mt-4 font-display text-xl font-semibold text-ink">Porte-monnaie</h1>
 
       <div className="mt-4 rounded-2xl bg-paper p-5">

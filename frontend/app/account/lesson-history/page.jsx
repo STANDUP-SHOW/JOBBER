@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
-import AccountBackButton from '../../../components/AccountBackButton';
 
 export default function LessonHistoryPage() {
   const { user, token, loading: authLoading } = useAuth();
@@ -35,9 +34,7 @@ export default function LessonHistoryPage() {
   if (!user) return null;
 
   return (
-    <div className="mx-auto max-w-xl">
-      <AccountBackButton />
-      <span className="mt-4 block label-eyebrow text-moss">Espace Formation</span>
+    <div className="max-w-3xl">
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Historique formation jobber</h1>
 
       {error && <p className="mt-4 rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}

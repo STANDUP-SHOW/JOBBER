@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
-import AccountBackButton from '../../../components/AccountBackButton';
 
 const ONGOING_STATUSES = ['SCHEDULED', 'IN_PROGRESS', 'COMPLETED'];
 
@@ -62,9 +61,7 @@ export default function ManagerMissionsPage() {
   if (!user) return null;
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <AccountBackButton />
-      <span className="mt-4 block label-eyebrow text-moss">Espace Manager</span>
+    <div className="max-w-3xl">
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Suivi de missions</h1>
 
       <div className="mt-6 flex gap-2 border-b border-slate-200">

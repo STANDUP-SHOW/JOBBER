@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import AccountBackButton from '../../../components/AccountBackButton';
 
 const MISSION_PLANS = [
   { name: 'Sans carte', price: null, detail: '10 € de frais par mission — gratuit pour le jobber' },
@@ -12,10 +11,8 @@ const MISSION_PLANS = [
 
 export default function JobberPlusPage() {
   return (
-    <div className="mx-auto max-w-xl">
-      <AccountBackButton />
+    <div className="max-w-3xl">
 
-      <span className="label-eyebrow text-moss">Plateforme Corporate</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Un back-office de gestion privé</h1>
       <p className="mt-3 text-slate-600">
         Vous avez une entreprise de services à la personne et vous avez besoin de personnel ? Vous souhaitez créer

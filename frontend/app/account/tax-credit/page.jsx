@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
-import AccountBackButton from '../../../components/AccountBackButton';
 
 const CREDIT_RATE = 0.5; // Crédit d'impôt services à la personne — 50 %, Art. 199 sexdecies CGI
 
@@ -34,8 +33,7 @@ export default function TaxCreditPage() {
   const net = gross - credit;
 
   return (
-    <div className="mx-auto max-w-xl">
-      <AccountBackButton />
+    <div className="max-w-3xl">
       <h1 className="mt-3 font-display text-2xl font-semibold text-ink">Simulez votre crédit d'impôt</h1>
       <p className="mt-2 text-sm text-slate-500">
         Les services à la personne donnent droit à un crédit d'impôt de 50 % de la somme payée. Estimez combien vous allez économiser.

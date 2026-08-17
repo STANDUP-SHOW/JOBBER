@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Logo from './Logo';
 import Wordmark from './Wordmark';
 import SubscriptionBadge from './SubscriptionBadge';
-import { ChatIcon } from './NavIcons';
 import { useAuth } from '../lib/auth-context';
 import { api } from '../lib/api';
 
@@ -21,6 +20,16 @@ function BellIcon(props) {
 export default function Header() {
   const { user, token } = useAuth();
   const [jobberTier, setJobberTier] = useState(null);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef(null);
+
+  useEffect(() => {
+    function onClickOutside(e) {
+      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
+    }
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, []);
 
   // The "carte jobber" tier shown here is always the JOBBER-family
   // subscription — distinct from a Manager/Entreprise plan the same
@@ -42,12 +51,29 @@ export default function Header() {
 
         {user && (
           <div className="flex items-center gap-4">
-            <Link href="/account/notifications" aria-label="Notifications" className="text-slate-400 hover:text-ink">
-              <BellIcon className="h-5 w-5" />
-            </Link>
-            <Link href="/messages" aria-label="Messagerie" className="text-slate-400 hover:text-ink">
-              <ChatIcon className="h-5 w-5" />
-            </Link>
+            <div className="relative" ref={notifRef}>
+              <button
+                type="button"
+                onClick={() => setNotifOpen((o) => !o)}
+                aria-label="Notifications"
+                className="text-slate-400 hover:text-ink"
+              >
+                <BellIcon className="h-5 w-5" />
+              </button>
+              {notifOpen && (
+                <div className="absolute right-0 top-full z-[1300] mt-2 w-72 rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
+                  <h3 className="text-sm font-semibold text-ink">Notifications</h3>
+                  <p className="mt-3 text-center text-sm text-slate-400">Aucune notification pour le moment.</p>
+                  <Link
+                    href="/account/notifications"
+                    onClick={() => setNotifOpen(false)}
+                    className="mt-3 block text-center text-sm font-medium text-moss hover:underline"
+                  >
+                    Gérer mes notifications
+                  </Link>
+                </div>
+              )}
+            </div>
             <Link href="/account" className="flex items-center gap-2.5">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-moss-light font-display text-sm text-moss-dark">
                 {user.avatarUrl ? (

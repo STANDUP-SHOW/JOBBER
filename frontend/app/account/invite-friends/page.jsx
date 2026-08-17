@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
-import AccountBackButton from '../../../components/AccountBackButton';
 
 export default function InviteFriendsPage() {
   const { user, token, loading: authLoading } = useAuth();
@@ -38,8 +37,7 @@ export default function InviteFriendsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-xl">
-      <AccountBackButton />
+    <div className="max-w-3xl">
 
       <h1 className="mt-4 font-display text-2xl font-semibold text-ink">
         Gagnez 5 % du montant dépensé par vos amis, à vie.

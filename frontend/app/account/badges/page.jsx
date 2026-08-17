@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
-import AccountBackButton from '../../../components/AccountBackButton';
 import { BADGE_CATEGORY_LABELS } from '../../../lib/badgeCatalog';
 
 export default function BadgesPage() {
@@ -38,9 +37,7 @@ export default function BadgesPage() {
   }, {});
 
   return (
-    <div className="mx-auto max-w-xl">
-      <AccountBackButton />
-      <span className="mt-4 block label-eyebrow text-moss">Espace Jobber</span>
+    <div className="max-w-3xl">
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Mes badges et récompenses</h1>
       <p className="mt-1 text-sm text-slate-500">
         Débloqués automatiquement selon votre activité{badges.length > 0 && ` — ${earnedCount} / ${badges.length} débloqués`}.

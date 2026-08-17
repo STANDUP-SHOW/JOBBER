@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 import StarRating from '../../../components/StarRating';
-import AccountBackButton from '../../../components/AccountBackButton';
 
 export default function MyReviewsPage() {
   const { user, token, loading: authLoading } = useAuth();
@@ -33,9 +32,7 @@ export default function MyReviewsPage() {
   const avg = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) : 0;
 
   return (
-    <div className="mx-auto max-w-xl">
-      <AccountBackButton />
-      <span className="mt-4 block label-eyebrow text-moss">Espace Jobber</span>
+    <div className="max-w-3xl">
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Mes évaluations</h1>
 
       {reviews.length > 0 && (

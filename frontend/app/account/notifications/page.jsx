@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
-import AccountBackButton from '../../../components/AccountBackButton';
 
 const GROUPS = [
   {
@@ -66,8 +65,7 @@ export default function NotificationsPage() {
   if (!user) return null;
 
   return (
-    <div className="mx-auto max-w-xl">
-      <AccountBackButton />
+    <div className="max-w-3xl">
       <h1 className="mt-3 font-display text-2xl font-semibold text-ink">Notifications</h1>
 
       {GROUPS.map((group) => (

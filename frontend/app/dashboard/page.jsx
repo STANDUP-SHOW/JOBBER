@@ -7,7 +7,6 @@ import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
 import StarRating from '../../components/StarRating';
 import PaymentModal from '../../components/PaymentModal';
-import AccountBackButton from '../../components/AccountBackButton';
 
 const STATUS_LABELS = {
   SCHEDULED: 'Programmée',
@@ -75,8 +74,6 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <AccountBackButton />
-      <span className="mt-4 block label-eyebrow text-moss">Tableau de bord</span>
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">
         {isCompany ? `Bonjour ${user.companyName}` : `Bonjour ${user.firstName}`}
       </h1>

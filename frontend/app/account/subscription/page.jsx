@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 import { SUBSCRIPTION_COLORS } from '../../../lib/subscriptionColors';
-import AccountBackButton from '../../../components/AccountBackButton';
 import SubscribeModal from '../../../components/SubscribeModal';
 
 const MANAGER_PLANS = [
@@ -184,8 +183,7 @@ export default function SubscriptionPage() {
   const isCompany = user.accountKind === 'COMPANY';
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <AccountBackButton />
+    <div className="max-w-3xl">
       <h1 className="mt-3 font-display text-2xl font-semibold text-ink">{isCompany ? 'Carte Entreprise' : 'Cartes'}</h1>
       <p className="mt-2 text-sm text-slate-500">
         {isCompany

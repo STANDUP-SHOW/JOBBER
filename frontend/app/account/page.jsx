@@ -1,53 +1,24 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from '../../lib/auth-context';
 import { api } from '../../lib/api';
 import AvatarUpload from '../../components/AvatarUpload';
 import ZoneSummaryCard from '../../components/ZoneSummaryCard';
 import PageTitleBadge from '../../components/PageTitleBadge';
+import SubscriptionBadge from '../../components/SubscriptionBadge';
 import { UserIcon } from '../../components/NavIcons';
 
-function ChevronIcon(props) {
+function DashboardCard({ icon, iconCls, label, value, caption }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <path d="m9 18 6-6-6-6" />
-    </svg>
-  );
-}
-
-function Row({ href, icon, label, sublabel, value, onClick, danger }) {
-  const content = (
-    <div className={`flex items-center gap-3 px-4 py-3.5 ${danger ? 'text-clay' : 'text-ink'}`}>
-      <span className="text-lg">{icon}</span>
-      <div className="min-w-0 flex-1">
-        <div className="text-sm font-medium">{label}</div>
-        {sublabel && <div className="text-xs text-slate-400">{sublabel}</div>}
+    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+      <div className="flex items-center gap-2.5">
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-base ${iconCls}`}>{icon}</span>
+        <span className="text-xs font-medium text-slate-500">{label}</span>
       </div>
-      {value && <span className="shrink-0 text-sm text-slate-400">{value}</span>}
-      {!onClick && <ChevronIcon className="h-4 w-4 shrink-0 text-slate-300" />}
-    </div>
-  );
-
-  if (onClick) {
-    return (
-      <button type="button" onClick={onClick} className="block w-full text-left">
-        {content}
-      </button>
-    );
-  }
-  return <Link href={href}>{content}</Link>;
-}
-
-function Section({ title, children }) {
-  return (
-    <div className="mt-6">
-      {title && <h2 className="mb-2 text-sm font-semibold text-slate-500">{title}</h2>}
-      <div className="divide-y divide-slate-100 overflow-hidden rounded-lg border border-slate-200 bg-white">
-        {children}
-      </div>
+      <div className="mt-2 font-display text-xl font-bold text-ink">{value}</div>
+      {caption && <div className="text-xs text-slate-400">{caption}</div>}
     </div>
   );
 }
@@ -55,14 +26,25 @@ function Section({ title, children }) {
 export default function AccountPage() {
   const { user, token, login, logout, loading } = useAuth();
   const router = useRouter();
+  const [tier, setTier] = useState(null);
 
   useEffect(() => {
     if (!loading && !user) router.push('/auth/login');
   }, [loading, user]);
 
-  if (!user) return null;
+  const isCompany = user?.accountKind === 'COMPANY';
 
-  const isCompany = user.accountKind === 'COMPANY';
+  // Whichever family applies to this account's own role: Manager/Entreprise
+  // accounts show their MANAGER-family plan, everyone else their
+  // JOBBER-family "carte jobber" — same split as the top header.
+  useEffect(() => {
+    if (!token || !user) return;
+    api.getSubscription(token)
+      .then(({ subscription, jobberSubscription }) => setTier((isCompany ? subscription : jobberSubscription)?.plan || null))
+      .catch(() => setTier(null));
+  }, [token, user, isCompany]);
+
+  if (!user) return null;
 
   async function onAvatarUploaded(url) {
     const { user: updated } = await api.updateMe({ avatarUrl: url }, token);
@@ -70,7 +52,7 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="max-w-3xl">
       <PageTitleBadge icon={UserIcon} label="Mon compte" />
 
       <div className="mt-4">
@@ -99,111 +81,27 @@ export default function AccountPage() {
         </div>
       )}
 
-      {isCompany ? (
-        <>
-          <Section title="Espace ENTREPRISE">
-            <Row href="/missions/new" icon="📝" label="Publier un besoin" sublabel="Décrire une mission à réaliser" />
-            <Row href="/dashboard" icon="📋" label="Mes besoins en cours" sublabel="Suivre vos missions en cours" />
-            <Row href="/account/subscription" icon="⭐" label="Cartes" sublabel="Plus aucun frais sur vos missions" />
-          </Section>
-
-          <Section title="Espace Gestion">
-            <Row href="/account/company-info" icon="🏢" label="Informations Entreprise" sublabel="Raison sociale, SIRET, adresse" />
-            <Row href="/account/invoices" icon="🧾" label="Mes factures" sublabel="Générées à chaque prestation payée" />
-            <Row href="/account/payment-methods" icon="💳" label="Moyens de paiement" />
-          </Section>
-
-          <div className="mt-6">
-            <h2 className="mb-2 text-sm font-semibold text-slate-500">Espace CORPORATE</h2>
-            <div className="rounded-lg border border-slate-200 bg-white p-4">
-              <p className="text-sm font-medium text-ink">
-                Vous avez une entreprise de services à la personne et vous avez besoin de personnel ?
-              </p>
-              <p className="mt-2 text-sm text-slate-500">
-                Vous souhaitez créer une entreprise de services ? Jobber vous accompagne et met à votre disposition{' '}
-                <strong className="text-ink">Jobber+</strong>, une plateforme intelligente de gestion de votre business
-                en ligne couplée à votre vitrine web Corporate.
-              </p>
-              <Link
-                href="/account/jobber-plus"
-                className="mt-3 inline-flex items-center gap-2 rounded-md bg-moss px-4 py-2 text-sm font-medium text-paper hover:bg-moss-dark"
-              >
-                En savoir plus
-                <span className="font-bold text-ochre">+</span>
-              </Link>
-            </div>
-          </div>
-        </>
-      ) : (
-        <Section title="Espace Manager">
-          <Row href="/missions/new" icon="📝" label="Publier un besoin" sublabel="Décrire une mission à réaliser" />
-          <Row href="/dashboard/manager-missions" icon="📋" label="Suivi de missions" sublabel="Missions en cours et offres reçues" />
-          <Row href="/dashboard/manager-completed" icon="✅" label="Missions terminées" />
-          <Row href="/account/invoices" icon="🧾" label="Mes factures" />
-          <Row href="/account/favorites" icon="⭐" label="Mes jobbers favoris" sublabel="Vos prestataires à recontacter" />
-          <Row href="/account/subscription" icon="💼" label="Cartes Manager" sublabel="Plus aucun frais sur vos missions" />
-        </Section>
-      )}
-
-      {!isCompany && (
-        <Section title="Espace Jobber">
-          <Row href="/dashboard/profile" icon="🛠️" label="Mon profil Jobber" sublabel="Zone d'intervention, tarif, catégories" />
-          <Row href="/dashboard/schedule" icon="🗓️" label="Missions à réaliser" sublabel="Vue liste, carte et planning, avec compte à rebours" />
-          <Row href="/dashboard" icon="📅" label="Dashboard missions réservées" sublabel="Vos missions à venir et en cours, avec le compte à rebours" />
-          <Row href="/missions" icon="🔎" label="Missions disponibles" sublabel="Parcourir les besoins près de chez vous" />
-          <Row href="/dashboard/offers" icon="📨" label="Mes offres" sublabel="Missions auxquelles vous avez postulé" />
-          <Row href="/dashboard/jobber-history" icon="🗂️" label="Historique de missions" />
-          <Row href="/account/reviews" icon="🌟" label="Mes évaluations" sublabel="Vos avis reçus" />
-          <Row href="/account/badges" icon="🏅" label="Mes Badges et récompenses" />
-          <Row
-            href="/dashboard/wallet"
-            icon="💶"
-            label={`Mon Portefeuille — ${(user.providerProfile?.walletBalance ?? 0).toFixed(2)} €`}
-            sublabel={user.providerProfile?.payoutsEnabled ? 'Paiements activés' : 'Paiements non configurés'}
-          />
-          <Row href="/account/subscription" icon="💼" label="Cartes jobber" sublabel="Plus aucun frais sur vos missions" />
-        </Section>
-      )}
-
-      {!isCompany && (
-        <Section title="Espace Formation">
-          <Row href="/account/diplomas" icon="🎓" label="Mes diplômes et titres professionnels" />
-          <Row
-            href="/account/teach-lessons"
-            icon="📖"
-            label="Donner des cours"
-            sublabel={user.providerProfile?.offersLessons ? 'Activé' : 'Enseignez dans vos catégories'}
-          />
-          <Row href="/missions/new?type=lesson" icon="🙋" label="Demander des cours" sublabel="Un jobber vient vous apprendre chez vous" />
-          <Row href="/lessons" icon="📚" label="Consulter les cours proposés" sublabel="Par d'autres jobbers" />
-          <Row href="/account/lesson-history" icon="🕓" label="Historique formation jobber" />
-        </Section>
-      )}
-
-      <Section title="Gérer mon compte">
-        <Row href="/account/personal-info" icon="👤" label="Informations personnelles" />
-        <Row href="/account/balance" icon="💰" label="Mon solde" value={`${(user.creditBalance ?? 0).toFixed(2)} €`} />
-        {!isCompany && <Row href="/account/cesu" icon="🎫" label="Mes tickets CESU" />}
-        {!isCompany && <Row href="/account/payment-methods" icon="💳" label="Moyens de paiement" />}
-        {!isCompany && <Row href="/account/invoices" icon="🧾" label="Mes factures" />}
-        <Row href="/account/tax-certificates" icon="📄" label="Attestations fiscales" />
-        <Row href="/account/notifications" icon="🔔" label="Gérer mes notifications" />
-        <Row href="/account/language" icon="🌐" label="Langage" value="Français" />
-      </Section>
-
-      <Section title="Produit">
+      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <DashboardCard icon="💰" iconCls="bg-moss-light text-moss-dark" label="Mon solde" value={`${(user.creditBalance ?? 0).toFixed(2)} €`} />
         {!isCompany && (
-          <Row href="/account/tax-credit" icon="📋" label="Déclaratif et crédit d'impôt" sublabel="Gagnez du temps et baissez vos impôts." />
+          <DashboardCard
+            icon="💶"
+            iconCls="bg-ochre-light text-ochre-dark"
+            label="Mon portefeuille"
+            value={`${(user.providerProfile?.walletBalance ?? 0).toFixed(2)} €`}
+            caption={user.providerProfile?.payoutsEnabled ? 'Paiements activés' : 'Paiements non configurés'}
+          />
         )}
-        <Row href="/account/invite-friends" icon="🎁" label="Inviter des amis" sublabel="Gagnez 5 % du montant dépensé par vos amis" />
-      </Section>
-
-      <Section title="Informations utiles">
-        <Row href="/contact" icon="✉️" label="Nous contacter" />
-        <Row href="/messages" icon="💬" label="Messagerie" />
-        {user.role === 'ADMIN' && <Row href="/admin" icon="🛡️" label="Back-office" />}
-        <Row onClick={logout} icon="🚪" label="Se déconnecter" danger />
-      </Section>
+        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-base text-indigo-600">💼</span>
+            <span className="text-xs font-medium text-slate-500">{isCompany ? 'Carte Manager' : 'Carte jobber'}</span>
+          </div>
+          <div className="mt-2">
+            {tier ? <SubscriptionBadge plan={tier} /> : <span className="text-sm text-slate-400">Aucune carte active</span>}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

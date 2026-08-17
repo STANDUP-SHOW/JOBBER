@@ -1,5 +1,5 @@
 import DashboardShell from '../../components/DashboardShell';
 
-export default function AccountLayout({ children }) {
+export default function DashboardLayout({ children }) {
   return <DashboardShell>{children}</DashboardShell>;
 }

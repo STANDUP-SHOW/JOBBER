@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
-import AccountBackButton from '../../../components/AccountBackButton';
 
 export default function TeachLessonsPage() {
   const { user, token, login, loading: authLoading } = useAuth();
@@ -54,8 +53,7 @@ export default function TeachLessonsPage() {
   if (!user) return null;
 
   return (
-    <div className="mx-auto max-w-xl">
-      <AccountBackButton />
+    <div className="max-w-3xl">
       <h1 className="mt-3 font-display text-2xl font-semibold text-ink">Donner des cours</h1>
       <p className="mt-1 text-sm text-slate-500">
         Proposez des cours pratiques aux clients qui veulent apprendre, dans les catégories de votre profil jobber.

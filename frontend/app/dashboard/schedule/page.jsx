@@ -6,7 +6,6 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
-import AccountBackButton from '../../../components/AccountBackButton';
 
 const MissionsMap = dynamic(() => import('../../../components/MissionsMap'), {
   ssr: false,
@@ -316,9 +315,7 @@ export default function SchedulePage() {
   if (!user) return null;
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <AccountBackButton />
-      <span className="mt-4 block label-eyebrow text-moss">Espace Jobber</span>
+    <div className="max-w-3xl">
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Missions à réaliser</h1>
       <p className="mt-1 text-sm text-slate-500">
         Vos missions GET Mission gagnées et offres acceptées, à venir ou en cours.

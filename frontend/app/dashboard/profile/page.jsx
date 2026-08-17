@@ -7,7 +7,6 @@ import { useAuth } from '../../../lib/auth-context';
 import StarRating from '../../../components/StarRating';
 import ZoneSummaryCard from '../../../components/ZoneSummaryCard';
 import VehicleIcon, { VEHICLES } from '../../../components/VehicleIcon';
-import AccountBackButton from '../../../components/AccountBackButton';
 import { isValidSiret } from '../../../lib/siret';
 
 const LEVELS = [
@@ -169,9 +168,7 @@ export default function ProviderProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="mx-auto max-w-xl">
-      <AccountBackButton />
-      <span className="mt-4 block label-eyebrow text-moss">Mon profil</span>
+    <div className="max-w-3xl">
       <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Profil jobber</h1>
       <p className="mt-1 text-sm text-slate-500">Ces informations sont visibles par les clients et déterminent les missions qui vous sont proposées.</p>
 
