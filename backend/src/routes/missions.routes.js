@@ -43,6 +43,7 @@ function maskCorporateClient(mission, isOwner) {
       accountKind: 'COMPANY',
       companyType: 'CORPORATE',
       companyName: mission.corporateAgency?.companyName || null,
+      createdAt: null,
     },
   };
 }
@@ -110,6 +111,8 @@ const createMissionSchema = z.object({
   // Badges required from a candidate jobber — only PRO is actually
   // enforced (see POST /offers), the rest are informational.
   requiredBadges: z.array(z.string()).optional().default([]),
+  // Self-declared, informational only — never validated against anything.
+  difficulty: z.enum(['FACILE', 'MOYEN', 'DIFFICILE']).optional(),
 });
 
 // Categories where a mission moves something/someone from A to B — the form
@@ -273,7 +276,7 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
       include: {
         category: true,
         service: true,
-        client: { select: { id: true, firstName: true, avatarUrl: true, accountKind: true, companyType: true, companyName: true } },
+        client: { select: { id: true, firstName: true, avatarUrl: true, accountKind: true, companyType: true, companyName: true, createdAt: true } },
         corporateAgency: { select: { companyName: true } },
         offers: { include: { provider: { select: { id: true, firstName: true, lastName: true, avatarUrl: true, isProfessional: true, providerProfile: true } } } },
         booking: true,

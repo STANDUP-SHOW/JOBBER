@@ -68,6 +68,7 @@ function NewMissionForm() {
     photos: [],
     isUrgent: false,
     datesFlexible: false,
+    difficulty: '',
     workAtHeight: null,
     recurrenceType: 'PONCTUEL',
     recurrenceCount: 1,
@@ -201,6 +202,7 @@ function NewMissionForm() {
           requiredPpe: form.ppeProvidedByCompany ? form.requiredPpe : [],
           requiredMachines: form.requiresMachine ? form.requiredMachines : [],
           getMissionPrice: form.isGetMission ? Number(form.getMissionPrice) : undefined,
+          difficulty: form.difficulty || undefined,
         },
         token
       );
@@ -376,6 +378,29 @@ function NewMissionForm() {
             >
               Dates flexibles
             </button>
+          </div>
+        </div>
+
+        <div>
+          <span className="text-xs font-medium text-slate-500">Difficulté (optionnel)</span>
+          <p className="mt-0.5 text-xs text-slate-400">Votre propre estimation — juste indicatif pour le jobber, jamais vérifié.</p>
+          <div className="mt-2 grid grid-cols-3 gap-3">
+            {[
+              ['FACILE', 'Facile'],
+              ['MOYEN', 'Moyen'],
+              ['DIFFICILE', 'Difficile'],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, difficulty: f.difficulty === value ? '' : value }))}
+                className={`rounded-lg border-2 py-3 text-center text-sm font-semibold transition ${
+                  form.difficulty === value ? 'border-moss bg-moss text-white' : 'border-slate-200 text-slate-500 hover:border-moss hover:text-moss'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
 

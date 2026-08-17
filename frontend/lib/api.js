@@ -80,6 +80,7 @@ export const api = {
 
   conversations: (token) => request('/messages/conversations', { token }),
   conversation: (id, token) => request(`/messages/conversations/${id}`, { token }),
+  startConversation: (payload, token) => request('/messages/conversations', { method: 'POST', body: payload, token }),
   sendMessage: (id, content, token) => request(`/messages/conversations/${id}/messages`, { method: 'POST', body: { content }, token }),
 
   submitReview: (payload, token) => request('/reviews', { method: 'POST', body: payload, token }),
