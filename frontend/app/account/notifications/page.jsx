@@ -5,8 +5,17 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
+import { subscribeToPush, unsubscribeFromPush, pushSupported } from '../../../lib/pushNotifications';
 
 const GROUPS = [
+  {
+    title: 'Activité',
+    description: 'Offre reçue/acceptée, mission bientôt, mission terminée, paiement reçu…',
+    items: [
+      { key: 'notifyPushActivity', label: 'Notifications push' },
+      { key: 'notifyEmailActivity', label: 'Email' },
+    ],
+  },
   {
     title: 'Notification',
     items: [{ key: 'notifyPushNews', label: 'Nouveautés, cadeaux, bons plans' }],
@@ -37,9 +46,13 @@ export default function NotificationsPage() {
     if (!authLoading && !user) router.push('/auth/login');
   }, [authLoading, user]);
 
+  const [pushError, setPushError] = useState('');
+
   useEffect(() => {
     if (!user) return;
     setPrefs({
+      notifyPushActivity: user.notifyPushActivity,
+      notifyEmailActivity: user.notifyEmailActivity,
       notifyPushNews: user.notifyPushNews,
       notifyEmailNews: user.notifyEmailNews,
       notifyEmailPartners: user.notifyEmailPartners,
@@ -50,8 +63,24 @@ export default function NotificationsPage() {
 
   async function toggle(key) {
     const next = !prefs[key];
+    setPushError('');
+
+    // The push toggle also has to actually (un)subscribe this browser —
+    // flipping the preference alone wouldn't do anything without a real
+    // Push API subscription behind it.
+    if (key === 'notifyPushActivity' && next) {
+      if (!pushSupported()) { setPushError("Les notifications push ne sont pas supportées par ce navigateur."); return; }
+      setBusyKey(key);
+      const ok = await subscribeToPush(token);
+      if (!ok) { setPushError('Autorisation refusée ou indisponible — vérifiez les réglages de notifications de votre navigateur.'); setBusyKey(null); return; }
+    } else if (key === 'notifyPushActivity' && !next) {
+      setBusyKey(key);
+      await unsubscribeFromPush(token).catch(() => {});
+    } else {
+      setBusyKey(key);
+    }
+
     setPrefs((p) => ({ ...p, [key]: next }));
-    setBusyKey(key);
     try {
       const { user: updated } = await api.updateMe({ [key]: next }, token);
       login(token, updated);
@@ -71,6 +100,10 @@ export default function NotificationsPage() {
       {GROUPS.map((group) => (
         <div key={group.title} className="mt-6">
           <h2 className="mb-2 text-sm font-semibold text-ink">{group.title}</h2>
+          {group.description && <p className="mb-2 text-xs text-slate-400">{group.description}</p>}
+          {group.title === 'Activité' && pushError && (
+            <p className="mb-2 rounded-md bg-clay/10 px-3 py-2 text-xs text-clay">{pushError}</p>
+          )}
           <div className="divide-y divide-slate-100 overflow-hidden rounded-lg border border-slate-200 bg-white">
             {group.items.map((item) => (
               <div key={item.key} className="flex items-center gap-3 px-4 py-3.5">

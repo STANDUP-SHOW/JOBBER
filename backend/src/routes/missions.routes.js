@@ -7,6 +7,7 @@ const { generateCorporateCode, resolveAgencyFromOrigin, brandKeyForDomain } = re
 const { REQUIRABLE_BADGES } = require('../utils/badges');
 const { finalizeBooking, round2 } = require('../services/bookingService');
 const { sendMissionPublishedEmail, notifyBookingAccepted } = require('../services/emailService');
+const { notifyMissionPublished, notifyOfferAccepted } = require('../services/notificationService');
 
 const router = express.Router();
 
@@ -195,6 +196,7 @@ router.post('/', requireAuth, async (req, res, next) => {
       missionId: mission.id,
       brandKey: brandKeyForDomain(agency?.agencyDomain),
     });
+    notifyMissionPublished(mission.id);
     res.status(201).json({ mission });
   } catch (err) {
     if (err.name === 'ZodError') { err.status = 400; err.expose = true; err.message = err.errors[0].message; }
@@ -365,6 +367,7 @@ router.post('/:id/get', requireAuth, async (req, res, next) => {
         totalAmount,
       });
       notifyBookingAccepted(result.booking.id);
+      notifyOfferAccepted(result.booking.id);
 
       res.status(201).json(result);
     } catch (err) {

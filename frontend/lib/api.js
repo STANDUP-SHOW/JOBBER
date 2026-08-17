@@ -94,6 +94,12 @@ export const api = {
   adminStats: (token) => request('/admin/stats', { token }),
   adminUsers: (token) => request('/admin/users', { token }),
 
+  notifications: (token) => request('/notifications', { token }),
+  markNotificationRead: (id, token) => request(`/notifications/${id}/read`, { method: 'POST', token }),
+  markAllNotificationsRead: (token) => request('/notifications/read-all', { method: 'POST', token }),
+  pushSubscribe: (payload, token) => request('/notifications/push-subscribe', { method: 'POST', body: payload, token }),
+  pushUnsubscribe: (payload, token) => request('/notifications/push-unsubscribe', { method: 'POST', body: payload, token }),
+
   submitContactMessage: (payload, token) => request('/contact-messages', { method: 'POST', body: payload, token }),
   adminContactMessages: (token) => request('/admin/contact-messages', { token }),
   adminContactMessage: (id, token) => request(`/admin/contact-messages/${id}`, { token }),

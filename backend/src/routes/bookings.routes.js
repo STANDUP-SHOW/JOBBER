@@ -1,6 +1,7 @@
 const express = require('express');
 const prisma = require('../config/prisma');
 const { requireAuth } = require('../middleware/auth');
+const { notifyMissionCompleted } = require('../services/notificationService');
 
 const router = express.Router();
 
@@ -56,6 +57,7 @@ router.patch('/:id/complete', requireAuth, async (req, res, next) => {
       prisma.booking.update({ where: { id: booking.id }, data: { status: 'COMPLETED' } }),
       prisma.mission.update({ where: { id: booking.missionId }, data: { status: 'COMPLETED' } }),
     ]);
+    notifyMissionCompleted(updated.id);
     res.json({ booking: updated, next: 'Appelez POST /api/payments/:bookingId/release pour verser le prestataire' });
   } catch (err) { next(err); }
 });

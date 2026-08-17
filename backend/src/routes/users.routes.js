@@ -157,6 +157,7 @@ router.patch('/me', requireAuth, async (req, res, next) => {
       avatarUrl, firstName, lastName, phone, email, address,
       companyName, companySiret,
       notifyPushNews, notifyEmailNews, notifyEmailPartners, notifySmsOffers, notifySmsCancellation,
+      notifyPushActivity, notifyEmailActivity,
     } = req.body;
 
     if (companySiret !== undefined && companySiret !== null && companySiret !== '' && !isValidSiret(companySiret)) {
@@ -174,6 +175,7 @@ router.patch('/me', requireAuth, async (req, res, next) => {
         lat: geocoded?.lat, lng: geocoded?.lng,
         companyName: companyName?.trim(), companySiret,
         notifyPushNews, notifyEmailNews, notifyEmailPartners, notifySmsOffers, notifySmsCancellation,
+        notifyPushActivity, notifyEmailActivity,
       },
     });
     const { passwordHash, ...safeUser } = user;

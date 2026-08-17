@@ -7,6 +7,7 @@ const {
   createCustomer, createSetupIntent, listPaymentMethods, detachPaymentMethod, setDefaultPaymentMethod,
   createManagerSubscription, cancelSubscription, PLAN_CONFIG,
 } = require('../services/stripeService');
+const { notifyPaymentReceived } = require('../services/notificationService');
 
 const router = express.Router();
 
@@ -194,6 +195,7 @@ router.post('/:bookingId/release', requireAuth, async (req, res, next) => {
         },
       }),
     ]);
+    notifyPaymentReceived(booking.id, booking.payment.providerPayout);
 
     // "Gagnez 5% du montant dépensé par vos amis, à vie" — credited to the
     // referrer's Cagnotte the moment their friend's payment actually lands.

@@ -4,6 +4,7 @@ const prisma = require('../config/prisma');
 const { requireAuth } = require('../middleware/auth');
 const { finalizeBooking, round2 } = require('../services/bookingService');
 const { notifyBookingAccepted } = require('../services/emailService');
+const { notifyOfferReceived, notifyOfferAccepted } = require('../services/notificationService');
 
 const router = express.Router();
 
@@ -79,6 +80,7 @@ router.post('/', requireAuth, async (req, res, next) => {
     // No conversation here on purpose — manager and jobber can only message
     // each other once a booking is actually paid (see the Stripe webhook's
     // payment_intent.amount_capturable_updated handler), never before.
+    notifyOfferReceived(offer.id);
 
     res.status(201).json({ offer });
   } catch (err) {
@@ -204,6 +206,7 @@ router.post('/:id/accept', requireAuth, async (req, res, next) => {
         }),
       ]);
       notifyBookingAccepted(booking.id);
+      notifyOfferAccepted(booking.id);
       return res.status(201).json({ booking, feeWaived: true, quotaExceeded: false, plan: null, providerFeeWaived: false });
     }
 
@@ -215,6 +218,7 @@ router.post('/:id/accept', requireAuth, async (req, res, next) => {
       totalAmount,
     });
     notifyBookingAccepted(result.booking.id);
+    notifyOfferAccepted(result.booking.id);
 
     res.json(result);
   } catch (err) {

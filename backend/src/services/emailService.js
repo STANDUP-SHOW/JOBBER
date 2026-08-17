@@ -150,4 +150,5 @@ module.exports = {
   sendMissionPublishedEmail,
   sendAgenceProposalEmail,
   notifyBookingAccepted,
+  sendBrandedEmail,
 };
