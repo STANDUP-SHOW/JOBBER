@@ -13,6 +13,7 @@
     "backfill:provider-profiles": "node scripts/backfillProviderProfiles.js",
     "backfill:mission-geocoding": "node scripts/backfillMissionGeocoding.js",
     "seed:diverse-missions": "node scripts/seedDiverseMissions.js",
+    "seed:test-jobber-profile": "node scripts/seedTestJobberProfile.js",
     "fix:seed-geocoding": "node scripts/fixMisgeocodedSeedAddresses.js",
     "set:service-detail-fields": "node scripts/setServiceDetailFields.js",
     "cleanup:coiffure-services": "node scripts/removeStaleCoiffureServices.js",
