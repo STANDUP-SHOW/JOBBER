@@ -210,6 +210,11 @@ model User {
   notifyEmailPartners     Boolean @default(true)
   notifySmsOffers         Boolean @default(false)
   notifySmsCancellation   Boolean @default(true)
+  // Distinct from the "news/bons plans" toggles above: gates the
+  // activity-driven notifications (offer received, mission starting soon,
+  // payment received…) — see notificationService.js.
+  notifyPushActivity      Boolean @default(true)
+  notifyEmailActivity     Boolean @default(true)
   // Corporate agency admin login (e.g. Services 34) — a second, separate
   // credential pair (identifiant + PIN) used only for admin.<site> access,
   // independent of the account's normal email/password. Null for every
@@ -261,6 +266,8 @@ model User {
   agencyPlannings     Planning[] @relation("AgencyPlannings")
   contactMessagesSent    ContactMessage[] @relation("ContactMessageSender")
   contactMessagesToAgency ContactMessage[] @relation("ContactMessageAgency")
+  notifications          Notification[]
+  pushSubscriptions      PushSubscription[]
 }
 
 // A manager bookmarking a jobber they'd like to work with again ("Mes
@@ -649,6 +656,11 @@ model Booking {
   status         BookingStatus @default(SCHEDULED)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+  // Set by the reminder cron job (see scripts/sendBookingReminders.js) once
+  // each reminder has actually been sent, so a booking never gets the same
+  // "starts in 24h/1h" notification twice across cron runs.
+  reminded24hAt  DateTime?
+  reminded1hAt   DateTime?
 
   payment        Payment?
   review         Review?
@@ -762,4 +774,37 @@ model VerificationDocument {
   status     VerificationStatus  @default(PENDING)
   reviewedAt DateTime?
   createdAt  DateTime            @default(now())
+}
+
+// In-app feed backing the header bell — one row per activity event (offer
+// received, mission starting soon, payment received…), created by
+// notificationService.js alongside the matching email/push send so all
+// three channels stay in sync from a single call site.
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  // See NOTIFICATION_TYPES in notificationService.js for the fixed set of
+  // values this takes (e.g. "OFFER_RECEIVED", "MISSION_STARTING_SOON").
+  type      String
+  title     String
+  body      String
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// A browser's Web Push registration for this user — endpoint is the
+// per-browser/device push URL, unique across the table since re-subscribing
+// the same browser just refreshes its own row via upsert.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
 }
