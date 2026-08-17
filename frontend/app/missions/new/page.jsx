@@ -215,9 +215,8 @@ function NewMissionForm() {
   }
 
   return (
-    <div className="mx-auto max-w-xl">
-      <span className="label-eyebrow text-moss">{isLessonMode ? 'Demander un cours' : 'Publier un besoin'}</span>
-      <h1 className="mt-2 font-display text-3xl font-semibold text-ink">
+    <div className="max-w-3xl">
+      <h1 className="font-display text-3xl font-semibold text-ink">
         {isLessonMode ? 'Décrivez le cours que vous recherchez' : 'Décrivez votre mission'}
       </h1>
       <p className="mt-1 text-sm text-slate-500">

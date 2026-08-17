@@ -80,7 +80,6 @@ export default function AccountSidebar() {
         <Group title="Jobber">
           <Row href="/dashboard/profile" icon="🛠️" label="Mon profil Jobber" active={active('/dashboard/profile')} />
           <Row href="/dashboard/schedule" icon="🗓️" label="Missions à réaliser" active={active('/dashboard/schedule')} />
-          <Row href="/dashboard" icon="📅" label="Missions réservées" active={active('/dashboard')} />
           <Row href="/missions" icon="🔎" label="Missions disponibles" active={active('/missions')} />
           <Row href="/dashboard/offers" icon="📨" label="Mes offres" active={active('/dashboard/offers')} />
           <Row href="/dashboard/jobber-history" icon="🗂️" label="Historique de missions" active={active('/dashboard/jobber-history')} />

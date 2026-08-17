@@ -13,9 +13,8 @@ export const metadata = {
 
 export default function ContactPage() {
   return (
-    <div className="mx-auto max-w-lg">
-      <span className="label-eyebrow text-moss">Contact</span>
-      <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Contacter Jobber</h1>
+    <div className="max-w-3xl">
+      <h1 className="font-display text-3xl font-semibold text-ink">Contacter Jobber</h1>
       <p className="mt-1 text-sm text-slate-500">
         Une question, un problème avec une mission, une suggestion ? Écrivez-nous, nous vous répondons par email.
       </p>

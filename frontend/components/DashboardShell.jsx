@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import AccountSidebar from './AccountSidebar';
+import { useAuth } from '../lib/auth-context';
 
 function MenuIcon(props) {
   return (
@@ -27,8 +28,15 @@ function CloseIcon(props) {
 export default function DashboardShell({ children }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const { user } = useAuth();
 
   useEffect(() => { setOpen(false); }, [pathname]);
+
+  // Guest-accessible routes (missions, lessons…) also use this shell so the
+  // nav is consistent once logged in — but with no user there's nothing to
+  // navigate to yet, so render children with zero extra chrome instead of
+  // an empty hamburger/sidebar.
+  if (!user) return children;
 
   return (
     <div className="lg:flex lg:items-start">

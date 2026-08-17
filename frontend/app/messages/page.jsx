@@ -5,8 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth-context';
-import PageTitleBadge from '../../components/PageTitleBadge';
-import { ChatIcon } from '../../components/NavIcons';
 
 export default function MessagesListPage() {
   const { user, token, loading: authLoading } = useAuth();
@@ -25,8 +23,7 @@ export default function MessagesListPage() {
 
   return (
     <div className="max-w-3xl">
-      <PageTitleBadge icon={ChatIcon} label="Messagerie" />
-      <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Conversations</h1>
+      <h1 className="font-display text-3xl font-semibold text-ink">Conversations</h1>
 
       <div className="mt-6 space-y-2">
         {conversations.length === 0 && <p className="text-slate-400">Aucune conversation pour le moment.</p>}

@@ -8,8 +8,6 @@ import { useAuth } from '../../lib/auth-context';
 import Link from 'next/link';
 import MissionCard from '../../components/MissionCard';
 import ZoneSummaryCard from '../../components/ZoneSummaryCard';
-import PageTitleBadge from '../../components/PageTitleBadge';
-import { SearchIcon } from '../../components/NavIcons';
 
 const MissionsMap = dynamic(() => import('../../components/MissionsMap'), {
   ssr: false,
@@ -68,9 +66,8 @@ export default function MissionsPage() {
   }, [filteredMissions]);
 
   return (
-    <div>
-      <PageTitleBadge icon={SearchIcon} label="Missions" />
-      <h1 className="mt-2 font-display text-3xl font-semibold text-ink">Missions disponibles</h1>
+    <div className="max-w-3xl">
+      <h1 className="font-display text-3xl font-semibold text-ink">Missions disponibles</h1>
       <p className="mt-1 text-sm text-slate-500">Parcourez les besoins publiés par les clients et proposez votre tarif horaire.</p>
 
       {user && (

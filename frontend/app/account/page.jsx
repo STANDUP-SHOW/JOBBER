@@ -6,9 +6,7 @@ import { useAuth } from '../../lib/auth-context';
 import { api } from '../../lib/api';
 import AvatarUpload from '../../components/AvatarUpload';
 import ZoneSummaryCard from '../../components/ZoneSummaryCard';
-import PageTitleBadge from '../../components/PageTitleBadge';
 import SubscriptionBadge from '../../components/SubscriptionBadge';
-import { UserIcon } from '../../components/NavIcons';
 
 function DashboardCard({ icon, iconCls, label, value, caption }) {
   return (
@@ -53,11 +51,7 @@ export default function AccountPage() {
 
   return (
     <div className="max-w-3xl">
-      <PageTitleBadge icon={UserIcon} label="Mon compte" />
-
-      <div className="mt-4">
-        <AvatarUpload avatarUrl={user.avatarUrl} firstName={user.firstName} onUploaded={onAvatarUploaded} />
-      </div>
+      <AvatarUpload avatarUrl={user.avatarUrl} firstName={user.firstName} onUploaded={onAvatarUploaded} />
 
       <div className="mt-4 flex items-center gap-3">
         <h1 className="font-display text-3xl font-semibold text-ink">
