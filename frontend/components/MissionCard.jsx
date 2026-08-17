@@ -45,7 +45,7 @@ export default function MissionCard({ mission }) {
         )}
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="truncate font-display text-base font-semibold text-ink">{mission.title}</h3>
+            <h3 className="line-clamp-2 font-display text-base font-semibold text-ink">{mission.title}</h3>
             <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-ink">{mission.estimatedHours} h</span>
           </div>
           <div className="mt-0.5 truncate text-sm text-slate-400">{mission.address}</div>
