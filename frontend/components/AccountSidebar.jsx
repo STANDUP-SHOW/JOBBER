@@ -50,6 +50,12 @@ export default function AccountSidebar() {
         {isCompany ? user.companyName : user.firstName}
       </Link>
 
+      {!isCompany && (
+        <Group>
+          <Row href="/account/subscription" icon="💼" label="Cartes Jobber+" active={active('/account/subscription')} />
+        </Group>
+      )}
+
       {isCompany ? (
         <>
           <Group title="Entreprise">
@@ -72,7 +78,6 @@ export default function AccountSidebar() {
           <Row href="/dashboard/manager-missions" icon="📋" label="Suivi de missions" active={active('/dashboard/manager-missions')} />
           <Row href="/dashboard/manager-completed" icon="✅" label="Missions terminées" active={active('/dashboard/manager-completed')} />
           <Row href="/account/favorites" icon="⭐" label="Mes jobbers favoris" active={active('/account/favorites')} />
-          <Row href="/account/subscription" icon="💼" label="Cartes Manager" active={active('/account/subscription')} />
         </Group>
       )}
 
