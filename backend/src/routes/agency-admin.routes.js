@@ -16,6 +16,9 @@ const { getOneWayDistanceKm, AGENCY_DEPARTURE_ADDRESS } = require('../services/d
 const { sendAgenceProposalEmail, notifyBookingAccepted } = require('../services/emailService');
 const { getCounts, markSeen } = require('../services/notificationCounts');
 const { runAutoSelect } = require('../services/agencyMarginWorkflow');
+const { computeWaivableFee, PROVIDER_FEE, AGENCY_PLATFORM_FEE } = require('../services/bookingService');
+const { captureIntent } = require('../services/stripeService');
+const { notifyPaymentReceived, notifyAgencyMissionAwaitingValidation } = require('../services/notificationService');
 
 const router = express.Router();
 
@@ -541,12 +544,10 @@ router.post('/offers/:id/refuse', async (req, res, next) => {
   }
 });
 
-// Flat 10€ platform fee on the agency's side, no fee on the jobber's side —
-// same convention as an ENTERPRISE/CORPORATE client accepting an offer
-// directly on jobber.city (see offers.routes.js). The agency, not the
-// original requester, is billed here: white-label means the client's
-// payment relationship is with the agency, never with Jobber directly.
-const AGENCY_PLATFORM_FEE = 10;
+// AGENCY_PLATFORM_FEE now imported from bookingService.js (shared with
+// offers.routes.js's isAgenceOffer branch, which actually collects it from
+// the client at devis-acceptance time — see /bookings/:id/commander below
+// for why it's not subtracted again from the agency's margin).
 
 function round2(n) { return Math.round(n * 100) / 100; }
 
@@ -695,7 +696,25 @@ router.post('/bookings/:id/commander', async (req, res, next) => {
     const jobberHours = sourceOffer.hours ?? booking.mission.estimatedHours;
     const jobberExtraFeesTotal = (sourceOffer.extraFees || []).reduce((sum, f) => sum + f.amount, 0);
     const jobberTotal = round2(sourceOffer.hourlyRate * jobberHours + jobberExtraFeesTotal);
-    const agencyMargin = round2((booking.payment?.amount ?? booking.totalAmount) - jobberTotal - AGENCY_PLATFORM_FEE);
+
+    // Same MANAGER/JOBBER subscription-waiver rule as a normal mission,
+    // applied to the real jobber now that we know who they are.
+    const { fee: providerFee, waived: providerFeeWaived, sub: providerSub } = await computeWaivableFee({
+      userId: sourceOffer.providerId, family: 'JOBBER', baseFee: PROVIDER_FEE,
+    });
+    const providerPayout = round2(jobberTotal - providerFee);
+
+    // The client's devis price (booking.totalAmount) already bakes in
+    // whatever markup the agency chose over the jobber's own quote — that
+    // markup IS the agency's margin. AGENCY_PLATFORM_FEE was already
+    // collected from the client directly at devis-acceptance time (see
+    // offers.routes.js isAgenceOffer, folded into payment.managerFee), so it
+    // must NOT be subtracted again here — doing so would double-charge it.
+    const agencyMargin = round2(booking.totalAmount - jobberTotal);
+    // Jobber-the-platform's own revenue accumulates: managerFee +
+    // AGENCY_PLATFORM_FEE were already in payment.platformFee since accept;
+    // providerFee (taken from the jobber's payout) adds to it now.
+    const platformFee = round2((booking.payment?.platformFee ?? 0) + providerFee);
 
     // hours/hourlyRate stay as the client's contract terms (booking.totalAmount
     // is what the client is paying, unaffected by this step) — only who does
@@ -707,13 +726,67 @@ router.post('/bookings/:id/commander', async (req, res, next) => {
       }),
       prisma.payment.update({
         where: { bookingId: booking.id },
-        data: { providerPayout: jobberTotal, platformFee: round2(agencyMargin + AGENCY_PLATFORM_FEE) },
+        data: { providerPayout, providerFee, platformFee, agencyCommission: agencyMargin },
       }),
       prisma.offer.update({ where: { id: sourceOffer.id }, data: { status: 'ACCEPTED' } }),
+      ...(providerFeeWaived
+        ? [prisma.subscription.update({ where: { id: providerSub.id }, data: { missionsUsedInPeriod: { increment: 1 } } })]
+        : []),
     ]);
     notifyBookingAccepted(updatedBooking.id);
 
     res.json({ booking: updatedBooking });
+  } catch (err) { next(err); }
+});
+
+// "Valider et payer" — the agency's own completion-validation step. For a
+// corporate-agency-sourced mission the real end client already paid upfront
+// at devis-acceptance, so the client's PATCH /bookings/:id/complete is
+// blocked for these (see bookings.routes.js) — this is the only path that
+// captures the escrowed Stripe payment, pays the jobber's wallet, and
+// credits the agency's own commission to its creditBalance. Mirrors
+// payments.routes.js's POST /:bookingId/release, just scoped to req.agency
+// instead of booking.clientId since the agency is the validator here.
+router.patch('/bookings/:id/valider-fin-mission', async (req, res, next) => {
+  try {
+    const booking = await prisma.booking.findUnique({
+      where: { id: req.params.id },
+      include: { mission: true, payment: true },
+    });
+    if (!booking || booking.mission.corporateAgencyId !== req.agency.id) {
+      return res.status(404).json({ error: 'Mission introuvable' });
+    }
+    if (booking.status !== 'AWAITING_VALIDATION') {
+      return res.status(400).json({ error: "Le jobber doit d'abord marquer la mission comme terminée" });
+    }
+    if (booking.payment?.status !== 'HELD_IN_ESCROW' || !booking.payment.stripePaymentIntentId) {
+      return res.status(400).json({ error: "Le client n'a pas encore payé cette mission" });
+    }
+
+    await captureIntent(booking.payment.stripePaymentIntentId);
+
+    const [, , payment] = await prisma.$transaction([
+      prisma.booking.update({ where: { id: booking.id }, data: { status: 'COMPLETED' } }),
+      prisma.mission.update({ where: { id: booking.missionId }, data: { status: 'COMPLETED' } }),
+      prisma.payment.update({
+        where: { bookingId: booking.id },
+        data: { status: 'RELEASED', paidAt: new Date(), releasedAt: new Date() },
+      }),
+      prisma.providerProfile.update({
+        where: { userId: booking.providerId },
+        data: {
+          walletBalance: { increment: booking.payment.providerPayout },
+          completedMissions: { increment: 1 },
+        },
+      }),
+      prisma.user.update({
+        where: { id: req.agency.id },
+        data: { creditBalance: { increment: booking.payment.agencyCommission } },
+      }),
+    ]);
+    notifyPaymentReceived(booking.id, booking.payment.providerPayout);
+
+    res.json({ payment });
   } catch (err) { next(err); }
 });
 

@@ -1,7 +1,7 @@
 const express = require('express');
 const prisma = require('../config/prisma');
 const { requireAuth } = require('../middleware/auth');
-const { notifyMissionCompleted } = require('../services/notificationService');
+const { notifyMissionCompleted, notifyAgencyMissionAwaitingValidation } = require('../services/notificationService');
 
 const router = express.Router();
 
@@ -34,7 +34,9 @@ router.patch('/:id/start', requireAuth, async (req, res, next) => {
 
 // Jobber marks the work done — puts the ball in the client's court to
 // validate (see /:id/complete below) rather than closing the booking
-// outright, so a jobber can't unilaterally trigger payment release.
+// outright, so a jobber can't unilaterally trigger payment release. For a
+// corporate-agency-sourced mission, it's the agency (not the real client)
+// who validates next — see agency-admin.routes.js's /bookings/:id/valider-fin-mission.
 router.patch('/:id/mark-done', requireAuth, async (req, res, next) => {
   try {
     const booking = await guardBooking(req, { providerOnly: true });
@@ -42,6 +44,7 @@ router.patch('/:id/mark-done', requireAuth, async (req, res, next) => {
       return res.status(400).json({ error: 'Cette mission doit être en cours pour être marquée terminée' });
     }
     const updated = await prisma.booking.update({ where: { id: booking.id }, data: { status: 'AWAITING_VALIDATION' } });
+    if (booking.mission.corporateAgencyId) notifyAgencyMissionAwaitingValidation(updated.id);
     res.json({ booking: updated });
   } catch (err) { next(err); }
 });
@@ -50,6 +53,9 @@ router.patch('/:id/mark-done', requireAuth, async (req, res, next) => {
 router.patch('/:id/complete', requireAuth, async (req, res, next) => {
   try {
     const booking = await guardBooking(req, { clientOnly: true });
+    if (booking.mission.corporateAgencyId) {
+      return res.status(400).json({ error: "Cette mission est gérée par l'agence — c'est à elle de valider sa fin." });
+    }
     if (booking.status !== 'AWAITING_VALIDATION') {
       return res.status(400).json({ error: 'Le jobber doit d\'abord marquer la mission comme terminée' });
     }
@@ -63,7 +69,10 @@ router.patch('/:id/complete', requireAuth, async (req, res, next) => {
 });
 
 async function guardBooking(req, { clientOnly, providerOnly } = {}) {
-  const booking = await prisma.booking.findUnique({ where: { id: req.params.id } });
+  const booking = await prisma.booking.findUnique({
+    where: { id: req.params.id },
+    include: { mission: { select: { corporateAgencyId: true } } },
+  });
   if (!booking) { const e = new Error('Réservation introuvable'); e.status = 404; e.expose = true; throw e; }
   const isParty = booking.clientId === req.user.id || booking.providerId === req.user.id;
   if (!isParty) { const e = new Error('Non autorisé'); e.status = 403; e.expose = true; throw e; }

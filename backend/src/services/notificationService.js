@@ -26,6 +26,7 @@ const NOTIFICATION_TYPES = {
   MISSION_STARTING_1H: 'MISSION_STARTING_1H',
   MISSION_COMPLETED: 'MISSION_COMPLETED',
   PAYMENT_RECEIVED: 'PAYMENT_RECEIVED',
+  AGENCY_VALIDATION_NEEDED: 'AGENCY_VALIDATION_NEEDED',
 };
 
 function siteUrl(brandKey) {
@@ -182,6 +183,27 @@ async function notifyMissionCompleted(bookingId) {
   ]);
 }
 
+// Jobber marked their work done on a corporate-agency-sourced mission — the
+// real end client already paid upfront at devis-acceptance, so it's the
+// agency (not the client) who validates completion and releases the
+// payment/commissions. Notifies the agency's own User row (its back-office
+// login account), the only recipient a corporate account resolves to.
+async function notifyAgencyMissionAwaitingValidation(bookingId) {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: { mission: { select: { id: true, title: true, corporateAgencyId: true } } },
+  });
+  if (!booking?.mission.corporateAgencyId) return;
+  const brandKey = await resolveBrandKeyForAgencyId(booking.mission.corporateAgencyId);
+  await notify(booking.mission.corporateAgencyId, {
+    type: NOTIFICATION_TYPES.AGENCY_VALIDATION_NEEDED,
+    title: `Mission terminée par le jobber : ${booking.mission.title}`,
+    body: `Le jobber a marqué "${booking.mission.title}" comme terminée. Validez pour déclencher son paiement.`,
+    link: '/admin/missions-jobber-en-cours',
+    brandKey,
+  });
+}
+
 // Escrow released to the jobber's wallet.
 async function notifyPaymentReceived(bookingId, amount) {
   const booking = await prisma.booking.findUnique({
@@ -225,4 +247,5 @@ module.exports = {
   notifyMissionCompleted,
   notifyPaymentReceived,
   notifyMissionStartingSoon,
+  notifyAgencyMissionAwaitingValidation,
 };

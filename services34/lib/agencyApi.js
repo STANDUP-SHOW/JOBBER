@@ -47,6 +47,7 @@ export const agencyApi = {
   createQuote: (offerId, amount, token) => request(`/offers/${offerId}/quote`, { method: 'POST', body: { amount }, token }),
   offreAcceptee: (token) => request('/missions/offre-acceptee', { token }),
   commanderMission: (bookingId, token) => request(`/bookings/${bookingId}/commander`, { method: 'POST', token }),
+  validerFinMission: (bookingId, token) => request(`/bookings/${bookingId}/valider-fin-mission`, { method: 'PATCH', token }),
 
   missionsJobberEnCours: (token) => request('/missions/jobber/en-cours', { token }),
   missionsJobberTerminees: (token) => request('/missions/jobber/terminees', { token }),

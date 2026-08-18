@@ -35,6 +35,12 @@ export default function MissionsJobberEnCoursPage() {
     catch (err) { setError(err.message); } finally { setBusy(false); }
   }
 
+  async function validerFinMission(bookingId) {
+    setBusy(true);
+    try { await agencyApi.validerFinMission(bookingId, token); await refresh(); }
+    catch (err) { setError(err.message); } finally { setBusy(false); }
+  }
+
   const byCategory = missions?.reduce((acc, m) => {
     const key = m.category?.name || 'Autre';
     (acc[key] = acc[key] || []).push(m);
@@ -64,10 +70,26 @@ export default function MissionsJobberEnCoursPage() {
                       {m.booking?.provider?.firstName} {m.booking?.provider?.lastName?.[0]}. · {new Date(m.desiredDate).toLocaleString('fr-FR')}
                     </div>
                     <MissionInfoBadges mission={m} />
+                    {m.booking?.status === 'AWAITING_VALIDATION' && (
+                      <p className="mt-1 text-sm font-medium text-clay">Le jobber a terminé — en attente de votre validation</p>
+                    )}
                   </div>
                   <div className="flex items-center gap-3">
-                    <MissionCountdown desiredDate={m.desiredDate} />
-                    <PlanningPicker mission={m} plannings={plannings} onAssign={assign} busy={busy} />
+                    {m.booking?.status === 'AWAITING_VALIDATION' ? (
+                      <button
+                        type="button"
+                        onClick={() => validerFinMission(m.booking.id)}
+                        disabled={busy}
+                        className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+                      >
+                        Valider et payer le jobber
+                      </button>
+                    ) : (
+                      <>
+                        <MissionCountdown desiredDate={m.desiredDate} />
+                        <PlanningPicker mission={m} plannings={plannings} onAssign={assign} busy={busy} />
+                      </>
+                    )}
                   </div>
                 </div>
               ))}

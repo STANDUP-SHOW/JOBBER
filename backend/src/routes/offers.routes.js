@@ -2,7 +2,7 @@ const express = require('express');
 const { z } = require('zod');
 const prisma = require('../config/prisma');
 const { requireAuth } = require('../middleware/auth');
-const { finalizeBooking, round2 } = require('../services/bookingService');
+const { finalizeBooking, round2, computeWaivableFee, MANAGER_FEE, AGENCY_PLATFORM_FEE } = require('../services/bookingService');
 const { notifyBookingAccepted } = require('../services/emailService');
 const { notifyOfferReceived, notifyOfferAccepted } = require('../services/notificationService');
 
@@ -178,6 +178,19 @@ router.post('/:id/accept', requireAuth, async (req, res, next) => {
     const totalAmount = round2(offer.hourlyRate * hours + extraFeesTotal);
 
     if (isAgenceOffer) {
+      // Same manager-fee/subscription-waiver rule as a normal mission (see
+      // bookingService.finalizeBooking), plus a flat, never-waived
+      // AGENCY_PLATFORM_FEE surcharge because this is a corporate-sourced
+      // mission. Payment starts at its schema default REQUIRES_PAYMENT — a
+      // real Stripe manual-capture PaymentIntent gets created the normal way
+      // via POST /payments/:bookingId/create-intent when the client opens
+      // the pay screen (services34/components/PaymentModal.jsx already
+      // gates on that status). No fake HELD_IN_ESCROW shortcut anymore.
+      const { fee: managerFee, waived: feeWaived, sub: managerSub } = await computeWaivableFee({
+        userId: req.user.id, family: 'MANAGER', baseFee: MANAGER_FEE,
+      });
+      const chargeAmount = round2(totalAmount + managerFee + AGENCY_PLATFORM_FEE);
+
       const [booking] = await prisma.$transaction([
         prisma.booking.create({
           data: {
@@ -192,8 +205,12 @@ router.post('/:id/accept', requireAuth, async (req, res, next) => {
             status: 'SCHEDULED',
             payment: {
               create: {
-                amount: totalAmount, platformFee: 0, managerFee: 0, providerFee: 0,
-                feeWaived: true, providerPayout: totalAmount, status: 'HELD_IN_ESCROW',
+                amount: chargeAmount,
+                platformFee: round2(managerFee + AGENCY_PLATFORM_FEE),
+                managerFee: round2(managerFee + AGENCY_PLATFORM_FEE),
+                providerFee: 0,
+                feeWaived,
+                providerPayout: totalAmount,
               },
             },
           },
@@ -204,10 +221,13 @@ router.post('/:id/accept', requireAuth, async (req, res, next) => {
           where: { missionId: offer.missionId, id: { not: offer.id }, status: 'PENDING' },
           data: { status: 'REJECTED' },
         }),
+        ...(feeWaived
+          ? [prisma.subscription.update({ where: { id: managerSub.id }, data: { missionsUsedInPeriod: { increment: 1 } } })]
+          : []),
       ]);
       notifyBookingAccepted(booking.id);
       notifyOfferAccepted(booking.id);
-      return res.status(201).json({ booking, feeWaived: true, quotaExceeded: false, plan: null, providerFeeWaived: false });
+      return res.status(201).json({ booking, feeWaived, quotaExceeded: false, plan: managerSub?.plan || null, providerFeeWaived: false });
     }
 
     const result = await finalizeBooking({

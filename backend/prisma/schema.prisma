@@ -698,6 +698,12 @@ model Payment {
   providerFee           Float         @default(2)
   feeWaived             Boolean       @default(false)
   providerPayout        Float
+  // Only set for corporate-agency-sourced missions: the agency's own margin
+  // (client's devis price minus what the jobber actually quoted), credited
+  // to the agency's creditBalance once it validates mission completion. See
+  // agency-admin.routes.js's /bookings/:id/commander (sets this) and
+  // /bookings/:id/valider-fin-mission (pays it out).
+  agencyCommission      Float         @default(0)
   status                PaymentStatus @default(REQUIRES_PAYMENT)
   paidAt                DateTime?
   releasedAt            DateTime?

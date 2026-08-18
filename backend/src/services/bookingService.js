@@ -10,6 +10,11 @@ const prisma = require('../config/prisma');
 const MANAGER_FEE = 2.5;
 const PROVIDER_FEE = 2.5;
 const ENTERPRISE_MANAGER_FEE = 10;
+// Flat surcharge on top of the normal manager/provider fees, specific to
+// corporate-agency-sourced missions (services34 & co) — never waived by a
+// subscription, unlike MANAGER_FEE/PROVIDER_FEE. See offers.routes.js's
+// isAgenceOffer accept branch and agency-admin.routes.js.
+const AGENCY_PLATFORM_FEE = 10;
 const PLAN_LIMITS = {
   MANAGER_BOSS: 10, MANAGER_HOLDER: Infinity,
   ENTERPRISE_20: 20, ENTERPRISE_50: 50, ENTERPRISE_UNLIMITED: Infinity,
@@ -17,6 +22,20 @@ const PLAN_LIMITS = {
 };
 
 function round2(n) { return Math.round(n * 100) / 100; }
+
+// Shared subscription-waiver check, factored out of finalizeBooking so the
+// agency-mission code paths (offers.routes.js accept, agency-admin.routes.js
+// commander) can apply the exact same MANAGER/JOBBER fee-waiver rule instead
+// of re-deriving it. Returns the found subscription (if any, active or not)
+// so the caller can bump missionsUsedInPeriod when it waives the fee.
+async function computeWaivableFee({ userId, family, baseFee }) {
+  const sub = await prisma.subscription.findFirst({ where: { userId, family } });
+  const active = sub?.status === 'ACTIVE' && sub.currentPeriodEnd > new Date();
+  if (active && sub.missionsUsedInPeriod < PLAN_LIMITS[sub.plan]) {
+    return { fee: 0, waived: true, sub };
+  }
+  return { fee: baseFee, waived: false, sub: null };
+}
 
 // Shared by "manager accepts an offer" (offers.routes.js /accept, standard
 // branch) and "jobber GETs a GET Mission" (missions.routes.js /get) — both
@@ -98,4 +117,4 @@ async function finalizeBooking({ offer, mission, clientId, clientAccountKind, to
   return { booking, feeWaived, quotaExceeded, plan: managerSub?.plan || null, providerFeeWaived };
 }
 
-module.exports = { finalizeBooking, round2 };
+module.exports = { finalizeBooking, round2, computeWaivableFee, MANAGER_FEE, PROVIDER_FEE, AGENCY_PLATFORM_FEE };
