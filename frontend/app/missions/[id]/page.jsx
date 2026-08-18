@@ -471,7 +471,34 @@ export default function MissionDetailPage() {
             <ClockIcon className="h-4 w-4 shrink-0 text-slate-400" />
             {fmtTime(start)} à {fmtTime(end)}
           </div>
+          {mission.numberOfPeople > 1 && (
+            <div className="flex items-center gap-2 text-slate-600">
+              <UsersIcon className="h-4 w-4 shrink-0 text-slate-400" />
+              {mission.numberOfPeople} personnes attendues sur la mission
+            </div>
+          )}
         </div>
+
+        {/* Access details are only ever shown to the mission owner or the
+            assigned jobber — never to candidates still browsing/applying. */}
+        {(isOwner || mission.booking?.providerId === user?.id) && (mission.accessInstructions || mission.parkingDifficulty || mission.accessType) && (
+          <div className="mt-4 border-t border-slate-100 pt-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Accès</h3>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {mission.parkingDifficulty && (
+                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                  Stationnement {{ FACILE: 'facile', PAYANT: 'payant', DIFFICILE: 'difficile' }[mission.parkingDifficulty]}
+                </span>
+              )}
+              {mission.accessType && (
+                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                  {{ PLAIN_PIED: 'Plain-pied', ESCALIERS: 'Escaliers', ASCENSEUR: 'Ascenseur', AUTRE: 'Autre accès' }[mission.accessType]}
+                </span>
+              )}
+            </div>
+            {mission.accessInstructions && <p className="mt-2 text-sm text-ink">{mission.accessInstructions}</p>}
+          </div>
+        )}
 
         {isMechanicVehicle ? (
           detailEntries.length > 0 && (

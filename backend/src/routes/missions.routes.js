@@ -114,6 +114,11 @@ const createMissionSchema = z.object({
   requiredBadges: z.array(z.string()).optional().default([]),
   // Self-declared, informational only — never validated against anything.
   difficulty: z.enum(['FACILE', 'MOYEN', 'DIFFICILE']).optional(),
+  // Optional "Lieu" step details — access instructions, parking, headcount.
+  accessInstructions: z.string().max(500).optional().transform((v) => (v ? v : undefined)),
+  parkingDifficulty: z.enum(['FACILE', 'PAYANT', 'DIFFICILE']).optional(),
+  accessType: z.enum(['PLAIN_PIED', 'ESCALIERS', 'ASCENSEUR', 'AUTRE']).optional(),
+  numberOfPeople: z.number().int().positive().max(50).optional(),
 });
 
 // Categories where a mission moves something/someone from A to B — the form
