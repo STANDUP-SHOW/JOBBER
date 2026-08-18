@@ -109,6 +109,18 @@ export default function NewMissionPage() {
   );
 }
 
+// A guest filling this (often long) form must never lose their work just
+// because publishing requires an account — the whole draft is mirrored to
+// sessionStorage on every change and restored on mount, so bouncing through
+// register/login and back loses nothing. Cleared only once the mission is
+// actually published.
+const DRAFT_KEY = 'jobber:missionDraft';
+
+function loadDraft() {
+  if (typeof window === 'undefined') return null;
+  try { return JSON.parse(sessionStorage.getItem(DRAFT_KEY) || 'null'); } catch { return null; }
+}
+
 function NewMissionForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -116,8 +128,8 @@ function NewMissionForm() {
 
   const isLessonMode = searchParams.get('type') === 'lesson';
   const [categories, setCategories] = useState([]);
-  const [step, setStep] = useState(0);
-  const [form, setForm] = useState({
+  const [step, setStep] = useState(() => loadDraft()?.step ?? 0);
+  const [form, setForm] = useState(() => ({
     categoryId: searchParams.get('categoryId') || '',
     serviceId: '',
     details: {},
@@ -156,13 +168,18 @@ function NewMissionForm() {
     parkingDifficulty: '',
     accessType: '',
     numberOfPeople: 1,
-  });
+    ...(loadDraft()?.form || {}),
+  }));
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     api.categories().then(({ categories }) => setCategories(categories)).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ form, step })); } catch {}
+  }, [form, step]);
 
   const isCompany = user?.accountKind === 'COMPANY';
   const selectedCategory = categories.find((c) => c.id === form.categoryId);
@@ -253,9 +270,15 @@ function NewMissionForm() {
     setStep((s) => Math.min(s + 1, STEPS.length - 1));
   }
 
+  const returnPath = `/missions/new${isLessonMode ? '?type=lesson' : ''}`;
+  const registerUrl = `/auth/register?redirect=${encodeURIComponent(returnPath)}`;
+
   async function onSubmit(e) {
     e.preventDefault();
-    if (!user) { router.push('/auth/register'); return; }
+    // The draft is already mirrored to sessionStorage on every change (see
+    // effect above), so it survives the register/login round-trip — no
+    // extra save needed here before bouncing away.
+    if (!user) { router.push(registerUrl); return; }
     if (!stepComplete(0) || !stepComplete(1) || !stepComplete(2)) { setError('Merci de compléter toutes les étapes précédentes.'); return; }
     setError('');
     setLoading(true);
@@ -297,6 +320,7 @@ function NewMissionForm() {
         },
         token
       );
+      try { sessionStorage.removeItem(DRAFT_KEY); } catch {}
       router.push(`/missions/${mission.id}`);
     } catch (err) {
       setError(err.message);
@@ -318,7 +342,7 @@ function NewMissionForm() {
 
       {!authLoading && !user && (
         <p className="mt-4 rounded-md bg-ochre-light px-4 py-3 text-sm text-ochre-dark">
-          Vous devrez <a href="/auth/register" className="font-medium underline">créer votre compte</a> pour publier — vous ne perdrez pas votre saisie.
+          Vous devrez <a href={registerUrl} className="font-medium underline">créer votre compte</a> pour publier — vous ne perdrez pas votre saisie.
         </p>
       )}
 

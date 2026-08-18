@@ -20,6 +20,7 @@ function RegisterForm() {
   const searchParams = useSearchParams();
   const { login } = useAuth();
   const referralCode = searchParams.get('ref');
+  const redirectTo = searchParams.get('redirect');
   const [form, setForm] = useState({
     firstName: '', lastName: '', email: '', password: '', phone: '',
     isProfessional: false, professionalSiret: '',
@@ -43,7 +44,7 @@ function RegisterForm() {
         referralCode: referralCode || undefined,
       });
       login(token, user);
-      router.push('/account');
+      router.push(redirectTo || '/account');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -138,7 +139,7 @@ function RegisterForm() {
       </div>
 
       <p className="mt-6 text-center text-sm text-slate-500">
-        Déjà inscrit ? <a href="/auth/login" className="font-medium text-moss hover:underline">Se connecter</a>
+        Déjà inscrit ? <a href={`/auth/login${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} className="font-medium text-moss hover:underline">Se connecter</a>
       </p>
     </div>
   );

@@ -18,6 +18,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
+  const redirectTo = searchParams.get('redirect');
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -35,7 +36,7 @@ function LoginForm() {
     try {
       const { token, user } = await api.login(form);
       login(token, user);
-      router.push('/account');
+      router.push(redirectTo || '/account');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -88,7 +89,7 @@ function LoginForm() {
       </div>
 
       <p className="mt-6 text-center text-sm text-slate-500">
-        Pas encore de compte ? <a href="/auth/register" className="font-medium text-moss hover:underline">S'inscrire</a>
+        Pas encore de compte ? <a href={`/auth/register${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} className="font-medium text-moss hover:underline">S'inscrire</a>
       </p>
     </div>
   );
