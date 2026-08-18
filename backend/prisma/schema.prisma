@@ -173,6 +173,19 @@ enum MissionDifficulty {
   DIFFICILE
 }
 
+enum ParkingDifficulty {
+  FACILE
+  PAYANT
+  DIFFICILE
+}
+
+enum AccessType {
+  PLAIN_PIED
+  ESCALIERS
+  ASCENSEUR
+  AUTRE
+}
+
 model User {
   id                String     @id @default(cuid())
   email             String     @unique
@@ -477,6 +490,14 @@ model Mission {
   dropoffAddress String?
   dropoffLat     Float?
   dropoffLng     Float?
+  // Free-text access notes (code porte, étage…) — only ever shown to a
+  // jobber once selected for the mission, never on the public listing.
+  accessInstructions String?
+  parkingDifficulty  ParkingDifficulty?
+  accessType         AccessType?
+  // How many people the poster expects to show up for this mission — purely
+  // informational for the jobber, never validated/enforced.
+  numberOfPeople     Int? @default(1)
   photos         String[]      @default([])
   desiredDate    DateTime
   estimatedHours Float         @default(1)
