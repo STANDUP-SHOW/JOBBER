@@ -25,6 +25,7 @@ export default function ProviderProfilePage() {
     siret: '',
   });
   const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
+  const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [levels, setLevels] = useState({}); // { [categoryId]: 'PROFESSIONNEL' | 'EXPERT' | 'PASSIONNE' }
   const [rates, setRates] = useState({}); // { [categoryId]: hourlyRate }
   const [bios, setBios] = useState({}); // { [categoryId]: bio text }
@@ -53,7 +54,9 @@ export default function ProviderProfilePage() {
         autoApply: profile.autoApply ?? false,
         siret: profile.siret || '',
       });
-      setSelectedCategoryIds((profile.categories || []).map((c) => c.categoryId));
+      const catIds = (profile.categories || []).map((c) => c.categoryId);
+      setSelectedCategoryIds(catIds);
+      setActiveCategoryId((current) => current ?? catIds[0] ?? null);
       setLevels(Object.fromEntries((profile.categories || []).map((c) => [c.categoryId, c.level])));
       setRates(Object.fromEntries((profile.categories || []).map((c) => [c.categoryId, c.hourlyRate])));
       setBios(Object.fromEntries((profile.categories || []).map((c) => [c.categoryId, c.bio || ''])));
@@ -217,130 +220,158 @@ export default function ProviderProfilePage() {
         <div>
           <span className="text-sm font-semibold text-ink">Compétences</span>
           <p className="mt-1 text-sm text-slate-500">
-            Cochez vos domaines et les prestations précises que vous proposez, puis indiquez votre niveau pour chaque domaine.
+            Choisissez un domaine ci-dessous pour l'ajouter et régler son niveau, son tarif et ses prestations.
           </p>
-          <div className="mt-3 space-y-3">
+
+          <div className="mt-3 flex flex-wrap gap-2">
             {categories.map((c) => {
-              const active = selectedCategoryIds.includes(c.id);
+              const hasSkill = selectedCategoryIds.includes(c.id);
+              const isActive = activeCategoryId === c.id;
               return (
-                <div key={c.id} className={`rounded-lg border p-4 ${active ? 'border-moss' : 'border-slate-200'}`}>
-                  <label className="flex items-center gap-3 text-lg font-semibold text-ink">
-                    <input
-                      type="checkbox"
-                      checked={active}
-                      onChange={() => toggleCategory(c)}
-                      className="h-5 w-5 shrink-0 rounded border-slate-300 accent-moss"
-                    />
-                    <span className="text-xl">{c.icon}</span> {c.name}
-                  </label>
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setActiveCategoryId(c.id)}
+                  className={`flex items-center gap-1.5 rounded-full border-2 px-3.5 py-2 text-sm font-medium transition ${
+                    isActive
+                      ? 'border-moss bg-moss text-white'
+                      : hasSkill
+                      ? 'border-moss-light bg-moss-light text-moss-dark'
+                      : 'border-slate-200 text-slate-600 hover:border-moss'
+                  }`}
+                >
+                  {hasSkill && !isActive && <span aria-hidden>✓</span>}
+                  <span>{c.icon}</span> {c.name}
+                </button>
+              );
+            })}
+          </div>
 
-                  {active && (
-                    <>
-                      <div className="mt-3 flex flex-wrap items-center gap-2.5">
-                        {LEVELS.map((lvl) => {
-                          const locked = lvl.value === 'PROFESSIONNEL' && !isValidSiret(form.siret);
-                          return (
-                            <button
-                              key={lvl.value}
-                              type="button"
-                              disabled={locked}
-                              title={locked ? 'Renseignez un numéro SIRET valide ci-dessus pour choisir ce niveau' : undefined}
-                              onClick={() => setLevel(c.id, lvl.value)}
-                              className={`rounded-full px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${
-                                levels[c.id] === lvl.value ? lvl.activeClass : 'border-2 border-slate-200 text-slate-500'
-                              }`}
-                            >
-                              {lvl.label}
-                            </button>
-                          );
-                        })}
+          {activeCategoryId && (() => {
+            const c = categories.find((cat) => cat.id === activeCategoryId);
+            if (!c) return null;
+            const active = selectedCategoryIds.includes(c.id);
+            return (
+              <div className="mt-4 rounded-lg border border-moss p-4">
+                <label className="flex items-center gap-3 text-lg font-semibold text-ink">
+                  <input
+                    type="checkbox"
+                    checked={active}
+                    onChange={() => toggleCategory(c)}
+                    className="h-5 w-5 shrink-0 rounded border-slate-300 accent-moss"
+                  />
+                  <span className="text-xl">{c.icon}</span> {c.name}
+                </label>
+                <p className="mt-1 text-xs text-slate-400">
+                  {active ? 'Cette compétence fait partie de votre profil.' : 'Cochez pour proposer cette compétence.'}
+                </p>
+
+                {active && (
+                  <>
+                    <div className="mt-3 flex flex-wrap items-center gap-2.5">
+                      {LEVELS.map((lvl) => {
+                        const locked = lvl.value === 'PROFESSIONNEL' && !isValidSiret(form.siret);
+                        return (
+                          <button
+                            key={lvl.value}
+                            type="button"
+                            disabled={locked}
+                            title={locked ? 'Renseignez un numéro SIRET valide ci-dessus pour choisir ce niveau' : undefined}
+                            onClick={() => setLevel(c.id, lvl.value)}
+                            className={`rounded-full px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${
+                              levels[c.id] === lvl.value ? lvl.activeClass : 'border-2 border-slate-200 text-slate-500'
+                            }`}
+                          >
+                            {lvl.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-center gap-5">
+                      <button
+                        type="button"
+                        onClick={() => adjustRate(c.id, -1)}
+                        aria-label="Diminuer le tarif"
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-moss text-2xl font-semibold text-white hover:bg-moss-dark"
+                      >
+                        −
+                      </button>
+                      <div className="text-center">
+                        <div className="font-display text-2xl font-bold text-ink">{rates[c.id] ?? 15} €/h</div>
+                        <div className="text-xs text-slate-400">Tarif horaire</div>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => adjustRate(c.id, 1)}
+                        aria-label="Augmenter le tarif"
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-moss text-2xl font-semibold text-white hover:bg-moss-dark"
+                      >
+                        +
+                      </button>
+                    </div>
 
-                      <div className="mt-4 flex items-center justify-center gap-5">
-                        <button
-                          type="button"
-                          onClick={() => adjustRate(c.id, -1)}
-                          aria-label="Diminuer le tarif"
-                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-moss text-2xl font-semibold text-white hover:bg-moss-dark"
-                        >
-                          −
-                        </button>
-                        <div className="text-center">
-                          <div className="font-display text-2xl font-bold text-ink">{rates[c.id] ?? 15} €/h</div>
-                          <div className="text-xs text-slate-400">Tarif horaire</div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => adjustRate(c.id, 1)}
-                          aria-label="Augmenter le tarif"
-                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-moss text-2xl font-semibold text-white hover:bg-moss-dark"
-                        >
-                          +
-                        </button>
+                    <div className="mt-4 border-t border-slate-100 pt-4">
+                      <span className="text-sm font-semibold text-slate-600">Prestations proposées</span>
+                      <div className="mt-2 grid grid-cols-1 gap-x-4 gap-y-2.5 sm:grid-cols-2">
+                        {c.services?.map((svc) => (
+                          <label key={svc.id} className="flex items-center gap-2.5 text-base text-ink">
+                            <input
+                              type="checkbox"
+                              checked={serviceIds.includes(svc.id)}
+                              onChange={() => toggleService(c.id, svc.id)}
+                              className="h-4 w-4 shrink-0 rounded border-slate-300 accent-moss"
+                            />
+                            {svc.name}
+                          </label>
+                        ))}
                       </div>
+                    </div>
 
+                    {c.equipment?.length > 0 && (
                       <div className="mt-4 border-t border-slate-100 pt-4">
-                        <span className="text-sm font-semibold text-slate-600">Prestations proposées</span>
+                        <span className="text-sm font-semibold text-slate-600">Matériel que je possède</span>
                         <div className="mt-2 grid grid-cols-1 gap-x-4 gap-y-2.5 sm:grid-cols-2">
-                          {c.services?.map((svc) => (
-                            <label key={svc.id} className="flex items-center gap-2.5 text-base text-ink">
+                          {c.equipment.map((eq) => (
+                            <label key={eq.id} className="flex items-center gap-2.5 text-base text-ink">
                               <input
                                 type="checkbox"
-                                checked={serviceIds.includes(svc.id)}
-                                onChange={() => toggleService(c.id, svc.id)}
+                                checked={equipmentIds.includes(eq.id)}
+                                onChange={() => toggleEquipment(eq.id)}
                                 className="h-4 w-4 shrink-0 rounded border-slate-300 accent-moss"
                               />
-                              {svc.name}
+                              {eq.name}
                             </label>
                           ))}
                         </div>
                       </div>
+                    )}
 
-                      {c.equipment?.length > 0 && (
-                        <div className="mt-4 border-t border-slate-100 pt-4">
-                          <span className="text-sm font-semibold text-slate-600">Matériel que je possède</span>
-                          <div className="mt-2 grid grid-cols-1 gap-x-4 gap-y-2.5 sm:grid-cols-2">
-                            {c.equipment.map((eq) => (
-                              <label key={eq.id} className="flex items-center gap-2.5 text-base text-ink">
-                                <input
-                                  type="checkbox"
-                                  checked={equipmentIds.includes(eq.id)}
-                                  onChange={() => toggleEquipment(eq.id)}
-                                  className="h-4 w-4 shrink-0 rounded border-slate-300 accent-moss"
-                                />
-                                {eq.name}
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="mt-4 border-t border-slate-100 pt-4">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <span className="text-sm font-semibold text-slate-600">Présentation pour « {c.name} »</span>
-                          <button
-                            type="button"
-                            disabled={generatingBioFor === c.id}
-                            onClick={() => generateBio(c)}
-                            className="text-sm font-semibold text-moss hover:text-moss-dark disabled:opacity-50"
-                          >
-                            {generatingBioFor === c.id ? 'Génération…' : '✨ Générer avec l\'IA'}
-                          </button>
-                        </div>
-                        <textarea
-                          rows={3}
-                          value={bios[c.id] || ''}
-                          onChange={(e) => setBio(c.id, e.target.value)}
-                          className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2.5 text-base outline-none focus:border-moss"
-                          placeholder="Présentez votre expérience dans ce domaine, ou laissez l'IA rédiger une première version…"
-                        />
+                    <div className="mt-4 border-t border-slate-100 pt-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-sm font-semibold text-slate-600">Présentation pour « {c.name} »</span>
+                        <button
+                          type="button"
+                          disabled={generatingBioFor === c.id}
+                          onClick={() => generateBio(c)}
+                          className="text-sm font-semibold text-moss hover:text-moss-dark disabled:opacity-50"
+                        >
+                          {generatingBioFor === c.id ? 'Génération…' : '✨ Générer avec l\'IA'}
+                        </button>
                       </div>
-                    </>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                      <textarea
+                        rows={3}
+                        value={bios[c.id] || ''}
+                        onChange={(e) => setBio(c.id, e.target.value)}
+                        className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2.5 text-base outline-none focus:border-moss"
+                        placeholder="Présentez votre expérience dans ce domaine, ou laissez l'IA rédiger une première version…"
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         <div>
