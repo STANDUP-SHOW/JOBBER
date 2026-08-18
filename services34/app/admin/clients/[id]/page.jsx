@@ -6,6 +6,14 @@ import Link from 'next/link';
 import { useAgencyAuth } from '../../../../lib/agency-auth-context';
 import { agencyApi } from '../../../../lib/agencyApi';
 
+const MISSION_STATUS_LABELS = {
+  OPEN: 'Ouverte',
+  ASSIGNED: 'Attribuée',
+  IN_PROGRESS: 'En cours',
+  COMPLETED: 'Terminée',
+  CANCELLED: 'Annulée',
+};
+
 export default function AdminClientDetailPage() {
   const { id } = useParams();
   const { token } = useAgencyAuth();
@@ -72,7 +80,7 @@ export default function AdminClientDetailPage() {
             {client.missions.map((m) => (
               <li key={m.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
                 <span className="text-ink">{m.title}</span>
-                <span className="text-xs text-slate-400">{m.status} · {new Date(m.createdAt).toLocaleDateString('fr-FR')}</span>
+                <span className="text-xs text-slate-400">{MISSION_STATUS_LABELS[m.status] || m.status} · {new Date(m.createdAt).toLocaleDateString('fr-FR')}</span>
               </li>
             ))}
           </ul>

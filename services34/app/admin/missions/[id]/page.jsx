@@ -11,6 +11,14 @@ import MissionInfoBadges from '../../../../components/admin/MissionInfoBadges';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
+const OFFER_STATUS_LABELS = {
+  PENDING: 'En attente',
+  SELECTED: 'Sélectionnée',
+  ACCEPTED: 'Acceptée',
+  REJECTED: 'Refusée',
+  WITHDRAWN: 'Retirée',
+};
+
 export default function MissionDetailPage() {
   const { id } = useParams();
   const { token } = useAgencyAuth();
@@ -120,7 +128,7 @@ export default function MissionDetailPage() {
           <div className="mt-2 space-y-1 text-sm text-ink">
             {m.offers.map((o) => (
               <div key={o.id}>
-                {o.provider?.firstName} {o.provider?.lastName} · {o.hourlyRate} €/h · {o.status}
+                {o.provider?.firstName} {o.provider?.lastName} · {o.hourlyRate} €/h · {OFFER_STATUS_LABELS[o.status] || o.status}
               </div>
             ))}
           </div>

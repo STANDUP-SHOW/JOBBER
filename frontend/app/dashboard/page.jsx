@@ -8,6 +8,14 @@ import { useAuth } from '../../lib/auth-context';
 import StarRating from '../../components/StarRating';
 import PaymentModal from '../../components/PaymentModal';
 
+const PAYMENT_STATUS_LABELS = {
+  REQUIRES_PAYMENT: 'Paiement requis',
+  HELD_IN_ESCROW: 'Séquestré',
+  RELEASED: 'Versé',
+  REFUNDED: 'Remboursé',
+  FAILED: 'Échoué',
+};
+
 const STATUS_LABELS = {
   SCHEDULED: 'Programmée',
   IN_PROGRESS: 'En cours',
@@ -103,7 +111,7 @@ export default function DashboardPage() {
 
               {b.payment && (
                 <div className="mt-2 text-xs text-slate-400">
-                  Paiement : {b.payment.status}
+                  Paiement : {PAYMENT_STATUS_LABELS[b.payment.status] || b.payment.status}
                   {isClient && ` — vous payez ${b.payment.amount} €${b.payment.feeWaived ? ' (sans frais, carte active)' : ` (dont ${b.payment.managerFee} € de frais)`}`}
                   {!isClient && ` — vous touchez ${b.payment.providerPayout} € (frais ${b.payment.providerFee} €)`}
                 </div>

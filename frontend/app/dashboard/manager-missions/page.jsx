@@ -8,6 +8,15 @@ import { useAuth } from '../../../lib/auth-context';
 
 const ONGOING_STATUSES = ['SCHEDULED', 'IN_PROGRESS', 'COMPLETED'];
 
+const BOOKING_STATUS_LABELS = {
+  SCHEDULED: 'Programmée',
+  IN_PROGRESS: 'En cours',
+  AWAITING_VALIDATION: 'En attente de validation',
+  COMPLETED: 'Terminée',
+  CANCELLED: 'Annulée',
+  DISPUTED: 'Litige',
+};
+
 export default function ManagerMissionsPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -94,7 +103,7 @@ export default function ManagerMissionsPage() {
             <Link key={b.id} href="/dashboard" className="block rounded-lg border border-slate-200 bg-white p-4 hover:border-moss hover:shadow-md">
               <div className="flex items-center justify-between">
                 <div className="font-display text-base font-semibold text-ink">{b.mission?.title}</div>
-                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">{b.status}</span>
+                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">{BOOKING_STATUS_LABELS[b.status] || b.status}</span>
               </div>
               <div className="mt-1 text-sm text-slate-500">
                 {b.hours} h × {b.hourlyRate} €/h = <strong>{b.totalAmount} €</strong> · {new Date(b.scheduledDate).toLocaleDateString('fr-FR')}

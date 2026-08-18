@@ -12,6 +12,15 @@ import { haversineDistanceKm } from '../../../lib/geo';
 
 const ONGOING_STATUSES = ['SCHEDULED', 'IN_PROGRESS', 'AWAITING_VALIDATION'];
 
+const BOOKING_STATUS_LABELS = {
+  SCHEDULED: 'Programmée',
+  IN_PROGRESS: 'En cours',
+  AWAITING_VALIDATION: 'En attente de validation',
+  COMPLETED: 'Terminée',
+  CANCELLED: 'Annulée',
+  DISPUTED: 'Litige',
+};
+
 function distanceTo(user, mission) {
   if (user?.lat == null || user?.lng == null || mission?.lat == null || mission?.lng == null) return null;
   return Math.round(haversineDistanceKm(user.lat, user.lng, mission.lat, mission.lng) * 10) / 10;
@@ -92,7 +101,7 @@ export default function ComptesMissionsPage() {
                 <Link href={`/compte/missions/${b.mission?.id}`} className="font-display text-base font-semibold text-ink hover:text-brand hover:underline">
                   {b.mission?.title}
                 </Link>
-                <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">{b.status}</span>
+                <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">{BOOKING_STATUS_LABELS[b.status] || b.status}</span>
               </div>
               <div className="mt-1 text-sm text-slate-500">
                 {b.hours} h × {b.hourlyRate} €/h = <strong>{b.totalAmount} €</strong> · {new Date(b.scheduledDate).toLocaleDateString('fr-FR')}

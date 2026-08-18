@@ -10,6 +10,21 @@ function memberName(m) {
   return m.accountKind === 'COMPANY' ? m.companyName : `${m.firstName || ''} ${m.lastName || ''}`.trim();
 }
 
+const MISSION_STATUS_LABELS = {
+  OPEN: 'Ouverte',
+  ASSIGNED: 'Attribuée',
+  IN_PROGRESS: 'En cours',
+  COMPLETED: 'Terminée',
+  CANCELLED: 'Annulée',
+};
+const OFFER_STATUS_LABELS = {
+  PENDING: 'En attente',
+  SELECTED: 'Sélectionnée',
+  ACCEPTED: 'Acceptée',
+  REJECTED: 'Refusée',
+  WITHDRAWN: 'Retirée',
+};
+
 const STATS = [
   ['missionsPublished', 'Missions publiées'],
   ['offersSent', 'Offres envoyées'],
@@ -97,7 +112,7 @@ export default function AdminMemberDetailPage() {
             {member.missions.map((m) => (
               <li key={m.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
                 <span className="text-ink">{m.title}</span>
-                <span className="text-xs text-slate-400">{m.status} · {new Date(m.createdAt).toLocaleDateString('fr-FR')}</span>
+                <span className="text-xs text-slate-400">{MISSION_STATUS_LABELS[m.status] || m.status} · {new Date(m.createdAt).toLocaleDateString('fr-FR')}</span>
               </li>
             ))}
           </ul>
@@ -111,7 +126,7 @@ export default function AdminMemberDetailPage() {
             {member.offers.map((o) => (
               <li key={o.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
                 <span className="text-ink">{o.mission?.title}</span>
-                <span className="text-xs text-slate-400">{o.hourlyRate} €/h · {o.status}</span>
+                <span className="text-xs text-slate-400">{o.hourlyRate} €/h · {OFFER_STATUS_LABELS[o.status] || o.status}</span>
               </li>
             ))}
           </ul>
