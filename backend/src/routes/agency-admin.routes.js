@@ -798,10 +798,17 @@ router.get('/missions/jobber/en-cours', async (req, res, next) => {
     const missions = await prisma.mission.findMany({
       where: {
         corporateAgencyId: req.agency.id, visibility: 'PUBLIC',
-        status: { in: ['ASSIGNED', 'IN_PROGRESS'] },
-        booking: { providerId: { not: req.agency.id } },
+        // OPEN (just published to jobber.city, no offer accepted yet — no
+        // Booking exists) has no booking relation to filter on, so it's
+        // matched unconditionally; ASSIGNED/IN_PROGRESS still need the
+        // booking.providerId check to exclude the agency's own "Mission
+        // Agence" bookings (those live in the separate agence/en-cours list).
+        OR: [
+          { status: 'OPEN' },
+          { status: { in: ['ASSIGNED', 'IN_PROGRESS'] }, booking: { providerId: { not: req.agency.id } } },
+        ],
       },
-      include: { category: true, planning: true, booking: { include: { provider: { select: { firstName: true, lastName: true } } } }, ...MISSION_BADGES_INCLUDE },
+      include: { category: true, planning: true, booking: { include: { provider: { select: { firstName: true, lastName: true } } } }, _count: { select: { offers: true } }, ...MISSION_BADGES_INCLUDE },
       orderBy: { desiredDate: 'asc' },
     });
     res.json({ missions: missions.map((m) => attachDistanceKm(m, req.agency)) });

@@ -1,4 +1,5 @@
 const prisma = require('../config/prisma');
+const { notifyAgencyOfferSelected } = require('./notificationService');
 
 // Services34↔Jobber quote/margin workflow: once a demande the agency
 // published to Jobber has gathered 5 offers OR sat open 11h, the best
@@ -20,7 +21,7 @@ async function runAutoSelect(agencyId) {
       offers: { some: { status: 'PENDING' } },
     },
     select: {
-      id: true, createdAt: true, estimatedHours: true,
+      id: true, title: true, createdAt: true, estimatedHours: true,
       offers: { where: { status: 'PENDING' }, select: { id: true, hourlyRate: true, hours: true, extraFees: true } },
     },
   });
@@ -43,6 +44,7 @@ async function runAutoSelect(agencyId) {
         data: { status: 'REJECTED' },
       }),
     ]);
+    notifyAgencyOfferSelected(mission.id, mission.title, agencyId);
   }
 }
 

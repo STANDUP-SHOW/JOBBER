@@ -81,19 +81,40 @@ async function notify(userId, { type, title, body, link, brandKey = 'jobber', sk
   }
 }
 
-// A jobber applied to your mission.
+// A jobber applied to your mission. For a corporate-agency mission where
+// the agency itself is the mission's clientId ("Nouvelle mission agence"),
+// this is deliberately skipped — the agency shouldn't get pinged for every
+// raw offer during the 5-offers/11h collection window; it only hears about
+// the one offer runAutoSelect actually picks (see notifyAgencyOfferSelected
+// in agencyMarginWorkflow.js). A "demande" mission (clientId = the real end
+// requester, distinct from the agency) still notifies normally.
 async function notifyOfferReceived(offerId) {
   const offer = await prisma.offer.findUnique({
     where: { id: offerId },
     include: { mission: { select: { id: true, title: true, clientId: true, corporateAgencyId: true } }, provider: { select: { firstName: true } } },
   });
   if (!offer) return;
+  if (offer.mission.clientId === offer.mission.corporateAgencyId) return;
   const brandKey = await resolveBrandKeyForAgencyId(offer.mission.corporateAgencyId);
   await notify(offer.mission.clientId, {
     type: NOTIFICATION_TYPES.OFFER_RECEIVED,
     title: `Nouvelle offre pour "${offer.mission.title}"`,
     body: `${offer.provider.firstName || 'Un jobber'} a proposé son offre pour votre mission.`,
     link: `/missions/${offer.mission.id}`,
+    brandKey,
+  });
+}
+
+// The one offer runAutoSelect actually picked, once the 5-offers/11h window
+// closes — this is the ONLY offer-arrival notification the agency gets for
+// its own corporate missions (see notifyOfferReceived above).
+async function notifyAgencyOfferSelected(missionId, missionTitle, agencyId) {
+  const brandKey = await resolveBrandKeyForAgencyId(agencyId);
+  await notify(agencyId, {
+    type: NOTIFICATION_TYPES.OFFER_RECEIVED,
+    title: 'Offre Jobber+ reçue',
+    body: `Offre Jobber+ reçue pour la mission "${missionTitle}".`,
+    link: '/admin/offres-jobber',
     brandKey,
   });
 }
@@ -248,4 +269,5 @@ module.exports = {
   notifyPaymentReceived,
   notifyMissionStartingSoon,
   notifyAgencyMissionAwaitingValidation,
+  notifyAgencyOfferSelected,
 };

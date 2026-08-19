@@ -67,11 +67,20 @@ export default function MissionsJobberEnCoursPage() {
                   <div>
                     <Link href={`/admin/missions/${m.id}`} className="font-medium text-ink hover:underline">{m.title}</Link>
                     <div className="text-sm text-slate-500">
-                      {m.booking?.provider?.firstName} {m.booking?.provider?.lastName?.[0]}. · {new Date(m.desiredDate).toLocaleString('fr-FR')}
+                      {m.booking
+                        ? <>{m.booking.provider?.firstName} {m.booking.provider?.lastName?.[0]}. · {new Date(m.desiredDate).toLocaleString('fr-FR')}</>
+                        : new Date(m.desiredDate).toLocaleString('fr-FR')}
                     </div>
                     <MissionInfoBadges mission={m} />
                     {m.booking?.status === 'AWAITING_VALIDATION' && (
                       <p className="mt-1 text-sm font-medium text-clay">Le jobber a terminé — en attente de votre validation</p>
+                    )}
+                    {!m.booking && (
+                      <p className="mt-1 text-sm font-medium text-slate-400">
+                        {m._count?.offers > 0
+                          ? `Publiée sur Jobber — ${m._count.offers} offre${m._count.offers > 1 ? 's' : ''} reçue${m._count.offers > 1 ? 's' : ''}`
+                          : 'Publiée sur Jobber — en attente de candidatures'}
+                      </p>
                     )}
                   </div>
                   <div className="flex items-center gap-3">
@@ -84,12 +93,12 @@ export default function MissionsJobberEnCoursPage() {
                       >
                         Valider et payer le jobber
                       </button>
-                    ) : (
+                    ) : m.booking ? (
                       <>
                         <MissionCountdown desiredDate={m.desiredDate} />
                         <PlanningPicker mission={m} plannings={plannings} onAssign={assign} busy={busy} />
                       </>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               ))}

@@ -29,9 +29,10 @@ function distanceTo(user, mission) {
 export default function ComptesMissionsPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [tab, setTab] = useState('ongoing');
+  const [tab, setTab] = useState('open');
   const [bookings, setBookings] = useState([]);
   const [offers, setOffers] = useState([]);
+  const [openMissions, setOpenMissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
   const [error, setError] = useState('');
@@ -45,9 +46,16 @@ export default function ComptesMissionsPage() {
     if (!token || !user) return;
     setLoading(true);
     try {
-      const [{ bookings }, { offers }] = await Promise.all([api.myBookings(token), api.receivedOffers(token)]);
+      const [{ bookings }, { offers }, { missions }] = await Promise.all([
+        api.myBookings(token), api.receivedOffers(token), api.myMissions(user.id, token),
+      ]);
       setBookings(bookings.filter((b) => b.clientId === user.id && ONGOING_STATUSES.includes(b.status)));
       setOffers(offers);
+      // "Mes demandes" — missions still OPEN (published, searching for a
+      // jobber, no offer accepted yet). Once an offer is accepted the
+      // mission moves to the "ongoing" tab via its Booking instead, so
+      // filtering to OPEN here avoids showing the same mission twice.
+      setOpenMissions(missions.filter((m) => m.status === 'OPEN'));
     } catch (err) { setError(err.message); }
     finally { setLoading(false); }
   }
@@ -80,6 +88,9 @@ export default function ComptesMissionsPage() {
       <h1 className="mt-1 font-display text-2xl font-semibold text-ink">Missions en cours et offres reçues</h1>
 
       <div className="mt-6 flex gap-2 border-b border-slate-200">
+        <TabButton active={tab === 'open'} onClick={() => setTab('open')}>
+          Mes demandes {openMissions.length > 0 && `(${openMissions.length})`}
+        </TabButton>
         <TabButton active={tab === 'ongoing'} onClick={() => setTab('ongoing')}>
           Missions en cours {bookings.length > 0 && `(${bookings.length})`}
         </TabButton>
@@ -90,6 +101,33 @@ export default function ComptesMissionsPage() {
 
       {error && <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
       {loading && <p className="mt-6 text-slate-400">Chargement…</p>}
+
+      {!loading && tab === 'open' && (
+        <div className="mt-6 space-y-3">
+          {openMissions.length === 0 && <EmptyState text="Aucune demande en attente d'offre pour le moment." />}
+          {openMissions.map((m) => (
+            <div key={m.id} className="relative rounded-lg border border-slate-200 bg-white p-4">
+              <DistanceBadge distanceKm={distanceTo(user, m)} />
+              <div className="flex items-start gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-brand/10 text-xl">
+                  {m.category?.icon}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <Link href={`/compte/missions/${m.id}`} className="truncate font-display text-base font-semibold text-ink hover:text-brand hover:underline">
+                    {m.title}
+                  </Link>
+                  <div className="mt-0.5 truncate text-sm text-slate-400">{m.address}</div>
+                  <div className="mt-1 text-sm text-slate-500">
+                    {m._count?.offers > 0
+                      ? `${m._count.offers} offre${m._count.offers > 1 ? 's' : ''} reçue${m._count.offers > 1 ? 's' : ''}`
+                      : 'En attente de candidatures de jobbers'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {!loading && tab === 'ongoing' && (
         <div className="mt-6 space-y-3">
