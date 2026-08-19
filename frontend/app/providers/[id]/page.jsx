@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
 import StarRating from '../../../components/StarRating';
@@ -16,8 +16,21 @@ const LEVEL_STYLE = {
   PASSIONNE: 'bg-ochre-light text-ochre-dark',
 };
 
-export default function ProviderProfilePage() {
+export default function ProviderProfilePageWrapper() {
+  return (
+    <Suspense fallback={<p className="text-slate-400">Chargement…</p>}>
+      <ProviderProfilePage />
+    </Suspense>
+  );
+}
+
+function ProviderProfilePage() {
   const { id } = useParams();
+  // When a client opens this profile from a specific mission's candidature
+  // list, ?categoryId scopes the page down to that one skill only — the
+  // jobber's other competences stay hidden, so the profile reads as if it
+  // were e.g. "a gardener's profile" rather than the jobber's full resume.
+  const categoryId = useSearchParams().get('categoryId');
   const { user, token } = useAuth();
   const [provider, setProvider] = useState(null);
   const [error, setError] = useState('');
@@ -46,6 +59,8 @@ export default function ProviderProfilePage() {
   if (!provider) return <p className="text-slate-400">Chargement…</p>;
 
   const profile = provider.providerProfile;
+  const scopedCategory = categoryId ? profile.categories?.find((pc) => pc.categoryId === categoryId) : null;
+  const visibleCategories = scopedCategory ? [scopedCategory] : profile.categories;
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -55,7 +70,10 @@ export default function ProviderProfilePage() {
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="font-display text-2xl font-semibold text-ink">{provider.firstName} {provider.lastName?.[0]}.</h1>
+            <h1 className="font-display text-2xl font-semibold text-ink">
+              {provider.firstName} {provider.lastName?.[0]}.
+              {scopedCategory && <>, {scopedCategory.category.name}</>}
+            </h1>
             {provider.subscriptionPlan && <SubscriptionBadge plan={provider.subscriptionPlan} size="sm" />}
           </div>
           <div className="flex items-center gap-2 text-sm text-slate-500">
@@ -104,11 +122,13 @@ export default function ProviderProfilePage() {
         </div>
       )}
 
-      {profile.categories?.length > 0 && (
+      {visibleCategories?.length > 0 && (
         <div className="mt-5">
-          <h2 className="font-display text-lg font-medium text-ink">Compétences</h2>
+          <h2 className="font-display text-lg font-medium text-ink">
+            {scopedCategory ? `Compétence ${scopedCategory.category.name}` : 'Compétences'}
+          </h2>
           <div className="mt-3 space-y-3">
-            {profile.categories.map((pc) => {
+            {visibleCategories.map((pc) => {
               const services = (profile.services || []).filter((ps) => ps.service.categoryId === pc.categoryId);
               const equipment = (profile.equipment || []).filter((pe) => pe.equipment.categoryId === pc.categoryId);
               return (

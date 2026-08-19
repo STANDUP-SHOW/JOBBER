@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
@@ -742,7 +743,10 @@ export default function MissionDetailPage() {
               return (
                 <div key={offer.id} className="rounded-lg border border-slate-200 bg-white p-4">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="flex flex-col items-center gap-1.5">
+                    <Link
+                      href={`/providers/${offer.provider.id}?categoryId=${mission.categoryId}`}
+                      className="flex flex-col items-center gap-1.5"
+                    >
                       {offer.provider.avatarUrl ? (
                         <img src={offer.provider.avatarUrl} alt="" className="h-14 w-14 rounded-full object-cover" />
                       ) : (
@@ -750,11 +754,11 @@ export default function MissionDetailPage() {
                           {offer.provider.firstName?.[0]}
                         </div>
                       )}
-                      <span className="text-sm font-medium text-ink">{offer.provider.firstName}</span>
+                      <span className="text-sm font-medium text-ink hover:underline">{offer.provider.firstName}</span>
                       {offer.provider.isProfessional && (
                         <span className="rounded-full bg-ochre px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink">PRO</span>
                       )}
-                    </div>
+                    </Link>
                     {offer.status === 'PENDING' && mission.status === 'OPEN' && !hasProposedSlots && (
                       <button
                         disabled={busy}

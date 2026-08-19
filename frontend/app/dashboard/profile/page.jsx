@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
@@ -33,6 +34,8 @@ export default function ProviderProfilePage() {
   const [serviceIds, setServiceIds] = useState([]);
   const [equipmentIds, setEquipmentIds] = useState([]);
   const [vehicleTypes, setVehicleTypes] = useState([]);
+  const [vehiclePickerOpen, setVehiclePickerOpen] = useState(false);
+  const [addSkillMenuOpen, setAddSkillMenuOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
@@ -92,6 +95,22 @@ export default function ProviderProfilePage() {
 
   function toggleEquipment(equipmentId) {
     setEquipmentIds((ids) => (ids.includes(equipmentId) ? ids.filter((id) => id !== equipmentId) : [...ids, equipmentId]));
+  }
+
+  function toggleAllServices(category) {
+    const catServiceIds = (category.services || []).map((s) => s.id);
+    const allSelected = catServiceIds.every((id) => serviceIds.includes(id));
+    setServiceIds((ids) => (allSelected
+      ? ids.filter((id) => !catServiceIds.includes(id))
+      : [...new Set([...ids, ...catServiceIds])]));
+  }
+
+  function toggleAllEquipment(category) {
+    const catEquipmentIds = (category.equipment || []).map((e) => e.id);
+    const allSelected = catEquipmentIds.every((id) => equipmentIds.includes(id));
+    setEquipmentIds((ids) => (allSelected
+      ? ids.filter((id) => !catEquipmentIds.includes(id))
+      : [...new Set([...ids, ...catEquipmentIds])]));
   }
 
   function setLevel(categoryId, level) {
@@ -182,6 +201,9 @@ export default function ProviderProfilePage() {
         ) : (
           <span>Pas encore d'avis</span>
         )}
+        <Link href={`/providers/${user.id}`} className="ml-auto font-medium text-moss hover:underline">
+          Voir mon profil public →
+        </Link>
       </div>
 
       <div className="mt-6">
@@ -223,36 +245,59 @@ export default function ProviderProfilePage() {
             Choisissez un domaine ci-dessous pour l'ajouter et régler son niveau, son tarif et ses prestations.
           </p>
 
-          <div className="mt-3 flex flex-wrap gap-2">
-            {categories.map((c) => {
-              const hasSkill = selectedCategoryIds.includes(c.id);
-              const isActive = activeCategoryId === c.id;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => setActiveCategoryId(c.id)}
-                  className={`flex items-center gap-1.5 rounded-full border-2 px-3.5 py-2 text-sm font-medium transition ${
-                    isActive
-                      ? 'border-moss bg-moss text-white'
-                      : hasSkill
-                      ? 'border-moss-light bg-moss-light text-moss-dark'
-                      : 'border-slate-200 text-slate-600 hover:border-moss'
-                  }`}
-                >
-                  {hasSkill && !isActive && <span aria-hidden>✓</span>}
-                  <span>{c.icon}</span> {c.name}
-                </button>
-              );
-            })}
+          <div className="relative mt-3">
+            <button
+              type="button"
+              onClick={() => setAddSkillMenuOpen((open) => !open)}
+              className="flex w-full items-center justify-between rounded-lg border-2 border-dashed border-slate-300 px-4 py-3 text-base font-semibold text-moss hover:border-moss"
+            >
+              <span className="flex items-center gap-2"><span aria-hidden>＋</span> Ajouter une compétence</span>
+              <span aria-hidden className={`transition-transform ${addSkillMenuOpen ? 'rotate-180' : ''}`}>⌄</span>
+            </button>
+
+            {addSkillMenuOpen && (
+              <div className="absolute z-10 mt-2 max-h-96 w-full overflow-y-auto rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
+                {categories.filter((c) => !selectedCategoryIds.includes(c.id)).map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => { setActiveCategoryId(c.id); setAddSkillMenuOpen(false); }}
+                    className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left hover:bg-moss-light"
+                  >
+                    <span className="text-3xl" aria-hidden>{c.icon}</span>
+                    <span className="text-base font-medium text-ink">{c.name}</span>
+                  </button>
+                ))}
+                {categories.every((c) => selectedCategoryIds.includes(c.id)) && (
+                  <p className="px-3 py-2.5 text-sm text-slate-400">Toutes les compétences sont déjà dans votre profil.</p>
+                )}
+              </div>
+            )}
           </div>
+
+          <div className="mt-4 space-y-3">
+            {categories
+              .filter((cat) => selectedCategoryIds.includes(cat.id) && cat.id !== activeCategoryId)
+              .map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setActiveCategoryId(cat.id)}
+                  className="flex w-full items-center justify-between rounded-lg border border-moss-light bg-moss-light/40 p-4 text-left hover:border-moss"
+                >
+                  <span className="flex items-center gap-2 text-base font-semibold text-moss-dark">
+                    <span aria-hidden>✓</span> <span className="text-xl">{cat.icon}</span> Compétence {cat.name} validée
+                  </span>
+                  <span className="text-sm font-semibold text-moss">Modifier</span>
+                </button>
+              ))}
 
           {activeCategoryId && (() => {
             const c = categories.find((cat) => cat.id === activeCategoryId);
             if (!c) return null;
             const active = selectedCategoryIds.includes(c.id);
             return (
-              <div className="mt-4 rounded-lg border border-moss p-4">
+              <div className="rounded-lg border border-moss p-4">
                 <label className="flex items-center gap-3 text-lg font-semibold text-ink">
                   <input
                     type="checkbox"
@@ -312,7 +357,18 @@ export default function ProviderProfilePage() {
                     </div>
 
                     <div className="mt-4 border-t border-slate-100 pt-4">
-                      <span className="text-sm font-semibold text-slate-600">Prestations proposées</span>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-sm font-semibold text-slate-600">Prestations proposées</span>
+                        {c.services?.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => toggleAllServices(c)}
+                            className="text-sm font-semibold text-moss hover:text-moss-dark"
+                          >
+                            {c.services.every((svc) => serviceIds.includes(svc.id)) ? 'Tout décocher' : 'Tout cocher'}
+                          </button>
+                        )}
+                      </div>
                       <div className="mt-2 grid grid-cols-1 gap-x-4 gap-y-2.5 sm:grid-cols-2">
                         {c.services?.map((svc) => (
                           <label key={svc.id} className="flex items-center gap-2.5 text-base text-ink">
@@ -330,7 +386,16 @@ export default function ProviderProfilePage() {
 
                     {c.equipment?.length > 0 && (
                       <div className="mt-4 border-t border-slate-100 pt-4">
-                        <span className="text-sm font-semibold text-slate-600">Matériel que je possède</span>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="text-sm font-semibold text-slate-600">Matériel que je possède</span>
+                          <button
+                            type="button"
+                            onClick={() => toggleAllEquipment(c)}
+                            className="text-sm font-semibold text-moss hover:text-moss-dark"
+                          >
+                            {c.equipment.every((eq) => equipmentIds.includes(eq.id)) ? 'Tout décocher' : 'Tout cocher'}
+                          </button>
+                        </div>
                         <div className="mt-2 grid grid-cols-1 gap-x-4 gap-y-2.5 sm:grid-cols-2">
                           {c.equipment.map((eq) => (
                             <label key={eq.id} className="flex items-center gap-2.5 text-base text-ink">
@@ -367,11 +432,22 @@ export default function ProviderProfilePage() {
                         placeholder="Présentez votre expérience dans ce domaine, ou laissez l'IA rédiger une première version…"
                       />
                     </div>
+
+                    {active && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveCategoryId(null)}
+                        className="mt-4 w-full rounded-md bg-moss py-2.5 text-sm font-semibold text-white hover:bg-moss-dark"
+                      >
+                        Valider cette compétence
+                      </button>
+                    )}
                   </>
                 )}
               </div>
             );
           })()}
+          </div>
         </div>
 
         <div>
@@ -379,25 +455,55 @@ export default function ProviderProfilePage() {
           <p className="mt-1 text-sm text-slate-500">
             Cochez les véhicules dont vous disposez pour les missions nécessitant du transport.
           </p>
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {VEHICLES.map((v) => {
-              const active = vehicleTypes.includes(v.type);
-              return (
-                <button
-                  key={v.type}
-                  type="button"
-                  onClick={() => toggleVehicle(v.type)}
-                  className={`flex flex-col items-center rounded-lg border-2 p-3 text-center ${
-                    active ? 'border-moss bg-moss-light' : 'border-slate-200 bg-white'
-                  }`}
-                >
-                  <VehicleIcon type={v.type} className={`h-9 w-14 ${active ? 'text-moss-dark' : 'text-slate-400'}`} />
-                  <span className={`mt-1.5 text-sm font-semibold ${active ? 'text-moss-dark' : 'text-ink'}`}>{v.label}</span>
+          {vehicleTypes.length > 0 && !vehiclePickerOpen ? (
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {VEHICLES.filter((v) => vehicleTypes.includes(v.type)).map((v) => (
+                <div key={v.type} className="flex flex-col items-center rounded-lg border-2 border-moss bg-moss-light p-3 text-center">
+                  <VehicleIcon type={v.type} className="h-9 w-14 text-moss-dark" />
+                  <span className="mt-1.5 text-sm font-semibold text-moss-dark">{v.label}</span>
                   {v.capacity && <span className="text-xs text-slate-400">{v.capacity}</span>}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setVehiclePickerOpen(true)}
+                className="flex flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-slate-300 p-3 text-center text-sm font-semibold text-moss hover:border-moss"
+              >
+                <span className="text-xl" aria-hidden>＋</span> Ajouter un véhicule
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {VEHICLES.map((v) => {
+                  const active = vehicleTypes.includes(v.type);
+                  return (
+                    <button
+                      key={v.type}
+                      type="button"
+                      onClick={() => toggleVehicle(v.type)}
+                      className={`flex flex-col items-center rounded-lg border-2 p-3 text-center ${
+                        active ? 'border-moss bg-moss-light' : 'border-slate-200 bg-white'
+                      }`}
+                    >
+                      <VehicleIcon type={v.type} className={`h-9 w-14 ${active ? 'text-moss-dark' : 'text-slate-400'}`} />
+                      <span className={`mt-1.5 text-sm font-semibold ${active ? 'text-moss-dark' : 'text-ink'}`}>{v.label}</span>
+                      {v.capacity && <span className="text-xs text-slate-400">{v.capacity}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              {vehicleTypes.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setVehiclePickerOpen(false)}
+                  className="mt-3 text-sm font-semibold text-moss hover:text-moss-dark"
+                >
+                  Terminé
                 </button>
-              );
-            })}
-          </div>
+              )}
+            </>
+          )}
         </div>
 
         {error && <p className="rounded-md bg-clay/10 px-3 py-2 text-sm text-clay">{error}</p>}
