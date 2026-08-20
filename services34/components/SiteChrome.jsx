@@ -1,18 +1,13 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
 import Header from './Header';
 import Footer from './Footer';
 
-// admin.services34.fr rewrites to /admin/* (see middleware.js) — that
-// section has its own layout/shell entirely, so the public marketing
-// Header/Footer and page width must not wrap it.
+// admin.services34.fr is its own separate app (corporate-admin/, shared
+// with every other corporate platform) — this app no longer serves any
+// /admin section itself, so SiteChrome always wraps with the public
+// marketing Header/Footer.
 export default function SiteChrome({ children }) {
-  const pathname = usePathname();
-  const isAdmin = pathname?.startsWith('/admin');
-
-  if (isAdmin) return children;
-
   return (
     <>
       <Header />
