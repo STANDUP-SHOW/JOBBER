@@ -24,7 +24,7 @@ export default function MissionPhotosUpload({ photos, onChange }) {
 
     setBusy(true);
     try {
-      const urls = await Promise.all(files.slice(0, room).map(uploadImage));
+      const urls = await Promise.all(files.slice(0, room).map((file) => uploadImage(file, 'jobber/missions')));
       onChange([...photos, ...urls]);
     } catch (err) {
       setError(err.message);

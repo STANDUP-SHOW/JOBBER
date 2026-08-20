@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "frontend-dev",
+      "runtimeExecutable": "C:\\Users\\maxma\\Downloads\\JOBBER-main\\JOBBER\\.claude\\run-frontend-dev.cmd",
+      "runtimeArgs": [],
+      "port": 3000
+    },
+    {
+      "name": "services34-dev",
+      "runtimeExecutable": "C:\\Users\\maxma\\Downloads\\JOBBER-main\\JOBBER\\.claude\\run-services34-dev.cmd",
+      "runtimeArgs": [],
+      "port": 3001
+    },
+    {
+      "name": "corporate-admin-dev",
+      "runtimeExecutable": "C:\\Users\\maxma\\Downloads\\JOBBER-main\\JOBBER\\.claude\\run-corporate-admin-dev.cmd",
+      "runtimeArgs": [],
+      "port": 3002
+    }
+  ]
+}

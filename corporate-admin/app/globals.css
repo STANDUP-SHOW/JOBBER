@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+  font-size: 107%;
+}
+
+@media (max-width: 767px) {
+  html {
+    font-size: 120%;
+  }
+}
+
+body {
+  background-color: #F5F6F8;
+  color: #101828;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid #1E4FA3;
+  outline-offset: 2px;
+}
+
+.label-eyebrow {
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.pac-container {
+  z-index: 10000 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

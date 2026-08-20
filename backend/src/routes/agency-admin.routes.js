@@ -10,7 +10,7 @@ const { z } = require('zod');
 const bcrypt = require('bcryptjs');
 const prisma = require('../config/prisma');
 const { signToken, verifyToken } = require('../utils/jwt');
-const { REFUSAL_REASONS_JOBBER, generateCorporateCode } = require('../utils/agency');
+const { REFUSAL_REASONS_JOBBER, generateCorporateCode, originHostFromRequest } = require('../utils/agency');
 const { geocodeAddress, haversineDistanceKm } = require('../services/geocodingService');
 const { getOneWayDistanceKm, AGENCY_DEPARTURE_ADDRESS } = require('../services/distanceService');
 const { sendAgenceProposalEmail, notifyBookingAccepted } = require('../services/emailService');
@@ -92,7 +92,20 @@ async function requireAgencyAuth(req, res, next) {
 router.post('/login', async (req, res, next) => {
   try {
     const { loginId, pin } = z.object({ loginId: z.string().min(1), pin: z.string().min(1) }).parse(req.body);
-    const agency = await prisma.user.findFirst({ where: { adminLoginId: loginId, companyType: 'CORPORATE' } });
+    // Every corporate platform defaults to the same "ADMIN" identifiant, so
+    // loginId alone can't tell them apart — scope the lookup to the agency
+    // whose agencyDomain matches the request's own origin (same white-label
+    // resolution as resolveAgencyFromOrigin), never a global loginId search.
+    const originHost = originHostFromRequest(req);
+    const agency = originHost
+      ? await prisma.user.findFirst({
+          where: {
+            adminLoginId: loginId,
+            companyType: 'CORPORATE',
+            OR: [{ agencyDomain: originHost }, { agencyDomain: `www.${originHost}` }],
+          },
+        })
+      : null;
     if (!agency || !agency.adminPinHash) {
       const e = new Error('Identifiants invalides'); e.status = 401; e.expose = true; throw e;
     }
@@ -454,7 +467,9 @@ router.post('/missions/:id/agence', async (req, res, next) => {
       },
     });
 
-    const compteUrl = `${process.env.SERVICES34_URL || 'https://services34.fr'}/compte/missions/${mission.id}`;
+    // Link the client to THEIR agency's own site — hardcoding services34.fr
+    // here would misdirect every other corporate platform's clients.
+    const compteUrl = `https://${req.agency.agencyDomain}/compte/missions/${mission.id}`;
     sendAgenceProposalEmail(mission.client.email, {
       clientFirstName: mission.client.firstName,
       missionTitle: mission.title,
@@ -550,6 +565,13 @@ router.post('/offers/:id/refuse', async (req, res, next) => {
 // for why it's not subtracted again from the agency's margin).
 
 function round2(n) { return Math.round(n * 100) / 100; }
+
+// "batijob.fr" -> "BATIJOB" — human-readable and, since agencyDomain is
+// unique per agency, safe to use in an upserted invoice reference without
+// two corporate platforms ever colliding on the same string.
+function agencySlugFromDomain(domain) {
+  return (domain || 'AGENCE').split('.')[0].toUpperCase();
+}
 
 // "Valider la mission" — accepts a jobber's offer on one of the agency's
 // published missions. Mirrors offers.routes.js's /accept but bills the
@@ -981,7 +1003,11 @@ router.post('/invoices/generate-mission/:missionId', async (req, res, next) => {
 
     const isAgencyFulfilled = mission.booking.providerId === req.agency.id;
     const kind = isAgencyFulfilled ? 'AGENCY_MISSION' : 'JOBBER_MISSION';
-    const reference = `${mission.corporateCode || mission.id}-${isAgencyFulfilled ? 'SERVICES34' : 'JOBBER'}`;
+    // agencySlug (not a hardcoded brand name) keeps this unique per agency —
+    // reference is upserted on, so two platforms sharing one literal suffix
+    // would silently collide and overwrite each other's invoice.
+    const agencySlug = agencySlugFromDomain(req.agency.agencyDomain);
+    const reference = `${mission.corporateCode || mission.id}-${isAgencyFulfilled ? agencySlug : 'JOBBER'}`;
 
     const invoice = await prisma.invoice.upsert({
       where: { reference },
@@ -1001,7 +1027,8 @@ router.post('/invoices/generate-monthly', async (req, res, next) => {
     const periodYear = now.getFullYear();
     const periodMonth = now.getMonth() + 1;
     const kind = type === 'agence' ? 'AGENCY_MONTHLY' : 'JOBBER_MONTHLY';
-    const reference = `${periodYear}-${String(periodMonth).padStart(2, '0')}-${type === 'agence' ? 'SERVICES34' : 'jobber'}`;
+    const agencySlug = agencySlugFromDomain(req.agency.agencyDomain);
+    const reference = `${periodYear}-${String(periodMonth).padStart(2, '0')}-${req.agency.id}-${type === 'agence' ? agencySlug : 'jobber'}`;
 
     const missionKind = type === 'agence' ? 'AGENCY_MISSION' : 'JOBBER_MISSION';
     const monthMissionInvoices = await prisma.invoice.findMany({

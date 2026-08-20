@@ -23,7 +23,7 @@ export default function AvatarUpload({ avatarUrl, firstName, onUploaded }) {
     setError('');
     setBusy(true);
     try {
-      const url = await uploadImage(file);
+      const url = await uploadImage(file, 'jobber/avatars');
       await onUploaded(url);
     } catch (err) {
       setError(err.message);

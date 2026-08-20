@@ -41,7 +41,7 @@ export default function DiplomasPage() {
     if (!file) return;
     setBusy(true); setError('');
     try {
-      const fileUrl = await uploadImage(file);
+      const fileUrl = await uploadImage(file, 'jobber/verification-docs');
       await api.uploadVerificationDoc({ type: 'DIPLOMA', fileUrl }, token);
       await refresh();
     } catch (err) { setError(err.message); }

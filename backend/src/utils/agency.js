@@ -7,10 +7,12 @@ const prisma = require('../config/prisma');
 // so one white-label site can never spoof another's data. Used both to
 // attribute a new Mission to its originating agency, and to route a "Nous
 // contacter" submission into that agency's own inbox instead of Jobber's.
+function originHostFromRequest(req) {
+  try { return new URL(req.headers.origin || req.headers.referer || '').hostname.replace(/^www\./, ''); } catch { return null; }
+}
+
 async function resolveAgencyFromOrigin(req) {
-  const originHost = (() => {
-    try { return new URL(req.headers.origin || req.headers.referer || '').hostname.replace(/^www\./, ''); } catch { return null; }
-  })();
+  const originHost = originHostFromRequest(req);
   if (!originHost) return null;
   return prisma.user.findFirst({
     where: { companyType: 'CORPORATE', OR: [{ agencyDomain: originHost }, { agencyDomain: `www.${originHost}` }] },
@@ -59,6 +61,6 @@ const REFUSAL_REASONS_JOBBER = [
 ];
 
 module.exports = {
-  generateCorporateCode, REFUSAL_REASONS_JOBBER, resolveAgencyFromOrigin,
+  generateCorporateCode, REFUSAL_REASONS_JOBBER, resolveAgencyFromOrigin, originHostFromRequest,
   brandKeyForDomain, resolveBrandKeyForAgencyId,
 };
