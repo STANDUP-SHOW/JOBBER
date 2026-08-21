@@ -7,8 +7,13 @@ const prisma = require('../config/prisma');
 // so one white-label site can never spoof another's data. Used both to
 // attribute a new Mission to its originating agency, and to route a "Nous
 // contacter" submission into that agency's own inbox instead of Jobber's.
+// Strips both "www." and "admin." — the shared corporate-admin app is
+// served on admin.<domain>, so a login request's Origin is
+// "admin.services34.fr" while the agency's own stored agencyDomain is the
+// bare "services34.fr". Without stripping "admin." too, every back-office
+// login would fail to resolve its agency.
 function originHostFromRequest(req) {
-  try { return new URL(req.headers.origin || req.headers.referer || '').hostname.replace(/^www\./, ''); } catch { return null; }
+  try { return new URL(req.headers.origin || req.headers.referer || '').hostname.replace(/^www\./, '').replace(/^admin\./, ''); } catch { return null; }
 }
 
 async function resolveAgencyFromOrigin(req) {
