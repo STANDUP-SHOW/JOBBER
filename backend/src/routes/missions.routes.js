@@ -13,14 +13,17 @@ const { relocateForViewer } = require('../services/demoRelocationService');
 const router = express.Router();
 
 // Where to anchor the ~50 national-demo missions (isDemoNational) for this
-// request — the logged-in viewer's own saved address by default, so the
-// marketplace looks locally populated wherever a real account is based.
-// `demoLat`/`demoLng` query params let the presenter override that on the
-// fly (e.g. demoing logged out, or from a different city than their own
-// profile) without editing their account.
+// request. No demo account: real testers use their own login from their
+// own city, and most individual accounts never get an address geocoded at
+// signup (only COMPANY accounts do — see auth.routes.js /register), so a
+// saved profile address can't be relied on alone. Priority: the browser's
+// live geolocation, sent by the frontend as `viewerLat`/`viewerLng` on
+// every missions request (see frontend/app/missions/page.jsx) — falls back
+// to the logged-in viewer's own saved address if geolocation was denied or
+// unavailable, then to no relocation (original seeded fallback city).
 async function resolveViewerLatLng(req) {
-  const qLat = parseFloat(req.query.demoLat);
-  const qLng = parseFloat(req.query.demoLng);
+  const qLat = parseFloat(req.query.viewerLat);
+  const qLng = parseFloat(req.query.viewerLng);
   if (!Number.isNaN(qLat) && !Number.isNaN(qLng)) return { lat: qLat, lng: qLng };
   if (!req.user) return null;
   const viewer = await prisma.user.findUnique({ where: { id: req.user.id }, select: { lat: true, lng: true } });

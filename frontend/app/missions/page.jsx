@@ -25,6 +25,22 @@ export default function MissionsPage() {
   const [view, setView] = useState('list');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  // Live device location, sent as viewerLat/viewerLng so the national-demo
+  // missions (isDemoNational) show up near wherever the person actually is
+  // — most accounts never get an address geocoded at signup (only COMPANY
+  // ones do), so their saved profile alone can't be relied on for this.
+  // Falls back silently to the account's own saved address server-side if
+  // permission is denied or unavailable.
+  const [geoLatLng, setGeoLatLng] = useState(null);
+
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setGeoLatLng({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => {},
+      { timeout: 8000 }
+    );
+  }, []);
 
   const providerZone =
     user && user.lat != null && user.lng != null
@@ -43,12 +59,16 @@ export default function MissionsPage() {
     let cancelled = false;
     setLoading(true);
     setError('');
-    api.listMissions({ status: 'OPEN', type: 'TASK', ...(categoryId ? { categoryId } : {}) }, token)
+    api.listMissions({
+      status: 'OPEN', type: 'TASK',
+      ...(categoryId ? { categoryId } : {}),
+      ...(geoLatLng ? { viewerLat: geoLatLng.lat, viewerLng: geoLatLng.lng } : {}),
+    }, token)
       .then(({ missions }) => { if (!cancelled) setMissions(missions); })
       .catch((err) => { if (!cancelled) setError(err.message); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [categoryId, token, user?.address, user?.providerProfile?.radiusKm]);
+  }, [categoryId, token, user?.address, user?.providerProfile?.radiusKm, geoLatLng]);
 
   const filteredMissions = missions
     .filter((m) => {

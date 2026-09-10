@@ -293,13 +293,26 @@ export default function MissionDetailPage() {
   const [quotaNotice, setQuotaNotice] = useState(null);
   const [selectedSlots, setSelectedSlots] = useState({}); // offerId -> slot index
   const [navList, setNavList] = useState({ ids: [], href: '/missions' });
+  // Same live-location signal as the missions list (see missions/page.jsx)
+  // — keeps a national-demo mission's address consistent between the list
+  // and this detail page instead of falling back to its original seeded city.
+  const [geoLatLng, setGeoLatLng] = useState(null);
+
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setGeoLatLng({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => {},
+      { timeout: 8000 }
+    );
+  }, []);
 
   async function refresh() {
-    const { mission } = await api.getMission(id, token);
+    const { mission } = await api.getMission(id, geoLatLng ? { viewerLat: geoLatLng.lat, viewerLng: geoLatLng.lng } : {}, token);
     setMission(mission);
   }
 
-  useEffect(() => { refresh().catch((e) => setError(e.message)); }, [id, token]);
+  useEffect(() => { refresh().catch((e) => setError(e.message)); }, [id, token, geoLatLng]);
 
   // The list you were browsing (Jobber's own feed, your "Suivi de missions"…)
   // is stashed in sessionStorage by that list page, so "Mission suivante"
