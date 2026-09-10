@@ -551,6 +551,13 @@ model Mission {
   // shown on mission tiles, and never blocks a candidature.
   requiredBadges String[]      @default([])
   difficulty     MissionDifficulty?
+  // Marks one of the ~50 seeded showcase missions used for the national
+  // presentation (scripts/seedNationalDemoMissions.js) — its stored
+  // lat/lng/address are a fallback only; the public listing endpoints
+  // relocate it near whoever is actually browsing (see
+  // services/demoRelocationService.js) so the marketplace looks locally
+  // populated from any city in France.
+  isDemoNational Boolean       @default(false)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 

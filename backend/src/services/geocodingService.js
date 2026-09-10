@@ -39,6 +39,25 @@ function jitterCoordinate(id, lat, lng) {
   return { lat: lat + dLat, lng: lng + dLng };
 }
 
+// Turns a lat/lng back into a believable "N° rue, Ville" label — used to
+// give a repositioned national-demo mission (see demoRelocationService.js)
+// a real-looking address instead of raw coordinates or its original seeded
+// city once it's been moved near the viewer.
+async function reverseGeocodeLabel(lat, lng) {
+  if (!GOOGLE_MAPS_API_KEY) return null;
+  try {
+    const params = new URLSearchParams({ latlng: `${lat},${lng}`, region: 'fr', key: GOOGLE_MAPS_API_KEY });
+    const res = await fetch(`${GEOCODE_URL}?${params}`, { signal: AbortSignal.timeout(4000) });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.status !== 'OK' || !data.results.length) return null;
+    const best = data.results.find((r) => r.types.includes('street_address') || r.types.includes('route')) || data.results[0];
+    return best.formatted_address;
+  } catch (err) {
+    return null;
+  }
+}
+
 function haversineDistanceKm(lat1, lng1, lat2, lng2) {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -49,4 +68,4 @@ function haversineDistanceKm(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-module.exports = { geocodeAddress, jitterCoordinate, haversineDistanceKm };
+module.exports = { geocodeAddress, reverseGeocodeLabel, jitterCoordinate, haversineDistanceKm };

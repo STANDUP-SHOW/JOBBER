@@ -8,8 +8,25 @@ const { REQUIRABLE_BADGES } = require('../utils/badges');
 const { finalizeBooking, round2 } = require('../services/bookingService');
 const { sendMissionPublishedEmail, notifyBookingAccepted } = require('../services/emailService');
 const { notifyMissionPublished, notifyOfferAccepted } = require('../services/notificationService');
+const { relocateForViewer } = require('../services/demoRelocationService');
 
 const router = express.Router();
+
+// Where to anchor the ~50 national-demo missions (isDemoNational) for this
+// request — the logged-in viewer's own saved address by default, so the
+// marketplace looks locally populated wherever a real account is based.
+// `demoLat`/`demoLng` query params let the presenter override that on the
+// fly (e.g. demoing logged out, or from a different city than their own
+// profile) without editing their account.
+async function resolveViewerLatLng(req) {
+  const qLat = parseFloat(req.query.demoLat);
+  const qLng = parseFloat(req.query.demoLng);
+  if (!Number.isNaN(qLat) && !Number.isNaN(qLng)) return { lat: qLat, lng: qLng };
+  if (!req.user) return null;
+  const viewer = await prisma.user.findUnique({ where: { id: req.user.id }, select: { lat: true, lng: true } });
+  if (viewer?.lat == null || viewer?.lng == null) return null;
+  return { lat: viewer.lat, lng: viewer.lng };
+}
 
 // While a mission is still OPEN (open to candidature), expose an approximate
 // pin instead of the client's exact geocoded address.
@@ -241,6 +258,13 @@ router.get('/', optionalAuth, async (req, res, next) => {
       orderBy: { createdAt: 'desc' },
     });
 
+    // National-demo missions (isDemoNational) skip category/radius
+    // filtering entirely — they're relocated near the viewer below, so
+    // they're within range and relevant by construction — then merged back
+    // in with everything else.
+    const demoMissions = missions.filter((m) => m.isDemoNational);
+    let regularMissions = missions.filter((m) => !m.isDemoNational);
+
     if (req.user) {
       const profile = await prisma.providerProfile.findUnique({
         where: { userId: req.user.id },
@@ -250,10 +274,10 @@ router.get('/', optionalAuth, async (req, res, next) => {
       if (profile) {
         if (profile.categories.length > 0) {
           const allowedCategoryIds = new Set(profile.categories.map((c) => c.categoryId));
-          missions = missions.filter((m) => allowedCategoryIds.has(m.categoryId));
+          regularMissions = regularMissions.filter((m) => allowedCategoryIds.has(m.categoryId));
         }
         if (profile.user.lat != null && profile.user.lng != null) {
-          missions = missions
+          regularMissions = regularMissions
             .filter(
               (m) =>
                 m.lat == null ||
@@ -269,6 +293,19 @@ router.get('/', optionalAuth, async (req, res, next) => {
         }
       }
     }
+
+    let relocatedDemo = demoMissions;
+    if (demoMissions.length) {
+      const viewer = await resolveViewerLatLng(req);
+      if (viewer) {
+        relocatedDemo = await Promise.all(demoMissions.map(async (m) => {
+          const moved = await relocateForViewer(m, viewer.lat, viewer.lng);
+          return { ...moved, distanceKm: Math.round(haversineDistanceKm(viewer.lat, viewer.lng, moved.lat, moved.lng) * 10) / 10 };
+        }));
+      }
+    }
+
+    missions = [...relocatedDemo, ...regularMissions];
 
     res.json({ missions: missions.map((m) => withPublicPosition(maskCorporateClient(m, req.user && req.user.id === m.clientId))) });
   } catch (err) {
@@ -296,16 +333,25 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
     // Distance from the viewing jobber's own address to the mission's real
     // (un-jittered) coordinates — shown regardless of whether the client is
     // a corporate agency, so a jobber can judge travel and route fees
-    // before ever applying, not just once assigned.
+    // before ever applying, not just once assigned. A national-demo mission
+    // (isDemoNational) is relocated near the viewer first, same as on the
+    // list endpoint, so opening one from the list shows the same address.
     let distanceKm = null;
-    if (req.user && mission.lat != null && mission.lng != null) {
+    let displayMission = mission;
+    if (mission.isDemoNational) {
+      const viewer = await resolveViewerLatLng(req);
+      if (viewer) {
+        displayMission = await relocateForViewer(mission, viewer.lat, viewer.lng);
+        distanceKm = Math.round(haversineDistanceKm(viewer.lat, viewer.lng, displayMission.lat, displayMission.lng) * 10) / 10;
+      }
+    } else if (req.user && mission.lat != null && mission.lng != null) {
       const viewer = await prisma.user.findUnique({ where: { id: req.user.id }, select: { lat: true, lng: true } });
       if (viewer?.lat != null && viewer?.lng != null) {
         distanceKm = Math.round(haversineDistanceKm(viewer.lat, viewer.lng, mission.lat, mission.lng) * 10) / 10;
       }
     }
 
-    res.json({ mission: { ...withPublicPosition(maskCorporateClient(mission, isOwner)), distanceKm } });
+    res.json({ mission: { ...withPublicPosition(maskCorporateClient(displayMission, isOwner)), distanceKm } });
   } catch (err) {
     next(err);
   }
