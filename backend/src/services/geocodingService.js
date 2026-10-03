@@ -58,6 +58,22 @@ async function reverseGeocodeLabel(lat, lng) {
   }
 }
 
+// Raw reverse-geocoding results, optionally narrowed to Google result types
+// (e.g. 'street_address', 'locality'). Returns [] on any failure.
+async function reverseGeocodeResults(lat, lng, resultType) {
+  if (!GOOGLE_MAPS_API_KEY) return [];
+  try {
+    const params = new URLSearchParams({ latlng: `${lat},${lng}`, region: 'fr', language: 'fr', key: GOOGLE_MAPS_API_KEY });
+    if (resultType) params.set('result_type', resultType);
+    const res = await fetch(`${GEOCODE_URL}?${params}`, { signal: AbortSignal.timeout(4000) });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.status === 'OK' ? data.results : [];
+  } catch (err) {
+    return [];
+  }
+}
+
 function haversineDistanceKm(lat1, lng1, lat2, lng2) {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -68,4 +84,4 @@ function haversineDistanceKm(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-module.exports = { geocodeAddress, reverseGeocodeLabel, jitterCoordinate, haversineDistanceKm };
+module.exports = { geocodeAddress, reverseGeocodeLabel, reverseGeocodeResults, jitterCoordinate, haversineDistanceKm };
