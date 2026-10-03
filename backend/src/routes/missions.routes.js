@@ -2,7 +2,7 @@ const express = require('express');
 const { z } = require('zod');
 const prisma = require('../config/prisma');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
-const { geocodeAddress, jitterCoordinate, haversineDistanceKm } = require('../services/geocodingService');
+const { geocodeAddress, jitterCoordinate, haversineDistanceKm, publicAddress } = require('../services/geocodingService');
 const { generateCorporateCode, resolveAgencyFromOrigin, brandKeyForDomain } = require('../utils/agency');
 const { REQUIRABLE_BADGES } = require('../utils/badges');
 const { finalizeBooking, round2 } = require('../services/bookingService');
@@ -32,11 +32,19 @@ async function resolveViewerLatLng(req) {
   return { lat: viewer.lat, lng: viewer.lng };
 }
 
-// While a mission is still OPEN (open to candidature), expose an approximate
-// pin instead of the client's exact geocoded address.
-function withPublicPosition(mission) {
-  if (mission.status !== 'OPEN') return mission;
-  let result = mission;
+// Anyone but the mission's client (and, on the detail page, the jobber
+// they hired) gets an approximate pin instead of the exact geocoded address.
+function withPublicPosition(mission, canSeeExact = false) {
+  if (canSeeExact) return mission;
+  // Access notes (door codes, floor…) are only for the client and the
+  // jobber they hired; the street address loses its house number for
+  // everyone else, whatever the mission's status.
+  let result = {
+    ...mission,
+    address: publicAddress(mission.address),
+    dropoffAddress: publicAddress(mission.dropoffAddress),
+    accessInstructions: null,
+  };
   if (mission.lat != null && mission.lng != null) {
     const { lat, lng } = jitterCoordinate(mission.id, mission.lat, mission.lng);
     result = { ...result, lat, lng };
@@ -311,7 +319,12 @@ router.get('/', optionalAuth, async (req, res, next) => {
 
     missions = [...relocatedDemo, ...regularMissions];
 
-    res.json({ missions: missions.map((m) => withPublicPosition(maskCorporateClient(m, req.user && req.user.id === m.clientId))) });
+    res.json({
+      missions: missions.map((m) => {
+        const isOwner = !!req.user && req.user.id === m.clientId;
+        return withPublicPosition(maskCorporateClient(m, isOwner), isOwner);
+      }),
+    });
   } catch (err) {
     next(err);
   }
@@ -362,7 +375,8 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
       offers: (displayMission.offers || []).map((o) => ({ ...o, provider: publicProvider(o.provider, { keepFullName: isOwner }) })),
     };
 
-    res.json({ mission: { ...withPublicPosition(maskCorporateClient(displayMission, isOwner)), distanceKm } });
+    const isHiredJobber = !!req.user && !!mission.booking && mission.booking.providerId === req.user.id;
+    res.json({ mission: { ...withPublicPosition(maskCorporateClient(displayMission, isOwner), isOwner || isHiredJobber), distanceKm } });
   } catch (err) {
     next(err);
   }
