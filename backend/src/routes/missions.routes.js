@@ -9,6 +9,7 @@ const { finalizeBooking, round2 } = require('../services/bookingService');
 const { sendMissionPublishedEmail, notifyBookingAccepted } = require('../services/emailService');
 const { notifyMissionPublished, notifyOfferAccepted } = require('../services/notificationService');
 const { relocateForViewer } = require('../services/demoRelocationService');
+const { publicProvider } = require('../utils/publicProvider');
 
 const router = express.Router();
 
@@ -353,6 +354,13 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
         distanceKm = Math.round(haversineDistanceKm(viewer.lat, viewer.lng, mission.lat, mission.lng) * 10) / 10;
       }
     }
+
+    // Applicants' profiles are visible to anyone who opens the mission, so
+    // only their public fields go out; the owner still gets full last names.
+    displayMission = {
+      ...displayMission,
+      offers: (displayMission.offers || []).map((o) => ({ ...o, provider: publicProvider(o.provider, { keepFullName: isOwner }) })),
+    };
 
     res.json({ mission: { ...withPublicPosition(maskCorporateClient(displayMission, isOwner)), distanceKm } });
   } catch (err) {
