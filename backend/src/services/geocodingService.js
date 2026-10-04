@@ -68,4 +68,34 @@ function haversineDistanceKm(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-module.exports = { geocodeAddress, reverseGeocodeLabel, jitterCoordinate, haversineDistanceKm };
+// Raw reverse-geocoding results, optionally narrowed to Google result types
+// (e.g. 'street_address', 'locality'). Returns [] on any failure.
+async function reverseGeocodeResults(lat, lng, resultType) {
+  if (!GOOGLE_MAPS_API_KEY) return [];
+  try {
+    const params = new URLSearchParams({ latlng: `${lat},${lng}`, region: 'fr', language: 'fr', key: GOOGLE_MAPS_API_KEY });
+    if (resultType) params.set('result_type', resultType);
+    const res = await fetch(`${GEOCODE_URL}?${params}`, { signal: AbortSignal.timeout(4000) });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.status === 'OK' ? data.results : [];
+  } catch (err) {
+    return [];
+  }
+}
+
+// What anyone but the mission's own client sees of an open mission's
+// address: the street, postal code and city, without the house number
+// (e.g. "12 bis Rue Victor Hugo, 34500 Béziers, France" → "Rue Victor Hugo,
+// 34500 Béziers"). Same idea as jitterCoordinate for the map pin.
+function publicAddress(address) {
+  if (!address) return address;
+  const parts = address.split(',').map((p) => p.trim()).filter((p) => p && p.toLowerCase() !== 'france');
+  if (!parts.length) return address;
+  // A house number is 1-4 digits (+ bis/ter/A…) followed by the street
+  // name; a leading 5-digit token is a postal code and stays.
+  parts[0] = parts[0].replace(/^\d{1,4}\s*(bis|ter|quater|[a-d](?=\s))?\s+(?=\D)/i, '');
+  return parts.filter(Boolean).join(', ');
+}
+
+module.exports = { geocodeAddress, reverseGeocodeLabel, reverseGeocodeResults, publicAddress, jitterCoordinate, haversineDistanceKm };

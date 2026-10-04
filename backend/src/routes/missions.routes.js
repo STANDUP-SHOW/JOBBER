@@ -2,13 +2,14 @@ const express = require('express');
 const { z } = require('zod');
 const prisma = require('../config/prisma');
 const { requireAuth, optionalAuth } = require('../middleware/auth');
-const { geocodeAddress, jitterCoordinate, haversineDistanceKm } = require('../services/geocodingService');
+const { geocodeAddress, jitterCoordinate, haversineDistanceKm, publicAddress } = require('../services/geocodingService');
 const { generateCorporateCode, resolveAgencyFromOrigin, brandKeyForDomain } = require('../utils/agency');
 const { REQUIRABLE_BADGES } = require('../utils/badges');
 const { finalizeBooking, round2 } = require('../services/bookingService');
 const { sendMissionPublishedEmail, notifyBookingAccepted } = require('../services/emailService');
 const { notifyMissionPublished, notifyOfferAccepted } = require('../services/notificationService');
 const { relocateForViewer } = require('../services/demoRelocationService');
+const { publicProvider } = require('../utils/publicProvider');
 
 const router = express.Router();
 
@@ -31,11 +32,21 @@ async function resolveViewerLatLng(req) {
   return { lat: viewer.lat, lng: viewer.lng };
 }
 
-// While a mission is still OPEN (open to candidature), expose an approximate
-// pin instead of the client's exact geocoded address.
-function withPublicPosition(mission) {
-  if (mission.status !== 'OPEN') return mission;
-  let result = mission;
+// Anyone but the mission's client (and, on the detail page, the jobber
+// they hired) gets an approximate pin instead of the exact geocoded address.
+function withPublicPosition(mission, canSeeExact = false) {
+  if (canSeeExact) return mission;
+  // Access notes (door codes, floor…) are only for the client and the
+  // jobber they hired; the street address loses its house number for
+  // everyone else, whatever the mission's status. National-demo missions
+  // keep theirs: no real client lives there — it's a street picked near
+  // the viewer (see demoRelocationService.js).
+  let result = {
+    ...mission,
+    address: mission.isDemoNational ? mission.address : publicAddress(mission.address),
+    dropoffAddress: mission.isDemoNational ? mission.dropoffAddress : publicAddress(mission.dropoffAddress),
+    accessInstructions: null,
+  };
   if (mission.lat != null && mission.lng != null) {
     const { lat, lng } = jitterCoordinate(mission.id, mission.lat, mission.lng);
     result = { ...result, lat, lng };
@@ -310,7 +321,12 @@ router.get('/', optionalAuth, async (req, res, next) => {
 
     missions = [...relocatedDemo, ...regularMissions];
 
-    res.json({ missions: missions.map((m) => withPublicPosition(maskCorporateClient(m, req.user && req.user.id === m.clientId))) });
+    res.json({
+      missions: missions.map((m) => {
+        const isOwner = !!req.user && req.user.id === m.clientId;
+        return withPublicPosition(maskCorporateClient(m, isOwner), isOwner);
+      }),
+    });
   } catch (err) {
     next(err);
   }
@@ -354,7 +370,15 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
       }
     }
 
-    res.json({ mission: { ...withPublicPosition(maskCorporateClient(displayMission, isOwner)), distanceKm } });
+    // Applicants' profiles are visible to anyone who opens the mission, so
+    // only their public fields go out; the owner still gets full last names.
+    displayMission = {
+      ...displayMission,
+      offers: (displayMission.offers || []).map((o) => ({ ...o, provider: publicProvider(o.provider, { keepFullName: isOwner }) })),
+    };
+
+    const isHiredJobber = !!req.user && !!mission.booking && mission.booking.providerId === req.user.id;
+    res.json({ mission: { ...withPublicPosition(maskCorporateClient(displayMission, isOwner), isOwner || isHiredJobber), distanceKm } });
   } catch (err) {
     next(err);
   }

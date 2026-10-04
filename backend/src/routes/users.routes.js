@@ -6,6 +6,7 @@ const { geocodeAddress } = require('../services/geocodingService');
 const { isValidSiret } = require('../utils/siret');
 const { generateCategoryBio } = require('../services/aiService');
 const { BADGE_CATALOG, computeBadges } = require('../utils/badges');
+const { publicProvider } = require('../utils/publicProvider');
 
 const router = express.Router();
 
@@ -92,14 +93,14 @@ router.get('/providers', async (req, res, next) => {
         providerProfile: { categories: { some: categoryId ? { categoryId } : {} } },
       },
       select: {
-        id: true, firstName: true, lastName: true, avatarUrl: true, address: true, isProfessional: true,
+        id: true, firstName: true, lastName: true, avatarUrl: true, isProfessional: true,
         providerProfile: { include: { categories: { include: { category: true } }, services: { include: { service: true } }, equipment: { include: { equipment: true } }, vehicles: true } },
         subscriptions: { where: { family: 'JOBBER', status: 'ACTIVE' }, select: { plan: true, currentPeriodEnd: true } },
       },
     });
     res.json({
       providers: providers.map(({ subscriptions, ...p }) => ({
-        ...p,
+        ...publicProvider(p),
         subscriptionPlan: subscriptions.find((s) => s.currentPeriodEnd > new Date())?.plan || null,
       })),
     });
@@ -111,7 +112,7 @@ router.get('/providers/:id', async (req, res, next) => {
     const provider = await prisma.user.findUnique({
       where: { id: req.params.id },
       select: {
-        id: true, firstName: true, lastName: true, avatarUrl: true, address: true, createdAt: true, isProfessional: true,
+        id: true, firstName: true, lastName: true, avatarUrl: true, createdAt: true, isProfessional: true,
         providerProfile: { include: { categories: { include: { category: true } }, services: { include: { service: true } }, equipment: { include: { equipment: true } }, vehicles: true } },
         reviewsReceived: { include: { author: { select: { firstName: true, avatarUrl: true } } }, orderBy: { createdAt: 'desc' } },
         subscriptions: { where: { family: 'JOBBER', status: 'ACTIVE' }, select: { plan: true, currentPeriodEnd: true } },
@@ -143,7 +144,7 @@ router.get('/providers/:id', async (req, res, next) => {
     });
     res.json({
       provider: {
-        ...p,
+        ...publicProvider(p),
         subscriptionPlan: subscriptions.find((s) => s.currentPeriodEnd > new Date())?.plan || null,
         badges,
       },

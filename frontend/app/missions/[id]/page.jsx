@@ -246,17 +246,6 @@ function timeAgo(dateStr) {
 // Addresses are shown truncated to "postal code + city" on the pre-application
 // jobber view, matching the jittered map pin's approximate privacy. The
 // mission owner always sees their own full address.
-function shortAddress(address) {
-  if (!address) return '';
-  const parts = address.split(',').map((p) => p.trim()).filter(Boolean).filter((p) => p.toLowerCase() !== 'france');
-  const postalIndex = parts.findIndex((p) => /^\d{5}\b/.test(p));
-  if (postalIndex === -1) return parts[parts.length - 1] || address;
-  const postalPart = parts[postalIndex];
-  if (/[a-zA-Zàâäéèêëïîôöùûüç]/.test(postalPart.replace(/^\d{5}/, ''))) return postalPart;
-  const neighbor = parts[postalIndex - 1] || parts[postalIndex + 1];
-  return neighbor ? `${postalPart} ${neighbor}` : postalPart;
-}
-
 function capitalize(s) {
   return s ? s[0].toUpperCase() + s.slice(1) : s;
 }
@@ -389,7 +378,6 @@ export default function MissionDetailPage() {
   const applicantCount = mission.offers?.length ?? 0;
   const isTransportMission = mission.dropoffAddress && mission.dropoffLat != null && mission.dropoffLng != null;
   const status = STATUS_LABEL[mission.status];
-  const displayAddress = (addr) => (isOwner ? addr : shortAddress(addr));
   const difficulty = mission.difficulty ? DIFFICULTY_LABEL[mission.difficulty] : null;
 
   const equipmentNames = (mission.requiredEquipment || []).map((re) => re.equipment.name);
@@ -411,6 +399,11 @@ export default function MissionDetailPage() {
 
       {/* Header: title, status, badges — sets the scene before anything else */}
       <div className="mt-5">
+        {mission.isDemoNational && (
+          <p className="mb-2 inline-block rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+            Mission exemple, publiée pour illustrer la plateforme
+          </p>
+        )}
         <h1 className="font-display text-2xl font-semibold text-ink md:text-3xl">{mission.title}</h1>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           {status && <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${status.cls}`}>{status.text}</span>}
@@ -438,7 +431,7 @@ export default function MissionDetailPage() {
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 bg-paper px-4 py-3">
           <div>
             <div className="text-xs font-medium text-slate-500">Adresse de la mission</div>
-            <div className="text-sm font-medium text-ink">{displayAddress(mission.address)}</div>
+            <div className="text-sm font-medium text-ink">{mission.address}</div>
           </div>
           {mission.distanceKm != null && (
             <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-ink shadow-sm">
@@ -448,7 +441,7 @@ export default function MissionDetailPage() {
         </div>
         {isTransportMission && (
           <div className="border-t border-slate-200 bg-paper px-4 py-3 text-sm text-ink">
-            Arrivée : {displayAddress(mission.dropoffAddress)}
+            Arrivée : {mission.dropoffAddress}
           </div>
         )}
       </div>
