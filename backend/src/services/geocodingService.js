@@ -68,31 +68,19 @@ function haversineDistanceKm(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// Reverse-geocodes to a real street near the point, as "Rue X, 34500 Ville"
-// (never a house number, never a plus code or "Unnamed Road"). Returns null
-// when Google has no named street there (fields, forest, sea).
-async function reverseGeocodeStreet(lat, lng) {
-  if (!GOOGLE_MAPS_API_KEY) return null;
+// Raw reverse-geocoding results, optionally narrowed to Google result types
+// (e.g. 'street_address', 'locality'). Returns [] on any failure.
+async function reverseGeocodeResults(lat, lng, resultType) {
+  if (!GOOGLE_MAPS_API_KEY) return [];
   try {
-    const params = new URLSearchParams({
-      latlng: `${lat},${lng}`, region: 'fr', language: 'fr',
-      result_type: 'street_address|route', key: GOOGLE_MAPS_API_KEY,
-    });
+    const params = new URLSearchParams({ latlng: `${lat},${lng}`, region: 'fr', language: 'fr', key: GOOGLE_MAPS_API_KEY });
+    if (resultType) params.set('result_type', resultType);
     const res = await fetch(`${GEOCODE_URL}?${params}`, { signal: AbortSignal.timeout(4000) });
-    if (!res.ok) return null;
+    if (!res.ok) return [];
     const data = await res.json();
-    if (data.status !== 'OK') return null;
-    for (const result of data.results) {
-      const component = (type) => result.address_components.find((c) => c.types.includes(type))?.long_name;
-      const route = component('route');
-      const city = component('locality') || component('postal_town') || component('administrative_area_level_2');
-      if (!route || !city || /unnamed|sans nom/i.test(route)) continue;
-      const postalCode = component('postal_code');
-      return `${route}, ${postalCode ? `${postalCode} ` : ''}${city}`;
-    }
-    return null;
+    return data.status === 'OK' ? data.results : [];
   } catch (err) {
-    return null;
+    return [];
   }
 }
 
@@ -110,4 +98,4 @@ function publicAddress(address) {
   return parts.filter(Boolean).join(', ');
 }
 
-module.exports = { geocodeAddress, reverseGeocodeLabel, reverseGeocodeStreet, publicAddress, jitterCoordinate, haversineDistanceKm };
+module.exports = { geocodeAddress, reverseGeocodeLabel, reverseGeocodeResults, publicAddress, jitterCoordinate, haversineDistanceKm };

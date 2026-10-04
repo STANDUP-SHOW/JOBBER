@@ -38,11 +38,13 @@ function withPublicPosition(mission, canSeeExact = false) {
   if (canSeeExact) return mission;
   // Access notes (door codes, floor…) are only for the client and the
   // jobber they hired; the street address loses its house number for
-  // everyone else, whatever the mission's status.
+  // everyone else, whatever the mission's status. National-demo missions
+  // keep theirs: no real client lives there — it's a street picked near
+  // the viewer (see demoRelocationService.js).
   let result = {
     ...mission,
-    address: publicAddress(mission.address),
-    dropoffAddress: publicAddress(mission.dropoffAddress),
+    address: mission.isDemoNational ? mission.address : publicAddress(mission.address),
+    dropoffAddress: mission.isDemoNational ? mission.dropoffAddress : publicAddress(mission.dropoffAddress),
     accessInstructions: null,
   };
   if (mission.lat != null && mission.lng != null) {
