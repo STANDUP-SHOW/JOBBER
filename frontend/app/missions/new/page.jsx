@@ -172,6 +172,32 @@ function NewMissionForm() {
   }));
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [estimate, setEstimate] = useState(null);
+  const [estimating, setEstimating] = useState(false);
+  const [estimateError, setEstimateError] = useState('');
+
+  async function runEstimate() {
+    setEstimating(true);
+    setEstimateError('');
+    try {
+      const result = await api.estimateMission(
+        {
+          categoryId: form.categoryId,
+          serviceId: form.serviceId || null,
+          title: form.title,
+          description: form.description,
+          details: Object.fromEntries(Object.entries(form.details).filter(([, v]) => v !== '' && v != null)),
+        },
+        token
+      );
+      setEstimate(result);
+      setForm((f) => ({ ...f, estimatedHours: result.suggestedHours }));
+    } catch (err) {
+      setEstimateError(err.message);
+    } finally {
+      setEstimating(false);
+    }
+  }
 
   useEffect(() => {
     api.categories().then(({ categories }) => setCategories(categories)).catch(() => {});
@@ -901,6 +927,43 @@ function NewMissionForm() {
                   <Field label="Heure de début" type="time" value={form.desiredTime} onChange={(v) => setForm({ ...form, desiredTime: v })} required />
                 </div>
                 <Field label="Durée estimée (heures)" type="number" min="0.5" step="0.5" value={form.estimatedHours} onChange={(v) => setForm({ ...form, estimatedHours: v })} required />
+
+                {!isLessonMode && (
+                  <div className="rounded-xl border border-moss/30 bg-moss/5 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <p className="text-sm text-ink">
+                        <span className="font-semibold">Pas sûr de la durée ?</span> L'IA l'estime à partir de votre description.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={runEstimate}
+                        disabled={estimating}
+                        className="rounded-lg bg-moss px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+                      >
+                        {estimating ? 'Estimation…' : estimate ? 'Relancer l\'estimation' : 'Estimer avec l\'IA'}
+                      </button>
+                    </div>
+                    {estimateError && <p className="mt-3 text-sm text-red-600">{estimateError}</p>}
+                    {estimate && !estimateError && (
+                      <div className="mt-3 space-y-1.5 text-sm text-ink">
+                        <p>
+                          <span className="font-semibold">Durée :</span>{' '}
+                          {estimate.minHours === estimate.maxHours
+                            ? `environ ${estimate.minHours} h`
+                            : `entre ${estimate.minHours} h et ${estimate.maxHours} h`}
+                          {' '}(nous avons indiqué {estimate.suggestedHours} h, modifiable ci-dessus)
+                        </p>
+                        {estimate.price && (
+                          <p>
+                            <span className="font-semibold">Budget indicatif :</span> {estimate.price.min} € à {estimate.price.max} €, d'après les tarifs des jobbers de cette catégorie ({estimate.hourlyRate.min} à {estimate.hourlyRate.max} €/h).
+                          </p>
+                        )}
+                        {estimate.explanation && <p className="text-slate-500">{estimate.explanation}</p>}
+                        <p className="text-xs text-slate-400">Estimation automatique, le prix final dépend des offres des jobbers.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {isCompany && (
                   <div>
