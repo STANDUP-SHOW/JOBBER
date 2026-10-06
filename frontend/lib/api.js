@@ -29,6 +29,7 @@ export const api = {
   categories: () => request('/categories'),
 
   createMission: (payload, token) => request('/missions', { method: 'POST', body: payload, token }),
+  estimateMission: (payload, token) => request('/missions/estimate', { method: 'POST', body: payload, token }),
   listMissions: (params = {}, token) => {
     const qs = new URLSearchParams(params).toString();
     return request(`/missions${qs ? `?${qs}` : ''}`, { token });
