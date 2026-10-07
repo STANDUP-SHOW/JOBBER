@@ -1,0 +1,430 @@
+// "Assistant IA" : turns a free-text description (plus optional photos) into
+// a ready-to-publish Jobber mission in a couple of exchanges. Generalizes the
+// Mekanao breakdown-diagnosis flow to every category: the model reads the
+// whole catalog (categories → services → each service's detailFields, the
+// same fields the /missions/new form asks for), asks at most one or two
+// follow-up questions, and fills the mission draft — including the
+// per-service `details` — from what it was told and what it sees in the
+// photos. A white-label boutique (services34.fr, Mekanao…) narrows the
+// catalog to its own categories, so the same assistant powers every site.
+const Anthropic = require('@anthropic-ai/sdk');
+const prisma = require('../config/prisma');
+
+// Sonnet, as validated for the Emergent prototypes: fast enough for a
+// chat, and the catalog-matching job doesn't need a bigger model.
+const MODEL = 'claude-sonnet-5-5';
+// Price ranges are off by default (the Emergent assistants were forbidden
+// to quote a price, the jobbers do); set ASSISTANT_SHOW_PRICE=true to show
+// a Mecanow-style indicative range on the mission card.
+const SHOW_PRICE = process.env.ASSISTANT_SHOW_PRICE === 'true';
+const CATALOG_TTL_MS = 10 * 60 * 1000;
+
+let client;
+function getClient() {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  if (!client) client = new Anthropic();
+  return client;
+}
+
+// --- Catalog -----------------------------------------------------------
+
+let catalogCache = null;
+async function loadCatalog() {
+  if (catalogCache && catalogCache.expiresAt > Date.now()) return catalogCache.categories;
+  const categories = await prisma.category.findMany({
+    include: { services: { orderBy: { name: 'asc' } } },
+    orderBy: { name: 'asc' },
+  });
+  catalogCache = { categories, expiresAt: Date.now() + CATALOG_TTL_MS };
+  return categories;
+}
+
+function fieldOptions(field) {
+  if (field.groups) return field.groups.flatMap((g) => g.options);
+  return field.options || [];
+}
+
+function describeField(field) {
+  const type = {
+    number: `nombre${field.unit ? ` en ${field.unit}` : ''}`,
+    boolean: 'oui/non',
+    text: 'texte libre',
+    select: 'un choix parmi',
+    multiselect: 'plusieurs choix parmi',
+  }[field.type] || field.type;
+  const options = fieldOptions(field);
+  const optionsText = options.length ? ` [${options.join(' | ')}]` : '';
+  const showIf = field.showIf ? ` (seulement si ${field.showIf.key} = oui)` : '';
+  return `    · ${field.key} — « ${field.label} » — ${type}${optionsText}${showIf}`;
+}
+
+// Stable, deterministic text rendering of the catalog: it sits in the
+// cached system prompt, so the same scope must always render byte-for-byte
+// identically.
+function renderCatalog(categories) {
+  return categories.map((cat) => {
+    const services = cat.services.map((s) => {
+      const fields = Array.isArray(s.detailFields) ? s.detailFields : [];
+      return [`  - ${s.slug} : ${s.name}`, ...fields.map(describeField)].join('\n');
+    });
+    return [`# ${cat.slug} : ${cat.name}`, ...services].join('\n');
+  }).join('\n');
+}
+
+function scopeCategories(categories, scope) {
+  const slugs = scope?.categorySlugs?.length ? scope.categorySlugs : null;
+  if (!slugs) return categories;
+  const filtered = categories.filter((c) => slugs.includes(c.slug));
+  return filtered.length ? filtered : categories;
+}
+
+// --- Prompt ------------------------------------------------------------
+
+function systemPrompt({ catalogText, brandName }) {
+  return `Tu es l'assistant de ${brandName}, une plateforme française de services à domicile entre particuliers et jobbers. Une personne te décrit un besoin (parfois avec des photos). Ton travail : en une minute, transformer ce besoin en une mission complète, prête à être publiée.
+
+Déroulé :
+1. Dès le premier message, identifie la catégorie et la prestation du catalogue ci-dessous qui correspondent, et remplis tout ce que tu peux déduire du texte et des photos (dimensions estimées, type de véhicule, surface, état…).
+2. Pose au maximum une ou deux questions au total, uniquement sur ce qui manque vraiment pour qu'un jobber puisse chiffrer et venir : en priorité l'adresse si elle est inconnue, puis le champ le plus déterminant de la prestation. Regroupe-les dans un seul message court. Ne redemande jamais une information déjà donnée ou visible sur une photo.
+3. Pour une panne ou une réparation (véhicule, électroménager, plomberie, électricité, informatique…), fais comme un professionnel au téléphone : pose la question de diagnostic la plus utile (symptôme, bruit, voyant, depuis quand) et écris dans la description ton hypothèse de panne la plus probable, présentée comme une piste à confirmer par le jobber.
+4. Dès que la catégorie, la prestation, un titre, une description utile et l'adresse sont connus, passe le statut à "ready" : n'attends pas d'avoir tous les champs facultatifs.
+
+Règles de remplissage :
+- categorySlug et serviceSlug : uniquement des slugs présents dans le catalogue. Si rien ne correspond exactement, prends la prestation la plus proche (souvent "Autre" ou une prestation générale de la catégorie).
+- title : court et concret, 3 à 8 mots, à la manière d'une annonce (ex. « Taille d'une haie de 2 m de haut »).
+- description : 2 à 5 phrases à la première personne, du point de vue du client, avec ce qu'on voit sur les photos et les contraintes utiles au jobber. Ne mentionne jamais l'IA ni l'assistant.
+- details : uniquement les champs définis pour la prestation choisie, avec leur clé exacte. Nombre : chiffres seuls (point décimal). Oui/non : "oui" ou "non". Choix : recopie exactement une option proposée ; plusieurs choix : options séparées par " ; ". N'invente pas une valeur que ni la personne ni les photos ne permettent d'estimer.
+- estimatedHours : ta meilleure estimation du temps de travail en heures.
+- desiredDate : AAAA-MM-JJ si la personne a donné une date ou un délai, sinon null. isUrgent : true seulement si elle dit que c'est urgent.
+- address : l'adresse d'intervention si elle est connue (donnée par la personne, ou adresse du compte / position détectée qu'elle a confirmée), sinon null. Si une adresse de compte ou une position détectée est fournie dans le contexte, propose-la dans ta question (« C'est bien au 12 rue… ? ») au lieu de demander l'adresse à froid.
+
+Estimation (estimate), à remplir dès que la prestation est identifiée, comme un artisan qui annonce un ordre de grandeur :
+${SHOW_PRICE
+    ? "- priceMin / priceMax : fourchette réaliste en euros TTC pour le marché français, main-d'œuvre comprise, et pièces comprises si la réparation en demande. null si tu ne peux vraiment pas estimer.\n"
+    : "- priceMin / priceMax : toujours null. Ne donne jamais de prix ni de tarif, nulle part (ni dans reply ni dans la description) : ce sont les jobbers qui font leur offre.\n"}- duration : durée d'intervention en clair (ex. « 2 à 3 h »).
+- diagnostic : pour une panne ou une réparation, 1 à 2 phrases sur le problème le plus probable ; sinon null. Pour un moteur (voyant, calage, fumée, claquement, surchauffe, perte de puissance), raisonne sur allumage, injection, distribution, refroidissement, turbo et culasse.
+- causes : jusqu'à 3 causes probables courtes pour une panne, sinon une liste vide.
+- advice : un conseil de sécurité ou pratique utile (ex. « Évitez de rouler en attendant »), sinon null.
+
+Ton :
+- reply : en français, chaleureux et très bref (2 phrases max). Quand le statut est "ready", résume en une phrase et invite à vérifier puis publier.
+- quickReplies : 0 à 4 réponses courtes que la personne pourrait toucher pour répondre à ta question (ex. « Oui, évacuer les déchets », « Non »). Vide si le statut est "ready".
+- Si la demande n'a rien à voir avec un service à domicile ou est inappropriée, explique-le gentiment dans reply, garde le statut "question" et laisse les champs de mission à null.
+
+Catalogue (catégorie → prestations → champs à renseigner) :
+${catalogText}`;
+}
+
+const nullable = (schema) => ({ anyOf: [schema, { type: 'null' }] });
+
+const OUTPUT_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['reply', 'status', 'quickReplies', 'mission'],
+  properties: {
+    reply: { type: 'string' },
+    status: { type: 'string', enum: ['question', 'ready'] },
+    quickReplies: { type: 'array', items: { type: 'string' } },
+    mission: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['categorySlug', 'serviceSlug', 'title', 'description', 'estimatedHours', 'isUrgent', 'desiredDate', 'address', 'estimate', 'details'],
+      properties: {
+        categorySlug: nullable({ type: 'string' }),
+        serviceSlug: nullable({ type: 'string' }),
+        title: nullable({ type: 'string' }),
+        description: nullable({ type: 'string' }),
+        estimatedHours: nullable({ type: 'number' }),
+        isUrgent: { type: 'boolean' },
+        desiredDate: nullable({ type: 'string' }),
+        address: nullable({ type: 'string' }),
+        estimate: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['priceMin', 'priceMax', 'duration', 'diagnostic', 'causes', 'advice'],
+          properties: {
+            priceMin: nullable({ type: 'number' }),
+            priceMax: nullable({ type: 'number' }),
+            duration: nullable({ type: 'string' }),
+            diagnostic: nullable({ type: 'string' }),
+            causes: { type: 'array', items: { type: 'string' } },
+            advice: nullable({ type: 'string' }),
+          },
+        },
+        details: {
+          type: 'array',
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['key', 'value'],
+            properties: { key: { type: 'string' }, value: { type: 'string' } },
+          },
+        },
+      },
+    },
+  },
+};
+
+// Cloudinary serves a resized copy when the path carries a transformation —
+// the model doesn't need a 12-megapixel phone photo to judge a hedge.
+function modelImageUrl(url) {
+  return url.replace('/image/upload/', '/image/upload/w_1280,h_1280,c_limit/');
+}
+
+function buildMessages(conversation, contextText) {
+  return conversation.map((turn, i) => {
+    if (turn.role === 'assistant') return { role: 'assistant', content: turn.text };
+    const content = [];
+    for (const url of turn.photos || []) {
+      content.push({ type: 'image', source: { type: 'url', url: modelImageUrl(url) } });
+    }
+    const text = i === 0 ? `${contextText}\n\nDemande :\n${turn.text}` : turn.text;
+    content.push({ type: 'text', text: text || '(photos uniquement)' });
+    return { role: 'user', content };
+  });
+}
+
+function contextLines({ today, accountAddress, detectedAddress, scope }) {
+  const lines = [`Contexte (fourni par la plateforme, pas par la personne) :`, `- Date du jour : ${today}`];
+  if (accountAddress) lines.push(`- Adresse enregistrée sur le compte : ${accountAddress}`);
+  if (detectedAddress) lines.push(`- Position détectée par le téléphone : ${detectedAddress}`);
+  if (!accountAddress && !detectedAddress) lines.push(`- Aucune adresse connue pour l'instant.`);
+  if (scope?.serviceSlug) lines.push(`- La personne vient de la page de la prestation « ${scope.serviceSlug} ».`);
+  return lines.join('\n');
+}
+
+// --- Draft normalization -------------------------------------------------
+
+function coerceDetail(field, raw) {
+  const value = String(raw ?? '').trim();
+  if (!value) return undefined;
+  switch (field.type) {
+    case 'number': {
+      const n = parseFloat(value.replace(',', '.').replace(/[^\d.-]/g, ''));
+      return Number.isFinite(n) ? n : undefined;
+    }
+    case 'boolean':
+      if (/^(oui|yes|true|vrai)$/i.test(value)) return true;
+      if (/^(non|no|false|faux)$/i.test(value)) return false;
+      return undefined;
+    case 'select': {
+      const match = fieldOptions(field).find((o) => o.toLowerCase() === value.toLowerCase());
+      if (match) return { value: match };
+      if (field.other) return { value: 'Autre', precision: value };
+      return undefined;
+    }
+    case 'multiselect': {
+      const options = fieldOptions(field);
+      const picked = value.split(/\s*;\s*/)
+        .map((v) => options.find((o) => o.toLowerCase() === v.toLowerCase()))
+        .filter(Boolean);
+      return picked.length ? [...new Set(picked)] : undefined;
+    }
+    default:
+      return value.slice(0, 300);
+  }
+}
+
+function displayValue(field, value) {
+  if (typeof value === 'boolean') return value ? 'Oui' : 'Non';
+  if (Array.isArray(value)) return value.join(', ');
+  if (field.type === 'number' && field.unit) return `${value} ${field.unit}`;
+  return String(value);
+}
+
+// Maps the model's slugs back to real ids and keeps only detail values that
+// match the chosen service's field definitions — the draft can then be
+// POSTed to /api/missions as-is.
+function normalizeDraft(raw, categories) {
+  const category = categories.find((c) => c.slug === raw.categorySlug)
+    || categories.find((c) => c.services.some((s) => s.slug === raw.serviceSlug));
+  const service = category?.services.find((s) => s.slug === raw.serviceSlug) || null;
+  const fields = Array.isArray(service?.detailFields) ? service.detailFields : [];
+
+  const details = {};
+  const detailsDisplay = [];
+  for (const { key, value } of raw.details || []) {
+    const field = fields.find((f) => f.key === key);
+    if (!field) continue;
+    const coerced = coerceDetail(field, value);
+    if (coerced === undefined) continue;
+    if (field.type === 'select') {
+      details[key] = coerced.value;
+      if (coerced.precision) details[`${key}Precision`] = coerced.precision.slice(0, 200);
+      detailsDisplay.push({ label: field.label, value: coerced.precision || coerced.value });
+    } else {
+      details[key] = coerced;
+      detailsDisplay.push({ label: field.label, value: displayValue(field, coerced) });
+    }
+  }
+
+  const hours = Number(raw.estimatedHours);
+  const desiredDate = /^\d{4}-\d{2}-\d{2}$/.test(raw.desiredDate || '') ? raw.desiredDate : null;
+  return {
+    categoryId: category?.id || null,
+    categoryName: category?.name || null,
+    categorySlug: category?.slug || null,
+    serviceId: service?.id || null,
+    serviceName: service?.name || null,
+    title: raw.title?.trim() || null,
+    description: raw.description?.trim() || null,
+    estimatedHours: Number.isFinite(hours) && hours > 0 ? Math.min(Math.round(hours * 2) / 2 || 0.5, 100) : 1,
+    isUrgent: !!raw.isUrgent,
+    desiredDate,
+    address: raw.address?.trim() || null,
+    details,
+    detailsDisplay,
+    estimate: normalizeEstimate(raw.estimate),
+  };
+}
+
+// Indicative only, shown to the requester (like Mecanow's estimate card) —
+// never stored on the mission, so it can't anchor the jobbers' offers.
+function normalizeEstimate(raw) {
+  if (!raw) return null;
+  let min = Number(raw.priceMin);
+  let max = Number(raw.priceMax);
+  min = Number.isFinite(min) && min > 0 ? Math.round(min) : null;
+  max = Number.isFinite(max) && max > 0 ? Math.round(max) : null;
+  if (min && max && min > max) [min, max] = [max, min];
+  const estimate = {
+    priceMin: SHOW_PRICE ? (min || max) : null,
+    priceMax: SHOW_PRICE ? (max || min) : null,
+    duration: raw.duration?.trim() || null,
+    diagnostic: raw.diagnostic?.trim() || null,
+    causes: (raw.causes || []).map((c) => c.trim()).filter(Boolean).slice(0, 3),
+    advice: raw.advice?.trim() || null,
+  };
+  const empty = !estimate.priceMin && !estimate.duration && !estimate.diagnostic && !estimate.causes.length;
+  return empty ? null : estimate;
+}
+
+function draftIsPublishable(draft) {
+  return !!(draft.categoryId && draft.title && draft.title.length >= 3
+    && draft.description && draft.description.length >= 10
+    && draft.address && draft.address.length >= 3);
+}
+
+// --- Keyword fallback ------------------------------------------------------
+
+// When the model is unreachable (no key, API down, unparsable answer) the
+// flow must not break: match the words against the catalog's service and
+// category names, keep the person's own text as the description, and only
+// ask for the address. Same response shape, flagged source: 'heuristique'.
+const fold = (t) => (t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const keywords = (t) => fold(t).split(/[^a-z0-9]+/).filter((w) => w.length >= 4);
+
+function heuristicTurn({ conversation, categories, accountAddress, detectedAddress }) {
+  const userTurns = conversation.filter((t) => t.role === 'user');
+  // The reply to our own address question is the address; everything else
+  // the person typed describes the need.
+  const lastAssistant = conversation.filter((t) => t.role === 'assistant').pop();
+  const answeredAddress = /adresse/i.test(lastAssistant?.text || '');
+  const answered = answeredAddress ? userTurns[userTurns.length - 1].text.trim() : '';
+  const needTurns = answeredAddress ? userTurns.slice(0, -1) : userTurns;
+  const need = needTurns.map((t) => t.text.trim()).filter((t) => t.length >= 10).join(' ')
+    || needTurns.map((t) => t.text.trim()).join(' ');
+  const words = new Set(keywords(userTurns.map((t) => t.text).join(' ')).map((w) => w.replace(/s$/, '')));
+  const score = (name) => keywords(name).filter((w) => words.has(w.replace(/s$/, ''))).length;
+
+  let best = null;
+  for (const cat of categories) {
+    const catScore = score(cat.name) + score(cat.slug.replace(/-/g, ' '));
+    for (const svc of cat.services) {
+      const total = score(svc.name) * 2 + catScore;
+      if (total > 0 && (!best || total > best.total)) best = { cat, svc, total };
+    }
+    if (catScore > 0 && (!best || catScore > best.total)) best = { cat, svc: null, total: catScore };
+  }
+
+  const address = answered.length >= 5 ? answered : (accountAddress || detectedAddress || null);
+  const draft = best && normalizeDraft({
+    categorySlug: best.cat.slug,
+    serviceSlug: best.svc?.slug || null,
+    title: need.split(/[.!?\n]/)[0].slice(0, 70) || best.svc?.name || best.cat.name,
+    description: need.length >= 10 ? need : `${best.svc?.name || best.cat.name} : ${need}`,
+    estimatedHours: 2,
+    isUrgent: /urgent/i.test(need),
+    desiredDate: null,
+    address,
+    details: [],
+    estimate: null,
+  }, categories);
+
+  if (!draft) {
+    return {
+      reply: "Je n'ai pas bien saisi le type de service. Pouvez-vous le préciser en quelques mots (ménage, jardinage, bricolage, mécanique…) ?",
+      status: 'question', quickReplies: [], draft: null, source: 'heuristique',
+    };
+  }
+  if (!draftIsPublishable(draft)) {
+    return {
+      reply: `Je note : ${draft.serviceName || draft.categoryName}. À quelle adresse faut-il intervenir ?`,
+      status: 'question',
+      quickReplies: accountAddress ? [accountAddress] : [],
+      draft, source: 'heuristique',
+    };
+  }
+  return {
+    reply: 'Voici votre mission. Vérifiez-la et complétez la description si besoin, puis publiez.',
+    status: 'ready', quickReplies: [], draft, source: 'heuristique',
+  };
+}
+
+// --- Entry point -----------------------------------------------------------
+
+async function runAssistantTurn({ conversation, scope, brandName, accountAddress, detectedAddress }) {
+  const anthropic = getClient();
+  const categories = scopeCategories(await loadCatalog(), scope);
+  if (!anthropic) return heuristicTurn({ conversation, categories, accountAddress, detectedAddress });
+  const today = new Date().toISOString().slice(0, 10);
+
+  let message;
+  try {
+    message = await anthropic.beta.messages.create({
+      model: MODEL,
+      max_tokens: 16000,
+      betas: ['server-side-fallback-2026-07-01'],
+      fallbacks: 'default',
+      output_config: { effort: 'low', format: { type: 'json_schema', schema: OUTPUT_SCHEMA } },
+      system: [{
+        type: 'text',
+        text: systemPrompt({ catalogText: renderCatalog(categories), brandName }),
+        cache_control: { type: 'ephemeral' },
+      }],
+      messages: buildMessages(conversation, contextLines({ today, accountAddress, detectedAddress, scope })),
+    });
+  } catch (apiErr) {
+    console.error('[missionAssistant] API error', apiErr?.status, apiErr?.message);
+    return heuristicTurn({ conversation, categories, accountAddress, detectedAddress });
+  }
+
+  if (message.stop_reason === 'refusal') {
+    return {
+      reply: "Je ne peux pas vous aider pour cette demande. Décrivez-moi plutôt un service dont vous avez besoin à domicile.",
+      status: 'question', quickReplies: [], draft: null,
+    };
+  }
+  const text = message.content.find((b) => b.type === 'text')?.text;
+  let parsed;
+  try { parsed = JSON.parse(text); } catch {
+    return heuristicTurn({ conversation, categories, accountAddress, detectedAddress });
+  }
+
+  const draft = normalizeDraft(parsed.mission || {}, categories);
+  const ready = parsed.status === 'ready' && draftIsPublishable(draft);
+  // The model said "ready" but forgot the one thing a jobber can't do
+  // without: ask for it instead of offering a draft that can't be published.
+  const reply = parsed.status === 'ready' && !ready && draft.categoryId && !draft.address
+    ? "Presque terminé ! À quelle adresse faut-il intervenir ?"
+    : parsed.reply;
+  return {
+    reply,
+    status: ready ? 'ready' : 'question',
+    quickReplies: ready ? [] : (parsed.quickReplies || []).slice(0, 4),
+    draft: draft.categoryId ? draft : null,
+    source: 'ia',
+  };
+}
+
+module.exports = { runAssistantTurn, normalizeDraft, renderCatalog, coerceDetail, heuristicTurn };

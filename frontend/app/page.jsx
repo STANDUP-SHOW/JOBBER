@@ -6,6 +6,7 @@ import { SEO_CATEGORIES } from '../lib/seoCategories';
 import { SEO_LESSON_CATEGORIES } from '../lib/seoLessonCategories';
 import AudienceBlock from '../components/AudienceBlock';
 import LaunchCountdown from '../components/LaunchCountdown';
+import MissionAssistant from '../components/MissionAssistant';
 
 async function getData() {
   try {
@@ -26,6 +27,19 @@ export default async function HomePage() {
 
   return (
     <div>
+      <section className="mb-6 grid grid-cols-1 items-center gap-6 md:grid-cols-5">
+        <div className="md:col-span-2">
+          <span className="rounded-full bg-moss-light px-3 py-1 text-xs font-bold uppercase tracking-wide text-moss">Nouveau · Assistant IA</span>
+          <h1 className="mt-3 font-display text-3xl font-bold leading-tight text-ink md:text-4xl">Décrivez votre besoin, votre mission est prête en une minute.</h1>
+          <p className="mt-3 text-base text-slate-600">
+            Une haie à tailler, une panne de voiture, un grand ménage : expliquez-le comme à un ami, ajoutez une photo. L'assistant pose une ou deux questions et publie la mission pour vous.
+          </p>
+        </div>
+        <div className="md:col-span-3">
+          <MissionAssistant compact />
+        </div>
+      </section>
+
       <AudienceBlock
         eyebrow="Vous avez un besoin ?"
         title="Publiez votre besoin, recevez des offres en quelques minutes."
