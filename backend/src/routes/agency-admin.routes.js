@@ -10,6 +10,7 @@ const { z } = require('zod');
 const bcrypt = require('bcryptjs');
 const prisma = require('../config/prisma');
 const { signToken, verifyToken } = require('../utils/jwt');
+const { isSuspended } = require('../admin/restrictions');
 const { REFUSAL_REASONS_JOBBER, generateCorporateCode, originHostFromRequest } = require('../utils/agency');
 const { geocodeAddress, haversineDistanceKm } = require('../services/geocodingService');
 const { getOneWayDistanceKm, AGENCY_DEPARTURE_ADDRESS } = require('../services/distanceService');
@@ -82,6 +83,7 @@ async function requireAgencyAuth(req, res, next) {
     const payload = verifyToken(token);
     const agency = await prisma.user.findUnique({ where: { id: payload.sub } });
     if (!agency || agency.companyType !== 'CORPORATE') return res.status(403).json({ error: 'Accès réservé aux agences corporate' });
+    if (await isSuspended(agency.id)) return res.status(403).json({ error: 'Compte suspendu. Contactez le support.' });
     req.agency = agency;
     next();
   } catch (err) {
@@ -133,6 +135,7 @@ router.post('/login', async (req, res, next) => {
       e.status = 401; e.expose = true; throw e;
     }
 
+    if (await isSuspended(agency.id)) { const e = new Error('Compte suspendu. Contactez le support.'); e.status = 403; e.expose = true; throw e; }
     await prisma.user.update({ where: { id: agency.id }, data: { adminPinFailedAttempts: 0, adminPinLockedUntil: null } });
     const token = signToken(agency);
     res.json({ token, agency: agencyPublicFields(agency) });

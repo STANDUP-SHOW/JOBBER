@@ -187,100 +187,100 @@ enum AccessType {
 }
 
 model User {
-  id                String     @id @default(cuid())
-  email             String     @unique
-  passwordHash      String?
-  firstName         String
-  lastName          String
-  phone             String?
-  role              Role       @default(MANAGER)
-  accountKind       AccountKind @default(INDIVIDUAL)
-  companyType       CompanyType?
-  companyName       String?
-  companySiret      String?    @unique
+  id                     String       @id @default(cuid())
+  email                  String       @unique
+  passwordHash           String?
+  firstName              String
+  lastName               String
+  phone                  String?
+  role                   Role         @default(MANAGER)
+  accountKind            AccountKind  @default(INDIVIDUAL)
+  companyType            CompanyType?
+  companyName            String?
+  companySiret           String?      @unique
   // Self-declared professional status (auto-entrepreneur/EI), asked once at
   // signup — distinct from the per-category "Professionnel" skill level set
   // later in the provider profile. Drives the "PRO" badge on public profiles.
-  isProfessional    Boolean    @default(false)
-  professionalSiret String?    @unique
-  avatarUrl         String?
-  address           String?
-  lat               Float?
-  lng               Float?
-  isEmailVerified   Boolean    @default(false)
-  resetToken           String?   @unique
-  resetTokenExpiresAt  DateTime?
-  googleId             String?   @unique
-  stripeCustomerId     String?   @unique
-  creditBalance        Float     @default(0)
-  referralCode         String?   @unique
-  referredById         String?
-  referredBy           User?     @relation("Referrals", fields: [referredById], references: [id])
-  referrals            User[]    @relation("Referrals")
-  referralEarned       Float     @default(0)
-  notifyPushNews          Boolean @default(true)
-  notifyEmailNews         Boolean @default(true)
-  notifyEmailPartners     Boolean @default(true)
-  notifySmsOffers         Boolean @default(false)
-  notifySmsCancellation   Boolean @default(true)
+  isProfessional         Boolean      @default(false)
+  professionalSiret      String?      @unique
+  avatarUrl              String?
+  address                String?
+  lat                    Float?
+  lng                    Float?
+  isEmailVerified        Boolean      @default(false)
+  resetToken             String?      @unique
+  resetTokenExpiresAt    DateTime?
+  googleId               String?      @unique
+  stripeCustomerId       String?      @unique
+  creditBalance          Float        @default(0)
+  referralCode           String?      @unique
+  referredById           String?
+  referredBy             User?        @relation("Referrals", fields: [referredById], references: [id])
+  referrals              User[]       @relation("Referrals")
+  referralEarned         Float        @default(0)
+  notifyPushNews         Boolean      @default(true)
+  notifyEmailNews        Boolean      @default(true)
+  notifyEmailPartners    Boolean      @default(true)
+  notifySmsOffers        Boolean      @default(false)
+  notifySmsCancellation  Boolean      @default(true)
   // Distinct from the "news/bons plans" toggles above: gates the
   // activity-driven notifications (offer received, mission starting soon,
   // payment received…) — see notificationService.js.
-  notifyPushActivity      Boolean @default(true)
-  notifyEmailActivity     Boolean @default(true)
+  notifyPushActivity     Boolean      @default(true)
+  notifyEmailActivity    Boolean      @default(true)
   // Corporate agency admin login (e.g. Services 34) — a second, separate
   // credential pair (identifiant + PIN) used only for admin.<site> access,
   // independent of the account's normal email/password. Null for every
   // account that isn't a corporate agency admin.
-  adminLoginId            String?   @unique
-  adminPinHash            String?
-  adminPinFailedAttempts  Int       @default(0)
-  adminPinLockedUntil     DateTime?
+  adminLoginId           String?      @unique
+  adminPinHash           String?
+  adminPinFailedAttempts Int          @default(0)
+  adminPinLockedUntil    DateTime?
   // Corporate agency's own service radius ("ma zone d'intervention"),
   // extensible up to 150 km — distinct from a jobber's ProviderProfile.radiusKm.
-  serviceRadiusKm         Int?      @default(50)
+  serviceRadiusKm        Int?         @default(50)
   // Hostname of this agency's white-label site (e.g. "services34.fr").
   // Missions created via requests whose Origin matches this domain are
   // attributed to this agency server-side — never trusted from the client,
   // so one white-label site can never spoof another's missions. Scales to
   // any number of future corporate sites without touching client code.
-  agencyDomain            String?   @unique
+  agencyDomain           String?      @unique
   // "Information entreprise" block in Paramètres — legal/company details
   // shown on the agency's own account, separate from companySiret/companyName
   // above (kept for the pre-existing entreprise/manager account flow).
-  siegeSocialAddress      String?
-  siegeSocialCity         String?
-  siegeSocialDepartement  String?
-  representantCivilite    String?
-  representantNom         String?
-  representantPrenom      String?
-  jobberLicenseNumber     String?
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  siegeSocialAddress     String?
+  siegeSocialCity        String?
+  siegeSocialDepartement String?
+  representantCivilite   String?
+  representantNom        String?
+  representantPrenom     String?
+  jobberLicenseNumber    String?
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
 
-  providerProfile   ProviderProfile?
-  subscriptions     Subscription[]
-  missions          Mission[]        @relation("ClientMissions")
-  offers            Offer[]          @relation("ProviderOffers")
-  bookingsAsClient  Booking[]        @relation("ClientBookings")
-  bookingsAsProvider Booking[]       @relation("ProviderBookings")
-  sentMessages      Message[]        @relation("SentMessages")
-  reviewsWritten    Review[]         @relation("ReviewAuthor")
-  reviewsReceived   Review[]         @relation("ReviewTarget")
-  documents         VerificationDocument[]
-  conversationsAsClient   Conversation[] @relation("ConvClient")
-  conversationsAsProvider Conversation[] @relation("ConvProvider")
-  favoritesAsManager  Favorite[] @relation("FavoritesByManager")
-  favoritedAsProvider Favorite[] @relation("FavoritedProvider")
-  agencyMissions      Mission[]  @relation("CorporateAgencyMissions")
-  agencyEmployees     AgencyEmployee[] @relation("AgencyEmployer")
-  employedByAgencies  AgencyEmployee[] @relation("AgencyEmployeeOf")
-  agencyInvoices      Invoice[]  @relation("AgencyInvoices")
-  agencyPlannings     Planning[] @relation("AgencyPlannings")
-  contactMessagesSent    ContactMessage[] @relation("ContactMessageSender")
-  contactMessagesToAgency ContactMessage[] @relation("ContactMessageAgency")
-  notifications          Notification[]
-  pushSubscriptions      PushSubscription[]
+  providerProfile         ProviderProfile?
+  subscriptions           Subscription[]
+  missions                Mission[]              @relation("ClientMissions")
+  offers                  Offer[]                @relation("ProviderOffers")
+  bookingsAsClient        Booking[]              @relation("ClientBookings")
+  bookingsAsProvider      Booking[]              @relation("ProviderBookings")
+  sentMessages            Message[]              @relation("SentMessages")
+  reviewsWritten          Review[]               @relation("ReviewAuthor")
+  reviewsReceived         Review[]               @relation("ReviewTarget")
+  documents               VerificationDocument[]
+  conversationsAsClient   Conversation[]         @relation("ConvClient")
+  conversationsAsProvider Conversation[]         @relation("ConvProvider")
+  favoritesAsManager      Favorite[]             @relation("FavoritesByManager")
+  favoritedAsProvider     Favorite[]             @relation("FavoritedProvider")
+  agencyMissions          Mission[]              @relation("CorporateAgencyMissions")
+  agencyEmployees         AgencyEmployee[]       @relation("AgencyEmployer")
+  employedByAgencies      AgencyEmployee[]       @relation("AgencyEmployeeOf")
+  agencyInvoices          Invoice[]              @relation("AgencyInvoices")
+  agencyPlannings         Planning[]             @relation("AgencyPlannings")
+  contactMessagesSent     ContactMessage[]       @relation("ContactMessageSender")
+  contactMessagesToAgency ContactMessage[]       @relation("ContactMessageAgency")
+  notifications           Notification[]
+  pushSubscriptions       PushSubscription[]
 }
 
 // A manager bookmarking a jobber they'd like to work with again ("Mes
@@ -320,29 +320,29 @@ model Subscription {
 }
 
 model ProviderProfile {
-  id                  String              @id @default(cuid())
-  userId              String              @unique
-  user                User                @relation(fields: [userId], references: [id])
-  radiusKm            Int                 @default(15)
-  verificationStatus  VerificationStatus  @default(UNVERIFIED)
-  ratingAverage       Float               @default(0)
-  ratingCount         Int                 @default(0)
-  completedMissions   Int                 @default(0)
-  walletBalance       Float               @default(0)
-  autoApply           Boolean             @default(false)
-  offersLessons       Boolean             @default(false)
-  stripeAccountId     String?             @unique
-  payoutsEnabled      Boolean             @default(false)
-  bankLast4           String?
-  bankHolderName      String?
-  autoPayout          Boolean             @default(false)
-  siret               String?             @unique
-  categories          ProviderCategory[]
-  services            ProviderService[]
-  equipment           ProviderEquipment[]
-  vehicles            ProviderVehicle[]
-  payouts             Payout[]
-  createdAt           DateTime            @default(now())
+  id                 String              @id @default(cuid())
+  userId             String              @unique
+  user               User                @relation(fields: [userId], references: [id])
+  radiusKm           Int                 @default(15)
+  verificationStatus VerificationStatus  @default(UNVERIFIED)
+  ratingAverage      Float               @default(0)
+  ratingCount        Int                 @default(0)
+  completedMissions  Int                 @default(0)
+  walletBalance      Float               @default(0)
+  autoApply          Boolean             @default(false)
+  offersLessons      Boolean             @default(false)
+  stripeAccountId    String?             @unique
+  payoutsEnabled     Boolean             @default(false)
+  bankLast4          String?
+  bankHolderName     String?
+  autoPayout         Boolean             @default(false)
+  siret              String?             @unique
+  categories         ProviderCategory[]
+  services           ProviderService[]
+  equipment          ProviderEquipment[]
+  vehicles           ProviderVehicle[]
+  payouts            Payout[]
+  createdAt          DateTime            @default(now())
 }
 
 // A jobber's request to move their wallet balance to their bank account.
@@ -350,28 +350,28 @@ model ProviderProfile {
 // jobber never sees a Stripe-branded page — everything is collected and
 // triggered from our own UI.
 model Payout {
-  id               String       @id @default(cuid())
+  id               String          @id @default(cuid())
   providerId       String
   provider         ProviderProfile @relation(fields: [providerId], references: [id])
   amount           Float
-  status           PayoutStatus @default(PENDING)
+  status           PayoutStatus    @default(PENDING)
   stripeTransferId String?
-  stripePayoutId   String?      @unique
+  stripePayoutId   String?         @unique
   failureReason    String?
-  createdAt        DateTime     @default(now())
+  createdAt        DateTime        @default(now())
   completedAt      DateTime?
 }
 
 model Category {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  slug        String   @unique
-  icon        String?
-  services    Service[]
-  equipment   Equipment[]
-  missions    Mission[]
-  providers   ProviderCategory[]
-  plannings   Planning[]
+  id        String             @id @default(cuid())
+  name      String             @unique
+  slug      String             @unique
+  icon      String?
+  services  Service[]
+  equipment Equipment[]
+  missions  Mission[]
+  providers ProviderCategory[]
+  plannings Planning[]
 }
 
 // An agency's own work calendar — missions "mises au planning" land here so
@@ -388,7 +388,7 @@ model Planning {
   category   Category? @relation(fields: [categoryId], references: [id])
   createdAt  DateTime  @default(now())
 
-  missions   Mission[]
+  missions Mission[]
 
   @@unique([agencyId, name])
 }
@@ -396,24 +396,24 @@ model Planning {
 // A piece of equipment/tooling typically needed for a category — the jobber
 // checks off which of these they personally own ("Matériel que je possède").
 model Equipment {
-  id          String   @id @default(cuid())
-  name        String
-  categoryId  String
-  category    Category @relation(fields: [categoryId], references: [id])
-  providers   ProviderEquipment[]
-  missions    MissionEquipment[]
+  id         String              @id @default(cuid())
+  name       String
+  categoryId String
+  category   Category            @relation(fields: [categoryId], references: [id])
+  providers  ProviderEquipment[]
+  missions   MissionEquipment[]
 
   @@unique([categoryId, name])
 }
 
 model Service {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  categoryId  String
-  category    Category @relation(fields: [categoryId], references: [id])
-  missions    Mission[]
-  providers   ProviderService[]
+  id           String            @id @default(cuid())
+  name         String
+  slug         String            @unique
+  categoryId   String
+  category     Category          @relation(fields: [categoryId], references: [id])
+  missions     Mission[]
+  providers    ProviderService[]
   // Extra structured fields to collect at mission-publishing time for this
   // service, e.g. [{ key: 'surfaceM2', label: 'Surface', type: 'number',
   // unit: 'm²' }] — rendered dynamically, answers stored on Mission.details.
@@ -424,13 +424,13 @@ model Service {
 // skill level for that whole category (sub-service picks live separately
 // in ProviderService).
 model ProviderCategory {
-  id         String     @id @default(cuid())
+  id         String          @id @default(cuid())
   providerId String
   provider   ProviderProfile @relation(fields: [providerId], references: [id])
   categoryId String
-  category   Category   @relation(fields: [categoryId], references: [id])
-  level      SkillLevel @default(PASSIONNE)
-  hourlyRate Float      @default(15)
+  category   Category        @relation(fields: [categoryId], references: [id])
+  level      SkillLevel      @default(PASSIONNE)
+  hourlyRate Float           @default(15)
   bio        String?
 
   @@unique([providerId, categoryId])
@@ -438,11 +438,11 @@ model ProviderCategory {
 
 // Sub-category (Service) skills a jobber has checked off within a category.
 model ProviderService {
-  id         String   @id @default(cuid())
+  id         String          @id @default(cuid())
   providerId String
   provider   ProviderProfile @relation(fields: [providerId], references: [id])
   serviceId  String
-  service    Service  @relation(fields: [serviceId], references: [id])
+  service    Service         @relation(fields: [serviceId], references: [id])
 
   @@unique([providerId, serviceId])
 }
@@ -450,11 +450,11 @@ model ProviderService {
 // Equipment a jobber has checked off as owned within a category
 // ("Matériel que je possède").
 model ProviderEquipment {
-  id          String    @id @default(cuid())
+  id          String          @id @default(cuid())
   providerId  String
   provider    ProviderProfile @relation(fields: [providerId], references: [id])
   equipmentId String
-  equipment   Equipment @relation(fields: [equipmentId], references: [id])
+  equipment   Equipment       @relation(fields: [equipmentId], references: [id])
 
   @@unique([providerId, equipmentId])
 }
@@ -462,7 +462,7 @@ model ProviderEquipment {
 // A vehicle type the jobber has access to for missions requiring transport
 // ("Mes véhicules") — a fixed global list, not tied to a skill category.
 model ProviderVehicle {
-  id         String      @id @default(cuid())
+  id         String          @id @default(cuid())
   providerId String
   provider   ProviderProfile @relation(fields: [providerId], references: [id])
   type       VehicleType
@@ -471,95 +471,95 @@ model ProviderVehicle {
 }
 
 model Mission {
-  id             String        @id @default(cuid())
-  type           MissionType   @default(TASK)
-  clientId       String
-  client         User          @relation("ClientMissions", fields: [clientId], references: [id])
-  categoryId     String
-  category       Category      @relation(fields: [categoryId], references: [id])
-  serviceId      String?
-  service        Service?      @relation(fields: [serviceId], references: [id])
-  title          String
-  description    String
-  address        String
-  lat            Float?
-  lng            Float?
+  id                         String             @id @default(cuid())
+  type                       MissionType        @default(TASK)
+  clientId                   String
+  client                     User               @relation("ClientMissions", fields: [clientId], references: [id])
+  categoryId                 String
+  category                   Category           @relation(fields: [categoryId], references: [id])
+  serviceId                  String?
+  service                    Service?           @relation(fields: [serviceId], references: [id])
+  title                      String
+  description                String
+  address                    String
+  lat                        Float?
+  lng                        Float?
   // Only set for transport-type missions (déménagement, convoi, transport):
   // `address`/`lat`/`lng` above act as the departure point, and these
   // describe the arrival point so a route can be drawn between the two.
-  dropoffAddress String?
-  dropoffLat     Float?
-  dropoffLng     Float?
+  dropoffAddress             String?
+  dropoffLat                 Float?
+  dropoffLng                 Float?
   // Free-text access notes (code porte, étage…) — only ever shown to a
   // jobber once selected for the mission, never on the public listing.
-  accessInstructions String?
-  parkingDifficulty  ParkingDifficulty?
-  accessType         AccessType?
+  accessInstructions         String?
+  parkingDifficulty          ParkingDifficulty?
+  accessType                 AccessType?
   // How many people the poster expects to show up for this mission — purely
   // informational for the jobber, never validated/enforced.
-  numberOfPeople     Int? @default(1)
-  photos         String[]      @default([])
-  desiredDate    DateTime
-  estimatedHours Float         @default(1)
-  isUrgent       Boolean       @default(false)
-  datesFlexible  Boolean       @default(false)
+  numberOfPeople             Int?               @default(1)
+  photos                     String[]           @default([])
+  desiredDate                DateTime
+  estimatedHours             Float              @default(1)
+  isUrgent                   Boolean            @default(false)
+  datesFlexible              Boolean            @default(false)
   // Asked only when the selected équipement requis includes Échelle or
   // Escabeau (bricolage/jardinage) — flags a job that involves working at
   // height so the assigned jobber knows to expect it. Null when not asked.
-  workAtHeight   Boolean?
-  isRecurring     Boolean         @default(false)
-  recurrenceCount Int?
-  recurrenceUnit  RecurrenceUnit?
-  requiredVehicleTypes VehicleType[] @default([])
-  otherVehicleNote     String?
-  otherEquipmentNote   String?
+  workAtHeight               Boolean?
+  isRecurring                Boolean            @default(false)
+  recurrenceCount            Int?
+  recurrenceUnit             RecurrenceUnit?
+  requiredVehicleTypes       VehicleType[]      @default([])
+  otherVehicleNote           String?
+  otherEquipmentNote         String?
   // Company-only options (silently ignored server-side for individual
   // accounts). Multi-day: desiredDate is the start, missionEndDate the end.
   missionEndDate             DateTime?
   equipmentProvidedByCompany Boolean?
   ppeProvidedByCompany       Boolean?
-  requiredPpe                String[]  @default([])
+  requiredPpe                String[]           @default([])
   requiresMachine            Boolean?
-  requiredMachines           String[]  @default([])
+  requiredMachines           String[]           @default([])
   // "GET Mission": the company fixes the mission's total price up front —
   // non-negotiable, no offers/candidature. The first jobber to GET it is
   // assigned immediately (see POST /api/missions/:id/get).
-  isGetMission               Boolean   @default(false)
+  isGetMission               Boolean            @default(false)
   getMissionPrice            Float?
   // Answers to the selected service's detailFields (e.g. { hedgeHeightM: 1.5,
   // hedgeLengthM: 12 }) — keyed by field key, shape defined per-service.
-  details        Json?
-  status         MissionStatus @default(OPEN)
+  details                    Json?
+  status                     MissionStatus      @default(OPEN)
   // Set when this mission originated from a corporate white-label site
   // (e.g. services34.fr) rather than jobber.city directly. Null for
   // ordinary missions.
-  corporateAgencyId String?
-  corporateAgency   User?             @relation("CorporateAgencyMissions", fields: [corporateAgencyId], references: [id])
+  corporateAgencyId          String?
+  corporateAgency            User?              @relation("CorporateAgencyMissions", fields: [corporateAgencyId], references: [id])
   // "XX-AAAA-MM-123XX" — 2-letter category code, year, month, 3 random
   // digits + 2 random letters. Generated once, on creation, only for
   // corporate-agency missions.
-  corporateCode     String?           @unique
-  visibility        MissionVisibility @default(PUBLIC)
+  corporateCode              String?            @unique
+  visibility                 MissionVisibility  @default(PUBLIC)
   // "Mise au planning" — an agency assigns an in-progress mission to one of
   // its Plannings (per-category by default, or a named one like "Planning
   // Emily") to track who's doing what. Null until assigned.
-  planningId     String?
-  planning       Planning?     @relation(fields: [planningId], references: [id])
+  planningId                 String?
+  planning                   Planning?          @relation(fields: [planningId], references: [id])
   // Badge keys (see backend/src/utils/badges.js REQUIRABLE_BADGES) the
   // poster wants from a candidate jobber. Only PRO is actually enforced
   // when POSTing an offer — every other selectable badge is informational,
   // shown on mission tiles, and never blocks a candidature.
-  requiredBadges String[]      @default([])
-  difficulty     MissionDifficulty?
+  requiredBadges             String[]           @default([])
+  difficulty                 MissionDifficulty?
   // Marks one of the ~50 seeded showcase missions used for the national
   // presentation (scripts/seedNationalDemoMissions.js) — its stored
   // lat/lng/address are a fallback only; the public listing endpoints
   // relocate it near whoever is actually browsing (see
   // services/demoRelocationService.js) so the marketplace looks locally
   // populated from any city in France.
-  isDemoNational Boolean       @default(false)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  isDemoNational             Boolean            @default(false)
+  createdAt                  DateTime           @default(now())
+  updatedAt                  DateTime           @updatedAt
 
   offers            Offer[]
   booking           Booking?
@@ -588,12 +588,12 @@ model MissionScheduleEntry {
 // employés ?"). Powers "Mes employés" and the direct "Embaucher pour une
 // mission" flow (private mission + targeted offer, no public listing).
 model AgencyEmployee {
-  id        String   @id @default(cuid())
-  agencyId  String
-  agency    User     @relation("AgencyEmployer", fields: [agencyId], references: [id])
-  jobberId  String
-  jobber    User     @relation("AgencyEmployeeOf", fields: [jobberId], references: [id])
-  addedAt   DateTime @default(now())
+  id       String   @id @default(cuid())
+  agencyId String
+  agency   User     @relation("AgencyEmployer", fields: [agencyId], references: [id])
+  jobberId String
+  jobber   User     @relation("AgencyEmployeeOf", fields: [jobberId], references: [id])
+  addedAt  DateTime @default(now())
 
   @@unique([agencyId, jobberId])
 }
@@ -635,20 +635,20 @@ model MissionEquipment {
 }
 
 model Offer {
-  id          String      @id @default(cuid())
-  missionId   String
-  mission     Mission     @relation(fields: [missionId], references: [id])
-  providerId  String
-  provider    User        @relation("ProviderOffers", fields: [providerId], references: [id])
-  hourlyRate  Float
-  extraFees   Json?       // [{ key: 'displacement', label: 'Frais de route - Déplacement', amount: 15 }, ...] — optional paid options the jobber adds to their offer, see EXTRA_FEE_TYPES in offers.routes.js
+  id            String      @id @default(cuid())
+  missionId     String
+  mission       Mission     @relation(fields: [missionId], references: [id])
+  providerId    String
+  provider      User        @relation("ProviderOffers", fields: [providerId], references: [id])
+  hourlyRate    Float
+  extraFees     Json? // [{ key: 'displacement', label: 'Frais de route - Déplacement', amount: 15 }, ...] — optional paid options the jobber adds to their offer, see EXTRA_FEE_TYPES in offers.routes.js
   // Only set on "Mission Agence" offers, where the agency may revise the
   // client's originally requested hours upward (never downward) when
   // pricing the quote. Null means "use mission.estimatedHours", which is
   // always the case for normal marketplace offers.
-  hours       Float?
-  message     String?
-  status      OfferStatus @default(PENDING)
+  hours         Float?
+  message       String?
+  status        OfferStatus @default(PENDING)
   refusalReason String?
   // Set only when the jobber declined the client's originally requested
   // date/time on a datesFlexible mission — up to 2 alternative slots
@@ -663,35 +663,35 @@ model Offer {
   sourceOfferId String?
   sourceOffer   Offer?      @relation("OfferSource", fields: [sourceOfferId], references: [id])
   derivedOffers Offer[]     @relation("OfferSource")
-  createdAt   DateTime    @default(now())
+  createdAt     DateTime    @default(now())
 
   @@unique([missionId, providerId])
 }
 
 model Booking {
-  id             String        @id @default(cuid())
-  missionId      String        @unique
-  mission        Mission       @relation(fields: [missionId], references: [id])
-  offerId        String        @unique
-  clientId       String
-  client         User          @relation("ClientBookings", fields: [clientId], references: [id])
-  providerId     String
-  provider       User          @relation("ProviderBookings", fields: [providerId], references: [id])
-  scheduledDate  DateTime
-  hours          Float
-  hourlyRate     Float
-  totalAmount    Float
-  status         BookingStatus @default(SCHEDULED)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id            String        @id @default(cuid())
+  missionId     String        @unique
+  mission       Mission       @relation(fields: [missionId], references: [id])
+  offerId       String        @unique
+  clientId      String
+  client        User          @relation("ClientBookings", fields: [clientId], references: [id])
+  providerId    String
+  provider      User          @relation("ProviderBookings", fields: [providerId], references: [id])
+  scheduledDate DateTime
+  hours         Float
+  hourlyRate    Float
+  totalAmount   Float
+  status        BookingStatus @default(SCHEDULED)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
   // Set by the reminder cron job (see scripts/sendBookingReminders.js) once
   // each reminder has actually been sent, so a booking never gets the same
   // "starts in 24h/1h" notification twice across cron runs.
-  reminded24hAt  DateTime?
-  reminded1hAt   DateTime?
+  reminded24hAt DateTime?
+  reminded1hAt  DateTime?
 
-  payment        Payment?
-  review         Review?
+  payment Payment?
+  review  Review?
 }
 
 model Payment {
@@ -718,15 +718,15 @@ model Payment {
 }
 
 model Conversation {
-  id          String     @id @default(cuid())
-  missionId   String
-  mission     Mission    @relation(fields: [missionId], references: [id])
-  clientId    String
-  client      User       @relation("ConvClient", fields: [clientId], references: [id])
-  providerId  String
-  provider    User       @relation("ConvProvider", fields: [providerId], references: [id])
-  messages    Message[]
-  createdAt   DateTime   @default(now())
+  id         String    @id @default(cuid())
+  missionId  String
+  mission    Mission   @relation(fields: [missionId], references: [id])
+  clientId   String
+  client     User      @relation("ConvClient", fields: [clientId], references: [id])
+  providerId String
+  provider   User      @relation("ConvProvider", fields: [providerId], references: [id])
+  messages   Message[]
+  createdAt  DateTime  @default(now())
 
   @@unique([missionId, providerId])
 }
@@ -787,27 +787,27 @@ model AdminSectionView {
 }
 
 model Review {
-  id         String   @id @default(cuid())
-  bookingId  String   @unique
-  booking    Booking  @relation(fields: [bookingId], references: [id])
-  authorId   String
-  author     User     @relation("ReviewAuthor", fields: [authorId], references: [id])
-  targetId   String
-  target     User     @relation("ReviewTarget", fields: [targetId], references: [id])
-  rating     Int
-  comment    String?
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  bookingId String   @unique
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+  authorId  String
+  author    User     @relation("ReviewAuthor", fields: [authorId], references: [id])
+  targetId  String
+  target    User     @relation("ReviewTarget", fields: [targetId], references: [id])
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
 }
 
 model VerificationDocument {
-  id         String              @id @default(cuid())
+  id         String             @id @default(cuid())
   userId     String
-  user       User                @relation(fields: [userId], references: [id])
+  user       User               @relation(fields: [userId], references: [id])
   type       DocumentType
   fileUrl    String
-  status     VerificationStatus  @default(PENDING)
+  status     VerificationStatus @default(PENDING)
   reviewedAt DateTime?
-  createdAt  DateTime            @default(now())
+  createdAt  DateTime           @default(now())
 }
 
 // In-app feed backing the header bell — one row per activity event (offer
@@ -841,4 +841,76 @@ model PushSubscription {
   p256dh    String
   auth      String
   createdAt DateTime @default(now())
+}
+
+// --- Jobber Admin Factory (desktop back-office, /api/admin/v1) ---
+// New tables only, keyed by plain string ids with no relation back to
+// existing models, so deploying this code before `prisma db push` never
+// touches a column an existing query reads. The admin API answers 503
+// "migration requise" for these features until the tables exist.
+
+// Which permission template an ADMIN account uses (see
+// src/admin/permissions.js ROLE_TEMPLATES). An ADMIN user with no row here
+// is treated as a legacy owner, which is what every ADMIN account already
+// was on the web /admin.
+model AdminAccess {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  roleKey     String
+  // Reserved for platform/territory scoping: { platforms: [...] }.
+  scope       Json?
+  active      Boolean  @default(true)
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Append-only admin journal: no route updates or deletes rows. `diff` holds
+// before/after values with sensitive keys redacted (see src/admin/audit.js).
+model AuditEvent {
+  id            String   @id @default(cuid())
+  actorId       String?
+  actorType     String   @default("HUMAN")
+  actorLabel    String?
+  action        String
+  permission    String?
+  objectType    String
+  objectId      String?
+  reason        String?
+  diff          Json?
+  result        String   @default("SUCCESS")
+  correlationId String
+  createdAt     DateTime @default(now())
+
+  @@index([objectType, objectId])
+  @@index([actorId, createdAt])
+  @@index([createdAt])
+}
+
+// Internal admin notes on any object (user, mission, contact message…),
+// never shown to the customer.
+model AdminNote {
+  id         String   @id @default(cuid())
+  objectType String
+  objectId   String
+  authorId   String
+  body       String
+  createdAt  DateTime @default(now())
+
+  @@index([objectType, objectId])
+}
+
+// A suspension of an account. Active while liftedAt is null; lifting keeps
+// the row so the history stays visible on the user's 360 view.
+model AccountRestriction {
+  id          String    @id @default(cuid())
+  userId      String
+  reason      String
+  createdById String
+  createdAt   DateTime  @default(now())
+  liftedAt    DateTime?
+  liftedById  String?
+  liftReason  String?
+
+  @@index([userId, liftedAt])
 }
