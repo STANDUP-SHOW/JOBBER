@@ -10,7 +10,13 @@
 const Anthropic = require('@anthropic-ai/sdk');
 const prisma = require('../config/prisma');
 
-const MODEL = 'claude-opus-5-5';
+// Sonnet, as validated for the Emergent prototypes: fast enough for a
+// chat, and the catalog-matching job doesn't need a bigger model.
+const MODEL = 'claude-sonnet-5-5';
+// Price ranges are off by default (the Emergent assistants were forbidden
+// to quote a price, the jobbers do); set ASSISTANT_SHOW_PRICE=true to show
+// a Mecanow-style indicative range on the mission card.
+const SHOW_PRICE = process.env.ASSISTANT_SHOW_PRICE === 'true';
 const CATALOG_TTL_MS = 10 * 60 * 1000;
 
 let client;
@@ -18,13 +24,6 @@ function getClient() {
   if (!process.env.ANTHROPIC_API_KEY) return null;
   if (!client) client = new Anthropic();
   return client;
-}
-
-function exposed(message, status) {
-  const err = new Error(message);
-  err.status = status;
-  err.expose = true;
-  return err;
 }
 
 // --- Catalog -----------------------------------------------------------
@@ -100,8 +99,9 @@ Règles de remplissage :
 - address : l'adresse d'intervention si elle est connue (donnée par la personne, ou adresse du compte / position détectée qu'elle a confirmée), sinon null. Si une adresse de compte ou une position détectée est fournie dans le contexte, propose-la dans ta question (« C'est bien au 12 rue… ? ») au lieu de demander l'adresse à froid.
 
 Estimation (estimate), à remplir dès que la prestation est identifiée, comme un artisan qui annonce un ordre de grandeur :
-- priceMin / priceMax : fourchette réaliste en euros TTC pour le marché français, main-d'œuvre comprise, et pièces comprises si la réparation en demande. null si tu ne peux vraiment pas estimer.
-- duration : durée d'intervention en clair (ex. « 2 à 3 h »).
+${SHOW_PRICE
+    ? "- priceMin / priceMax : fourchette réaliste en euros TTC pour le marché français, main-d'œuvre comprise, et pièces comprises si la réparation en demande. null si tu ne peux vraiment pas estimer.\n"
+    : "- priceMin / priceMax : toujours null. Ne donne jamais de prix ni de tarif, nulle part (ni dans reply ni dans la description) : ce sont les jobbers qui font leur offre.\n"}- duration : durée d'intervention en clair (ex. « 2 à 3 h »).
 - diagnostic : pour une panne ou une réparation, 1 à 2 phrases sur le problème le plus probable ; sinon null. Pour un moteur (voyant, calage, fumée, claquement, surchauffe, perte de puissance), raisonne sur allumage, injection, distribution, refroidissement, turbo et culasse.
 - causes : jusqu'à 3 causes probables courtes pour une panne, sinon une liste vide.
 - advice : un conseil de sécurité ou pratique utile (ex. « Évitez de rouler en attendant »), sinon null.
@@ -288,8 +288,8 @@ function normalizeEstimate(raw) {
   max = Number.isFinite(max) && max > 0 ? Math.round(max) : null;
   if (min && max && min > max) [min, max] = [max, min];
   const estimate = {
-    priceMin: min || max,
-    priceMax: max || min,
+    priceMin: SHOW_PRICE ? (min || max) : null,
+    priceMax: SHOW_PRICE ? (max || min) : null,
     duration: raw.duration?.trim() || null,
     diagnostic: raw.diagnostic?.trim() || null,
     causes: (raw.causes || []).map((c) => c.trim()).filter(Boolean).slice(0, 3),
@@ -305,13 +305,78 @@ function draftIsPublishable(draft) {
     && draft.address && draft.address.length >= 3);
 }
 
+// --- Keyword fallback ------------------------------------------------------
+
+// When the model is unreachable (no key, API down, unparsable answer) the
+// flow must not break: match the words against the catalog's service and
+// category names, keep the person's own text as the description, and only
+// ask for the address. Same response shape, flagged source: 'heuristique'.
+const fold = (t) => (t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const keywords = (t) => fold(t).split(/[^a-z0-9]+/).filter((w) => w.length >= 4);
+
+function heuristicTurn({ conversation, categories, accountAddress, detectedAddress }) {
+  const userTurns = conversation.filter((t) => t.role === 'user');
+  // The reply to our own address question is the address; everything else
+  // the person typed describes the need.
+  const lastAssistant = conversation.filter((t) => t.role === 'assistant').pop();
+  const answeredAddress = /adresse/i.test(lastAssistant?.text || '');
+  const answered = answeredAddress ? userTurns[userTurns.length - 1].text.trim() : '';
+  const needTurns = answeredAddress ? userTurns.slice(0, -1) : userTurns;
+  const need = needTurns.map((t) => t.text.trim()).filter((t) => t.length >= 10).join(' ')
+    || needTurns.map((t) => t.text.trim()).join(' ');
+  const words = new Set(keywords(userTurns.map((t) => t.text).join(' ')).map((w) => w.replace(/s$/, '')));
+  const score = (name) => keywords(name).filter((w) => words.has(w.replace(/s$/, ''))).length;
+
+  let best = null;
+  for (const cat of categories) {
+    const catScore = score(cat.name) + score(cat.slug.replace(/-/g, ' '));
+    for (const svc of cat.services) {
+      const total = score(svc.name) * 2 + catScore;
+      if (total > 0 && (!best || total > best.total)) best = { cat, svc, total };
+    }
+    if (catScore > 0 && (!best || catScore > best.total)) best = { cat, svc: null, total: catScore };
+  }
+
+  const address = answered.length >= 5 ? answered : (accountAddress || detectedAddress || null);
+  const draft = best && normalizeDraft({
+    categorySlug: best.cat.slug,
+    serviceSlug: best.svc?.slug || null,
+    title: need.split(/[.!?\n]/)[0].slice(0, 70) || best.svc?.name || best.cat.name,
+    description: need.length >= 10 ? need : `${best.svc?.name || best.cat.name} : ${need}`,
+    estimatedHours: 2,
+    isUrgent: /urgent/i.test(need),
+    desiredDate: null,
+    address,
+    details: [],
+    estimate: null,
+  }, categories);
+
+  if (!draft) {
+    return {
+      reply: "Je n'ai pas bien saisi le type de service. Pouvez-vous le préciser en quelques mots (ménage, jardinage, bricolage, mécanique…) ?",
+      status: 'question', quickReplies: [], draft: null, source: 'heuristique',
+    };
+  }
+  if (!draftIsPublishable(draft)) {
+    return {
+      reply: `Je note : ${draft.serviceName || draft.categoryName}. À quelle adresse faut-il intervenir ?`,
+      status: 'question',
+      quickReplies: accountAddress ? [accountAddress] : [],
+      draft, source: 'heuristique',
+    };
+  }
+  return {
+    reply: 'Voici votre mission. Vérifiez-la et complétez la description si besoin, puis publiez.',
+    status: 'ready', quickReplies: [], draft, source: 'heuristique',
+  };
+}
+
 // --- Entry point -----------------------------------------------------------
 
 async function runAssistantTurn({ conversation, scope, brandName, accountAddress, detectedAddress }) {
   const anthropic = getClient();
-  if (!anthropic) throw exposed("L'assistant IA est indisponible pour le moment.", 503);
-
   const categories = scopeCategories(await loadCatalog(), scope);
+  if (!anthropic) return heuristicTurn({ conversation, categories, accountAddress, detectedAddress });
   const today = new Date().toISOString().slice(0, 10);
 
   let message;
@@ -331,7 +396,7 @@ async function runAssistantTurn({ conversation, scope, brandName, accountAddress
     });
   } catch (apiErr) {
     console.error('[missionAssistant] API error', apiErr?.status, apiErr?.message);
-    throw exposed("L'assistant n'a pas pu répondre, réessayez dans un instant.", 502);
+    return heuristicTurn({ conversation, categories, accountAddress, detectedAddress });
   }
 
   if (message.stop_reason === 'refusal') {
@@ -343,7 +408,7 @@ async function runAssistantTurn({ conversation, scope, brandName, accountAddress
   const text = message.content.find((b) => b.type === 'text')?.text;
   let parsed;
   try { parsed = JSON.parse(text); } catch {
-    throw exposed("L'assistant n'a pas pu répondre, réessayez dans un instant.", 502);
+    return heuristicTurn({ conversation, categories, accountAddress, detectedAddress });
   }
 
   const draft = normalizeDraft(parsed.mission || {}, categories);
@@ -358,7 +423,8 @@ async function runAssistantTurn({ conversation, scope, brandName, accountAddress
     status: ready ? 'ready' : 'question',
     quickReplies: ready ? [] : (parsed.quickReplies || []).slice(0, 4),
     draft: draft.categoryId ? draft : null,
+    source: 'ia',
   };
 }
 
-module.exports = { runAssistantTurn, normalizeDraft, renderCatalog, coerceDetail };
+module.exports = { runAssistantTurn, normalizeDraft, renderCatalog, coerceDetail, heuristicTurn };
