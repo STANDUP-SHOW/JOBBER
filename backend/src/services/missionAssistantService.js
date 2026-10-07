@@ -99,6 +99,13 @@ Règles de remplissage :
 - desiredDate : AAAA-MM-JJ si la personne a donné une date ou un délai, sinon null. isUrgent : true seulement si elle dit que c'est urgent.
 - address : l'adresse d'intervention si elle est connue (donnée par la personne, ou adresse du compte / position détectée qu'elle a confirmée), sinon null. Si une adresse de compte ou une position détectée est fournie dans le contexte, propose-la dans ta question (« C'est bien au 12 rue… ? ») au lieu de demander l'adresse à froid.
 
+Estimation (estimate), à remplir dès que la prestation est identifiée, comme un artisan qui annonce un ordre de grandeur :
+- priceMin / priceMax : fourchette réaliste en euros TTC pour le marché français, main-d'œuvre comprise, et pièces comprises si la réparation en demande. null si tu ne peux vraiment pas estimer.
+- duration : durée d'intervention en clair (ex. « 2 à 3 h »).
+- diagnostic : pour une panne ou une réparation, 1 à 2 phrases sur le problème le plus probable ; sinon null. Pour un moteur (voyant, calage, fumée, claquement, surchauffe, perte de puissance), raisonne sur allumage, injection, distribution, refroidissement, turbo et culasse.
+- causes : jusqu'à 3 causes probables courtes pour une panne, sinon une liste vide.
+- advice : un conseil de sécurité ou pratique utile (ex. « Évitez de rouler en attendant »), sinon null.
+
 Ton :
 - reply : en français, chaleureux et très bref (2 phrases max). Quand le statut est "ready", résume en une phrase et invite à vérifier puis publier.
 - quickReplies : 0 à 4 réponses courtes que la personne pourrait toucher pour répondre à ta question (ex. « Oui, évacuer les déchets », « Non »). Vide si le statut est "ready".
@@ -121,7 +128,7 @@ const OUTPUT_SCHEMA = {
     mission: {
       type: 'object',
       additionalProperties: false,
-      required: ['categorySlug', 'serviceSlug', 'title', 'description', 'estimatedHours', 'isUrgent', 'desiredDate', 'address', 'details'],
+      required: ['categorySlug', 'serviceSlug', 'title', 'description', 'estimatedHours', 'isUrgent', 'desiredDate', 'address', 'estimate', 'details'],
       properties: {
         categorySlug: nullable({ type: 'string' }),
         serviceSlug: nullable({ type: 'string' }),
@@ -131,6 +138,19 @@ const OUTPUT_SCHEMA = {
         isUrgent: { type: 'boolean' },
         desiredDate: nullable({ type: 'string' }),
         address: nullable({ type: 'string' }),
+        estimate: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['priceMin', 'priceMax', 'duration', 'diagnostic', 'causes', 'advice'],
+          properties: {
+            priceMin: nullable({ type: 'number' }),
+            priceMax: nullable({ type: 'number' }),
+            duration: nullable({ type: 'string' }),
+            diagnostic: nullable({ type: 'string' }),
+            causes: { type: 'array', items: { type: 'string' } },
+            advice: nullable({ type: 'string' }),
+          },
+        },
         details: {
           type: 'array',
           items: {
@@ -254,7 +274,29 @@ function normalizeDraft(raw, categories) {
     address: raw.address?.trim() || null,
     details,
     detailsDisplay,
+    estimate: normalizeEstimate(raw.estimate),
   };
+}
+
+// Indicative only, shown to the requester (like Mecanow's estimate card) —
+// never stored on the mission, so it can't anchor the jobbers' offers.
+function normalizeEstimate(raw) {
+  if (!raw) return null;
+  let min = Number(raw.priceMin);
+  let max = Number(raw.priceMax);
+  min = Number.isFinite(min) && min > 0 ? Math.round(min) : null;
+  max = Number.isFinite(max) && max > 0 ? Math.round(max) : null;
+  if (min && max && min > max) [min, max] = [max, min];
+  const estimate = {
+    priceMin: min || max,
+    priceMax: max || min,
+    duration: raw.duration?.trim() || null,
+    diagnostic: raw.diagnostic?.trim() || null,
+    causes: (raw.causes || []).map((c) => c.trim()).filter(Boolean).slice(0, 3),
+    advice: raw.advice?.trim() || null,
+  };
+  const empty = !estimate.priceMin && !estimate.duration && !estimate.diagnostic && !estimate.causes.length;
+  return empty ? null : estimate;
 }
 
 function draftIsPublishable(draft) {

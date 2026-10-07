@@ -57,8 +57,42 @@ export default function MissionAssistant({
   const [thinking, setThinking] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState('');
+  const [listening, setListening] = useState(false);
+  const [canDictate, setCanDictate] = useState(false);
   const fileRef = useRef(null);
   const endRef = useRef(null);
+  const recognitionRef = useRef(null);
+
+  // Voice input via the browser's Web Speech API (Chrome, Edge, Safari):
+  // the transcript lands in the same text box, so it goes through exactly
+  // the same pipeline as typing. Hidden where the API doesn't exist.
+  useEffect(() => {
+    setCanDictate(typeof window !== 'undefined' && !!(window.SpeechRecognition || window.webkitSpeechRecognition));
+    return () => recognitionRef.current?.abort();
+  }, []);
+
+  function toggleDictation() {
+    if (listening) { recognitionRef.current?.stop(); return; }
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!Recognition) return;
+    const recognition = new Recognition();
+    recognition.lang = 'fr-FR';
+    recognition.interimResults = true;
+    recognition.continuous = true;
+    const before = input ? `${input.trim()} ` : '';
+    recognition.onresult = (e) => {
+      const transcript = Array.from(e.results).map((r) => r[0].transcript).join('');
+      setInput(before + transcript);
+    };
+    recognition.onerror = (e) => {
+      if (e.error === 'not-allowed') setError("Autorisez l'accès au micro pour dicter votre message.");
+    };
+    recognition.onend = () => setListening(false);
+    recognitionRef.current = recognition;
+    setError('');
+    setListening(true);
+    recognition.start();
+  }
 
   // Restored after mount (not in the initial state) so the server-rendered
   // HTML and the first client render match.
@@ -92,6 +126,7 @@ export default function MissionAssistant({
   async function send(text) {
     const message = (text ?? input).trim();
     if ((!message && !pendingPhotos.length) || thinking) return;
+    recognitionRef.current?.stop();
     const next = [...conversation, { role: 'user', text: message, photos: pendingPhotos }];
     setConversation(next);
     setInput('');
@@ -259,6 +294,32 @@ export default function MissionAssistant({
                 ))}
               </dl>
             )}
+            {final.estimate && (
+              <div className="mt-3 rounded-lg bg-accent-light p-3 text-sm">
+                <div className="text-xs font-semibold uppercase tracking-wide text-accent-dark">Estimation IA</div>
+                {final.estimate.diagnostic && <p className="mt-1 text-ink">{final.estimate.diagnostic}</p>}
+                {final.estimate.causes.length > 0 && (
+                  <ul className="mt-1 list-inside list-disc text-slate-600">
+                    {final.estimate.causes.map((c) => <li key={c}>{c}</li>)}
+                  </ul>
+                )}
+                <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1">
+                  {final.estimate.priceMin && (
+                    <div>
+                      <span className="text-slate-400">Fourchette de prix </span>
+                      <span className="font-semibold text-ink">
+                        {final.estimate.priceMin === final.estimate.priceMax ? `~${final.estimate.priceMin} €` : `${final.estimate.priceMin} – ${final.estimate.priceMax} €`}
+                      </span>
+                    </div>
+                  )}
+                  {final.estimate.duration && (
+                    <div><span className="text-slate-400">Durée </span><span className="font-semibold text-ink">{final.estimate.duration}</span></div>
+                  )}
+                </div>
+                {final.estimate.advice && <p className="mt-1 italic text-slate-600">💡 {final.estimate.advice}</p>}
+                <p className="mt-1 text-xs text-slate-400">Estimation indicative : les jobbers vous feront leur propre offre.</p>
+              </div>
+            )}
             <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
               <label className="sm:col-span-3">
                 <span className="text-xs font-medium text-slate-400">Adresse</span>
@@ -347,13 +408,24 @@ export default function MissionAssistant({
           >
             📍
           </button>
+          {canDictate && (
+            <button
+              type="button"
+              onClick={toggleDictation}
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-lg hover:border-brand ${listening ? 'animate-pulse border-brand bg-brand text-white' : 'border-slate-200'}`}
+              aria-label={listening ? 'Arrêter la dictée' : 'Dicter mon message'}
+              title={listening ? 'Arrêter la dictée' : 'Dicter mon message'}
+            >
+              🎤
+            </button>
+          )}
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
             rows={1}
             maxLength={2000}
-            placeholder={started ? 'Votre réponse…' : "Ex. : j'ai besoin de quelqu'un pour tailler ma haie"}
+            placeholder={listening ? 'Je vous écoute…' : started ? 'Votre réponse…' : "Ex. : j'ai besoin de quelqu'un pour tailler ma haie"}
             className="max-h-32 min-h-[2.5rem] flex-1 resize-none rounded-2xl border border-slate-200 px-4 py-2 text-sm focus:border-brand focus:outline-none"
           />
           <button
