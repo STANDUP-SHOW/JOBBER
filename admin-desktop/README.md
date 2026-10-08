@@ -16,17 +16,12 @@ Pour macOS : lancer le workflow à la main (« Run workflow ») en cochant « Co
 L'application est installée pour l'utilisateur Windows courant uniquement. La session est chiffrée avec le
 coffre du système (DPAPI) ; le jeton n'est jamais exposé à l'interface.
 
-## Mettre le backend à jour (une fois)
+## Base de données
 
-L'API admin ajoute 4 tables (`AdminAccess`, `AuditEvent`, `AdminNote`, `AccountRestriction`) sans modifier les
-tables existantes. Après le déploiement du backend, lancer une fois sur Railway (service backend) :
-
-```bash
-npx prisma db push
-```
-
-Avant cette commande, la consultation fonctionne, mais suspensions, notes internes, journal d'audit et gestion
-des rôles répondent « migration requise ».
+L'API admin utilise 4 tables (`AdminAccess`, `AuditEvent`, `AdminNote`, `AccountRestriction`) sans modifier les
+tables existantes. Le backend les crée lui-même au démarrage si elles manquent (`backend/src/admin/ensureSchema.js`) :
+aucune commande à lancer sur Railway. Si la création échoue, les journaux Railway affichent
+« Admin schema bootstrap failed » et suspensions, notes internes, journal d'audit et rôles répondent « migration requise ».
 
 ## Développer
 
