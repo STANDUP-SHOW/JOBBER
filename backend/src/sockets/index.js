@@ -1,11 +1,13 @@
 const { verifyToken } = require('../utils/jwt');
 const prisma = require('../config/prisma');
+const { isSuspended } = require('../admin/restrictions');
 
 function initSockets(io) {
-  io.use((socket, next) => {
+  io.use(async (socket, next) => {
     try {
       const token = socket.handshake.auth?.token;
       const payload = verifyToken(token);
+      if (await isSuspended(payload.sub)) return next(new Error('Compte suspendu'));
       socket.user = { id: payload.sub, role: payload.role };
       next();
     } catch (err) {

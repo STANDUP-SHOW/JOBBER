@@ -3,6 +3,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const app = require('./app');
 const { initSockets } = require('./sockets');
+const { ensureAdminSchema } = require('./admin/ensureSchema');
 
 const PORT = process.env.PORT || 4000;
 
@@ -31,4 +32,5 @@ initSockets(io);
 
 server.listen(PORT, () => {
   console.log(`Jobber API listening on http://localhost:${PORT}`);
+  ensureAdminSchema();
 });

@@ -6,6 +6,7 @@ const { OAuth2Client } = require('google-auth-library');
 const prisma = require('../config/prisma');
 const { signToken } = require('../utils/jwt');
 const { requireAuth } = require('../middleware/auth');
+const { isSuspended } = require('../admin/restrictions');
 const { sendPasswordResetEmail, sendWelcomeEmail } = require('../services/emailService');
 const { geocodeAddress } = require('../services/geocodingService');
 const { isValidSiret } = require('../utils/siret');
@@ -147,6 +148,7 @@ router.post('/login', async (req, res, next) => {
 
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) { const e = new Error('Identifiants invalides'); e.status = 401; e.expose = true; throw e; }
+    if (await isSuspended(user.id)) { const e = new Error('Compte suspendu. Contactez le support.'); e.status = 403; e.expose = true; throw e; }
 
     const token = signToken(user);
     res.json({ token, user: sanitize(user) });
@@ -277,6 +279,7 @@ router.post('/google', async (req, res, next) => {
     if (!credential) { const e = new Error('Jeton Google manquant'); e.status = 400; e.expose = true; throw e; }
 
     const user = await findOrCreateGoogleUser(credential);
+    if (await isSuspended(user.id)) { const e = new Error('Compte suspendu. Contactez le support.'); e.status = 403; e.expose = true; throw e; }
     const token = signToken(user);
     res.json({ token, user: sanitize(user) });
   } catch (err) {

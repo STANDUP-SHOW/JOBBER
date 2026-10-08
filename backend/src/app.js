@@ -14,6 +14,7 @@ const messagesRoutes = require('./routes/messages.routes');
 const reviewsRoutes = require('./routes/reviews.routes');
 const verificationRoutes = require('./routes/verification.routes');
 const adminRoutes = require('./routes/admin.routes');
+const adminV1Routes = require('./routes/admin-v1');
 const favoritesRoutes = require('./routes/favorites.routes');
 const agencyAdminRoutes = require('./routes/agency-admin.routes');
 const contactRoutes = require('./routes/contact.routes');
@@ -61,6 +62,9 @@ app.use('/api/payments', paymentsRoutes);
 app.use('/api/messages', messagesRoutes);
 app.use('/api/reviews', reviewsRoutes);
 app.use('/api/verification', verificationRoutes);
+// Mounted before /api/admin so the legacy router's ADMIN guard doesn't
+// answer for /api/admin/v1 paths first.
+app.use('/api/admin/v1', adminV1Routes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/favorites', favoritesRoutes);
 app.use('/api/agency-admin', agencyAdminRoutes);

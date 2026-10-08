@@ -1,0 +1,35 @@
+{
+  "name": "jobber-admin-factory",
+  "productName": "Jobber Admin Factory",
+  "version": "0.1.0",
+  "description": "Back-office administrateur de JobberPlus (application de bureau)",
+  "author": "JobberPlus",
+  "private": true,
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "check": "node scripts/check.js",
+    "dist:win": "electron-builder --win nsis --x64 --publish never",
+    "dist:mac": "electron-builder --mac dmg --publish never"
+  },
+  "devDependencies": {
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "fr.jobberplus.adminfactory",
+    "productName": "Jobber Admin Factory",
+    "artifactName": "Jobber-Admin-Factory-Setup-${version}.${ext}",
+    "directories": { "output": "dist", "buildResources": "build" },
+    "files": ["src/**/*", "package.json"],
+    "win": { "target": "nsis", "icon": "build/icon.png" },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Jobber Admin Factory"
+    },
+    "mac": { "target": "dmg", "icon": "build/icon.png", "category": "public.app-category.business" }
+  }
+}
