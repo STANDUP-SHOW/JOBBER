@@ -10,6 +10,7 @@ const { sendMissionPublishedEmail, notifyBookingAccepted } = require('../service
 const { notifyMissionPublished, notifyOfferAccepted } = require('../services/notificationService');
 const { relocateForViewer } = require('../services/demoRelocationService');
 const { publicProvider } = require('../utils/publicProvider');
+const { estimateMissionDuration } = require('../services/aiService');
 
 const router = express.Router();
 
@@ -159,6 +160,101 @@ const createMissionSchema = z.object({
 const TRANSPORT_CATEGORY_SLUGS = ['demenagement', 'convoi', 'transport'];
 
 // Create a mission — any authenticated account can post a job request
+// Each estimate is a paid Claude call and the form is usable before login,
+// so cap it per IP: 10 estimates per 10 minutes is plenty for one person.
+const ESTIMATE_WINDOW_MS = 10 * 60 * 1000;
+const ESTIMATE_MAX_PER_WINDOW = 10;
+const estimateHits = new Map();
+function estimateRateLimited(ip) {
+  const now = Date.now();
+  const hits = (estimateHits.get(ip) || []).filter((t) => now - t < ESTIMATE_WINDOW_MS);
+  hits.push(now);
+  estimateHits.set(ip, hits);
+  if (estimateHits.size > 5000) {
+    for (const [key, list] of estimateHits) {
+      if (!list.some((t) => now - t < ESTIMATE_WINDOW_MS)) estimateHits.delete(key);
+    }
+  }
+  return hits.length > ESTIMATE_MAX_PER_WINDOW;
+}
+
+function percentile(sorted, p) {
+  const idx = (sorted.length - 1) * p;
+  const lo = Math.floor(idx);
+  const hi = Math.ceil(idx);
+  return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
+}
+
+const estimateSchema = z.object({
+  categoryId: z.string().min(1),
+  serviceId: z.string().optional().nullable(),
+  title: z.string().max(200).optional().default(''),
+  description: z.string().max(4000).optional().default(''),
+  details: z.record(z.any()).optional().default({}),
+});
+
+// "Estimer avec l'IA" on the publishing form: the AI estimates the duration,
+// and the price range comes from the hourly rates real jobbers declared for
+// this category (25th–75th percentile), never from the model.
+router.post('/estimate', optionalAuth, async (req, res, next) => {
+  try {
+    const parsed = estimateSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: 'Choisissez une catégorie et décrivez la mission.' });
+    const { categoryId, serviceId, title, description, details } = parsed.data;
+    if (!title.trim() && !description.trim()) {
+      return res.status(400).json({ error: 'Ajoutez un titre ou une description pour obtenir une estimation.' });
+    }
+    // Railway sits in front of the app and Express doesn't trust proxies
+    // here, so req.ip is the proxy's: key on the client's forwarded address.
+    const clientIp = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.ip;
+    if (estimateRateLimited(req.user?.id || clientIp)) {
+      return res.status(429).json({ error: 'Trop d\'estimations d\'affilée, réessayez dans quelques minutes.' });
+    }
+
+    const category = await prisma.category.findUnique({ where: { id: categoryId } });
+    if (!category) return res.status(404).json({ error: 'Catégorie introuvable' });
+    const service = serviceId
+      ? await prisma.service.findFirst({ where: { id: serviceId, categoryId } })
+      : null;
+
+    const fields = Array.isArray(service?.detailFields) ? service.detailFields : [];
+    const detailList = Object.entries(details || {}).map(([key, value]) => {
+      const field = fields.find((f) => f.key === key);
+      return {
+        label: field?.label || key,
+        unit: field?.unit,
+        value: Array.isArray(value) ? value.join(', ') : typeof value === 'boolean' ? (value ? 'oui' : 'non') : String(value),
+      };
+    });
+
+    const duration = await estimateMissionDuration({
+      categoryName: category.name,
+      serviceName: service?.name,
+      title,
+      description,
+      details: detailList,
+    });
+
+    const rates = (await prisma.providerCategory.findMany({ where: { categoryId }, select: { hourlyRate: true } }))
+      .map((r) => r.hourlyRate)
+      .filter((r) => r > 0)
+      .sort((a, b) => a - b);
+    let hourlyRate = null;
+    let price = null;
+    if (rates.length >= 3) {
+      hourlyRate = { min: Math.round(percentile(rates, 0.25)), max: Math.round(percentile(rates, 0.75)) };
+      price = {
+        min: Math.round(hourlyRate.min * duration.minHours),
+        max: Math.round(hourlyRate.max * duration.maxHours),
+      };
+    }
+
+    res.json({ ...duration, hourlyRate, price, rateSampleSize: rates.length });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post('/', requireAuth, async (req, res, next) => {
   try {
     const { requiredEquipmentIds, dates, ...data } = createMissionSchema.parse(req.body);
