@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import CategoryShowcase from '../components/CategoryShowcase';
 import GuaranteesGrid from '../components/GuaranteesGrid';
+import MissionAssistant from '../components/MissionAssistant';
 
 const CATEGORIES = [
   {
@@ -83,9 +84,12 @@ export default function HomePage() {
           Bricolage, ménage, jardinage, piscine, conciergerie : décrivez votre besoin, un agent Services 34
           intervient chez vous, dans le pourtour biterrois.
         </p>
-        <div className="mt-7">
-          <Link href="/demande" className="inline-block rounded-md bg-brand px-6 py-3 font-medium text-white hover:bg-brand-dark">
-            Demander une intervention
+        <div className="mx-auto mt-7 max-w-2xl text-left">
+          <MissionAssistant compact />
+        </div>
+        <div className="mt-4">
+          <Link href="/demande" className="text-sm font-medium text-brand hover:underline">
+            Ou remplir le formulaire de demande
           </Link>
         </div>
       </section>
