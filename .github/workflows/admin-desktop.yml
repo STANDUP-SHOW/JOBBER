@@ -39,7 +39,10 @@ jobs:
       - uses: actions/upload-artifact@v6
         with:
           name: Jobber-Admin-Factory-Windows
-          path: admin-desktop/dist/*.exe
+          path: |
+            admin-desktop/dist/*.exe
+            admin-desktop/dist/*.msi
+          if-no-files-found: error
           retention-days: 30
 
   mac:

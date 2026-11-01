@@ -11,6 +11,8 @@ Elle parle uniquement à l'API `/api/admin/v1` du backend, réservée aux compte
    « Windows a protégé votre ordinateur » : cliquer sur **Informations complémentaires** puis **Exécuter quand même**.
 4. Se connecter avec l'email et le mot de passe d'un compte administrateur Jobber.
 
+Le même workflow produit aussi un `.msi` (`Jobber-Admin-Factory-x.y.z.msi`, installation pour l'utilisateur courant, sans droits admin).
+
 Pour macOS : lancer le workflow à la main (« Run workflow ») en cochant « Construire aussi la version macOS ».
 
 L'application est installée pour l'utilisateur Windows courant uniquement. La session est chiffrée avec le
