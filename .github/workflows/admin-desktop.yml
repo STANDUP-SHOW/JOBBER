@@ -39,7 +39,9 @@ jobs:
       - uses: actions/upload-artifact@v6
         with:
           name: Jobber-Admin-Factory-Windows
-          path: admin-desktop/dist/*.exe
+          path: |
+            admin-desktop/dist/*.exe
+            admin-desktop/dist/*.msi
           retention-days: 30
 
   mac:
