@@ -42,6 +42,7 @@ jobs:
           path: |
             admin-desktop/dist/*.exe
             admin-desktop/dist/*.msi
+          if-no-files-found: error
           retention-days: 30
 
   mac:
